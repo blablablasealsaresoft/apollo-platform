@@ -1,0 +1,22 @@
+# face_recognition Library Requirements
+# Apollo Platform - Facial Recognition Module
+
+# Core library
+face-recognition>=1.3.0
+
+# Dependencies
+dlib>=19.24.0
+numpy>=1.24.0
+Pillow>=10.0.0
+scipy>=1.11.0
+
+# Video processing
+opencv-python>=4.8.0
+
+# Optional: GPU acceleration
+# cmake>=3.26.0  # Required for building dlib with CUDA
+
+# Apollo integration
+# apollo-intelligence (internal)
+# apollo-alerts (internal)
+# apollo-ai (internal)

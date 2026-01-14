@@ -1,0 +1,230 @@
+version: '3.8'
+
+services:
+  # Nginx - Load Balancer & Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: apollo-nginx-prod
+    volumes:
+      - ./infrastructure/docker/configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/docker/configs/nginx/conf.d:/etc/nginx/conf.d:ro
+      - nginx_logs:/var/log/nginx
+      - letsencrypt_certs:/etc/letsencrypt:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - apollo-network
+    depends_on:
+      - web-console-prod
+      - authentication-prod
+      - operation-management-prod
+      - intelligence-fusion-prod
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend - Production Build
+  web-console-prod:
+    image: apollo/web-console:${VERSION:-latest}
+    container_name: apollo-web-console-prod
+    build:
+      context: ./frontend/web-console
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=${API_URL}
+    volumes:
+      - web_console_logs:/app/logs
+    networks:
+      - apollo-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Authentication Service
+  authentication-prod:
+    image: apollo/authentication:${VERSION:-latest}
+    container_name: apollo-authentication-prod
+    build:
+      context: ./services/authentication
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - JWT_SECRET=${JWT_SECRET}
+    volumes:
+      - auth_logs:/app/logs
+    networks:
+      - apollo-network
+    depends_on:
+      - postgresql
+      - redis
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  # Operation Management Service
+  operation-management-prod:
+    image: apollo/operation-management:${VERSION:-latest}
+    container_name: apollo-operation-management-prod
+    build:
+      context: ./services/operation-management
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - ELASTICSEARCH_URL=${ELASTICSEARCH_URL}
+    volumes:
+      - operation_logs:/app/logs
+    networks:
+      - apollo-network
+    depends_on:
+      - postgresql
+      - redis
+      - elasticsearch
+    restart: always
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+
+  # Intelligence Fusion Service
+  intelligence-fusion-prod:
+    image: apollo/intelligence-fusion:${VERSION:-latest}
+    container_name: apollo-intelligence-fusion-prod
+    build:
+      context: ./services/intelligence-fusion
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - ELASTICSEARCH_URL=${ELASTICSEARCH_URL}
+      - NEO4J_URL=${NEO4J_URL}
+    volumes:
+      - intelligence_logs:/app/logs
+    networks:
+      - apollo-network
+    depends_on:
+      - postgresql
+      - redis
+      - elasticsearch
+      - neo4j
+    restart: always
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+
+  # BugTrace-AI Service
+  bugtrace-ai-prod:
+    image: apollo/bugtrace-ai:${VERSION:-latest}
+    container_name: apollo-bugtrace-ai-prod
+    build:
+      context: ./ai-engine/bugtrace-ai
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=${REDIS_URL}
+      - ELASTICSEARCH_URL=${ELASTICSEARCH_URL}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    volumes:
+      - ai_logs:/app/logs
+    networks:
+      - apollo-network
+    depends_on:
+      - redis
+      - elasticsearch
+    restart: always
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+
+  # Monitoring Stack - Production
+  prometheus-prod:
+    extends:
+      file: docker-compose.yml
+      service: prometheus
+    container_name: apollo-prometheus-prod
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=365d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    volumes:
+      - prometheus_prod_data:/prometheus
+    restart: always
+
+  grafana-prod:
+    extends:
+      file: docker-compose.yml
+      service: grafana
+    container_name: apollo-grafana-prod
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_SECURITY_SECRET_KEY=${GRAFANA_SECRET_KEY}
+    volumes:
+      - grafana_prod_data:/var/lib/grafana
+    restart: always
+
+  # Backup Service
+  backup:
+    image: alpine:latest
+    container_name: apollo-backup
+    volumes:
+      - postgresql_data:/backup/postgresql:ro
+      - neo4j_data:/backup/neo4j:ro
+      - elasticsearch_data:/backup/elasticsearch:ro
+      - ./scripts/maintenance:/scripts:ro
+      - backup_storage:/backup/archives
+    command: crond -f -d 8
+    networks:
+      - apollo-network
+    restart: always
+
+volumes:
+  nginx_logs:
+  letsencrypt_certs:
+  web_console_logs:
+  auth_logs:
+  operation_logs:
+  intelligence_logs:
+  ai_logs:
+  prometheus_prod_data:
+  grafana_prod_data:
+  backup_storage:
+
+networks:
+  apollo-network:
+    driver: bridge

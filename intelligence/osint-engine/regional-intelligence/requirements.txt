@@ -1,0 +1,26 @@
+# Regional Intelligence - Python Dependencies
+# Apollo Platform - Regional OSINT Modules
+
+# Core dependencies
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+feedparser>=6.0.0
+
+# VK.com API
+vk-api>=11.9.0
+
+# Web scraping
+selenium>=4.15.0
+playwright>=1.40.0
+
+# Data processing
+pandas>=2.1.0
+numpy>=1.26.0
+
+# Language processing
+langdetect>=1.0.9
+
+# Apollo integration
+# apollo-intelligence (internal package)
+# apollo-alerts (internal package)

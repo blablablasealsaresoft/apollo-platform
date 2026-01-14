@@ -1,0 +1,422 @@
+OneCoin Money Trail: Companies, Shell Companies, Banks, and Receivers of FundsThe OneCoin scam, orchestrated by Ruja Ignatova and associates from 2014 to 2017, operated as a Ponzi scheme disguised as a cryptocurrency investment, defrauding victims of at least $4 billion (some estimates up to $15 billion). Funds were collected globally through multi-level marketing (MLM) networks, funneled through offshore entities, laundered via shell companies and banks, and ultimately diverted to personal enrichment, luxury assets, and organized crime connections. Below is a compiled money trail based on public court documents, investigations (e.g., US DOJ, FBI, UK courts), and reports. This is not exhaustive, as ongoing probes (e.g., in Germany, the UK, and Guernsey) continue to uncover assets, but it represents the most comprehensive publicly available flow as of January 2026.The trail is structured chronologically and thematically: inflow (victim investments) → core companies and initial holding → laundering mechanisms (shell companies and banks) → outflow (receivers and assets). Note: No legitimate blockchain existed; "OneCoins" were fabricated values in a SQL database.1. Inflow: Victim Investments and Initial Fund CollectionMechanism: Victims (millions worldwide, including in the US, Europe, Africa, and Asia) purchased "educational packages" bundled with fake OneCoin tokens via MLM recruitment. Prices ranged from €100 to €118,000 per package. Recruiters earned commissions (e.g., 10% on direct sales, bonuses for downlines).
+Collection Methods: Wire transfers, bank deposits, and occasionally cash or cryptocurrency. Funds were solicited through false claims of OneCoin being a "Bitcoin killer" with real mining and exchange potential.
+Key Banks and Accounts Involved:Bank of Ireland: Used to launder approximately €273 million ($300 million) in OneCoin proceeds. Four executives, including anti-money laundering head Diane Sands, testified in 2019 US trials about suspicious accounts linked to the scheme. 
+
+thetimes.com
+
+United Bank of Dubai: Received investor wires; mentioned in Konstantin Ignatov's testimony as a key conduit for funds.
+Other Banks: Various international wires through US-correspondent banks (e.g., for dollar-denominated transfers), triggering bank fraud charges. Examples include transfers from European and Asian investors routed via Hong Kong and Singapore banks.
+
+Estimated Inflow: Over $4 billion collected globally, with peaks in 2016-2017. Specific recoveries include $267.5 million in China (from 98 prosecuted recruiters) and $14 million in India (from 18 arrests). 
+
+en.wikipedia.org +1
+
+2. Core Companies: Holding and Distribution EntitiesOneCoin Ltd.: Primary operating company, registered in Dubai (UAE) but based in Sofia, Bulgaria. Served as the main recipient of investor funds. No real operations; used to market the scam and pay commissions.
+OneLife Network Ltd.: MLM arm, registered in Belize (offshore haven). Handled recruitment, promotions, and affiliate payouts. Linked to OneCoin Ltd. for fund pooling.
+Other Affiliated Entities:DealShaker: A fake e-commerce platform (launched 2017) where OneCoins were supposedly usable; actually a front to maintain the illusion of value.
+OneAcademy/OneForex: "Educational" subsidiaries selling packages; funneled funds back to core entities.
+
+Financial Flow Here: Investor wires hit accounts controlled by these companies (e.g., in UAE and European banks). Funds were then split: ~60-70% for Ponzi payouts (to early investors/recruiters), ~30-40% siphoned for leaders' personal use or laundering. 
+
+en.wikipedia.org
+
+3. Laundering Mechanisms: Shell Companies and Banks   Laundering involved disguising funds as legitimate investments or loans through sham entities, often in offshore jurisdictions like the Cayman Islands, Guernsey, and the UAE. Key figure Mark Scott (former Locke Lord LLP partner) laundered ~$400 million alone, convicted in 2019 of money laundering and bank fraud (10-year sentence, upheld on appeal in 2025). 
+
+reuters.com +1
+
+Shell Companies and Funds:Fenero Funds: Series of fake private equity funds set up by Scott in the Cayman Islands and British Virgin Islands. Received ~$400 million from OneCoin entities (e.g., via wires from Ignatova in 2016). Funds were misrepresented as investments in oil, real estate, etc., but cycled back to perpetrators. Involved sub-entities like Fenero Equity Investments LP.
+B&N Consult EOOD: Bulgarian shell company linked to Ignatova's husband Björn Strehl; handled €7.69 million in suspicious transfers (under German investigation since 2022).
+Risk Ltd. and IMS: Offshore shells in Hong Kong and elsewhere, used for early fund routing.
+Unnamed Guernsey Trusts/Companies: Held hidden assets; in November 2025, Guernsey issued a 28-day ultimatum for Ignatova to claim or forfeit them. 
+
+icij.org
+
+Banks Involved in Laundering:BNY Mellon (Bank of New York Mellon): US bank used for wire transfers in Scott's scheme; false representations to this bank led to bank fraud conviction.
+Dresdner Bank (Germany): Early transfers; linked to Ignatova's pre-OneCoin activities.
+Cayman National Bank: Held Fenero Fund accounts.
+International Wires: Funds moved through correspondent banking networks, including US banks (violating anti-money laundering laws). Over 100 Bank Secrecy Act reports from FinCEN aided tracking. 
+
+fincen.gov
+
+Bank of Ireland (as above): Specific accounts flagged for high-volume suspicious activity.
+
+Other Laundering Details: Funds converted to Bitcoin or other assets (Ignatova allegedly amassed billions in BTC). 
+
+bbc.com
+
+ Ties to Bulgarian mafia (e.g., "Taki") may have facilitated cash movements, but no direct bank trails confirmed.
+
+4. Outflow: Receivers of Funds and Assets   Funds were diverted to personal luxury, real estate, and associates. Total traced/recovered: Partial, with ongoing forfeitures (e.g., $300 million from Greenwood).Key Individual Receivers:Ruja Ignatova: Pocketed billions; invested in Dubai real estate (e.g., penthouse in Business Bay, villas worth millions) post-2017 disappearance. Also luxury items like yachts, jewelry. 
+
+lemonde.fr +1
+
+Karl Sebastian Greenwood: Received over $300 million in commissions; forfeited in 2023 sentencing. 
+
+justice.gov
+
+Mark Scott: Profited ~$50 million from laundering fees; assets seized, including Florida properties and Swiss bank accounts.
+Konstantin Ignatov: Managed post-2017 funds; forfeited assets in plea deal.
+Irina Dilkinska: Head of legal; received salaries/commissions; sentenced in 2024 with forfeitures.
+Gilbert Armenta: Financial handler; pleaded guilty, assets forfeited.
+
+Associated Receivers and Entities:Bulgarian Mafia Figures (Alleged): Funds to "Taki" (Hristoforos Amanatidis) and associates for protection; unverified but linked via investigations. 
+
+bbc.com
+
+Christopher Hamilton and Others: UK associates; properties frozen in August 2024 UK court order (global asset freeze on OneCoin-linked holdings, including London penthouses). 
+
+icij.org
+
+Assets and Holdings:Real Estate: Dubai properties (e.g., $10M+ investments while fugitive); London assets (frozen 2024).
+Offshore Accounts: Guernsey (confiscation proceedings 2025); Cayman Islands (via Fenero).
+Other: Yachts (e.g., "Davina," linked to Ignatova), private jets, art, and Bitcoin wallets.
+
+Recoveries and Forfeitures: US DOJ seized millions; victim restitution ongoing. No direct politician or cartel payments confirmed, but mafia ties suggest indirect flows. 
+
+egmontgroup.org +1
+
+Visual Summary of Flow (Text-Based Diagram)
+
+Victims (Global Investors)
+  ↓ (Wire Transfers: $4B+)
+Banks (e.g., Bank of Ireland €273M, United Bank of Dubai)
+  ↓
+Core Companies (OneCoin Ltd. Dubai/Bulgaria, OneLife Belize)
+  ↓ (Siphoning: 30-40%)
+Shell Companies/Funds (Fenero Funds Cayman, B&N Consult Bulgaria)
+  ↓ (Laundering via Banks: BNY Mellon, Cayman National)
+Receivers (Ignatova: Dubai Properties; Greenwood: $300M; Scott: $50M; Mafia Ties)
+  ↓
+Assets (Real Estate, Bitcoin, Yachts) → Ongoing Freezes/Forfeitures (UK, Guernsey, US)
+
+This trail is derived from indictments, trials (e.g., Scott's 2019 conviction), and reports. For updates, check DOJ or FBI sites. If you have tips on untraced funds, contact tips.fbi.gov.
+
+
+Former Partner Of Locke Lord LLP Convicted In Manhattan Federal Court Of Conspiracy To Commit Money Laundering And Bank Fraud In Connection With Scheme To Launder $400 Million Of OneCoin Fraud Proceeds
+Thursday, November 21, 2019
+Share right caret
+For Immediate Release
+U.S. Attorney's Office, Southern District of New York
+Geoffrey S. Berman, the United States Attorney for the Southern District of New York, and Cyrus R. Vance Jr., the District Attorney for New York County, announced the conviction today of MARK S. SCOTT, following a three-week trial before the Honorable Edgardo Ramos.  SCOTT, a former equity partner at the law firm Locke Lord LLP, laundered approximately $400 million in proceeds of a massive international fraud scheme known as “OneCoin” through fraudulent investment funds that SCOTT set up and operated for that purpose.  SCOTT was paid more than $50 million for his money laundering services, which he used to buy luxury cars, a yacht, and several seaside homes.
+
+Manhattan U.S. Attorney Geoffrey S. Berman said:  “Mark S. Scott, an equity partner at a prominent international law firm, used his specialized knowledge as an experienced corporate lawyer to set up fake investment funds, which he used to launder hundreds of millions of dollars of fraud proceeds.  He lined his pockets with over $50 million of the money stolen from victims of the OneCoin scheme.  Scott, who boasted of earning ‘50 by 50’ now faces 50 years in prison for his crimes.” 
+
+As reflected in the Indictment, documents previously filed in the case, and evidence introduced at trial:
+
+“OneCoin” is a massive pyramid fraud scheme.  OneCoin Ltd. was co-founded in or about 2014 by Ruja Ignatova, and is based in Sofia, Bulgaria.  SCOTT was introduced to Ignatova in late 2015, and began laundering OneCoin fraud proceeds in 2016.  Ignatova served as OneCoin’s top leader until her disappearance from public view, in or about October 2017.
+
+OneCoin Ltd. operates as a multi-level marketing network through which members receive commissions for recruiting others to purchase cryptocurrency packages.  OneCoin Ltd. has claimed to have over three million members worldwide, including victims living in the Southern District of New York.  Records obtained in the course of the investigation show that, between the fourth quarter of 2014 and the third quarter of 2016 alone, OneCoin Ltd. generated €3.353 billion in sales revenue and earned “profits” of €2.232 billion.  OneCoin continues to operate to this day.
+
+Among a number of other representations, OneCoin Ltd. has claimed that the OneCoin cryptocurrency is “mined” using mining servers maintained and operated by the company, and that the value of OneCoin is based on market supply and demand.  The purported value of a OneCoin steadily grew from €0.50 to approximately €29.95 per coin, as of in or about January 2019.  In fact, the value of OneCoin is determined internally and not based on market supply and demand, and OneCoins are not mined using computer resources.  Moreover, the investigation has revealed that Ignatova and her co-founder conceived of and built the OneCoin business fully intending to use it to defraud investors.
+
+SCOTT – who was employed between June 2015 and September 2016 as an equity partner at Locke Lord LLP, a prominent international law firm – was first introduced to Ignatova in September 2015.  Beginning in 2016, SCOTT formed a series of fake private equity investment funds in the British Virgin Islands known as the “Fenero Funds.”  SCOTT then disguised incoming transfers of approximately $400 million into the Fenero Funds as investments from “wealthy European families,” when in fact the money represented proceeds of the OneCoin fraud scheme.  SCOTT layered the money through various Fenero Fund bank accounts in the Cayman Islands and the Republic of Ireland.  SCOTT subsequently transferred the funds back to Ignatova and other OneCoin associated entities, this time disguising the transfers as outbound investments from the Fenero Funds.  As part of the scheme, SCOTT and his co-conspirators lied to banks and other financial institutions all over the world, including to banks in the United States, to cause those institutions to make transfers of OneCoin proceeds and evade anti-money laundering procedures.
+
+SCOTT, who boasted about earning “50 by 50,” was paid more than $50 million for his money laundering services.  He used that money to purchase, among other things, a collection of luxury watches worth hundreds of thousands of dollars, a Ferrari and several Porsches, a 57-foot Sunseeker yacht, and three multimillion-dollar seaside homes in Cape Cod, Massachusetts.
+
+SCOTT was arrested near one of his seaside homes in Barnstable, Massachusetts, on September 5, 2018.
+
+*                *                *
+
+SCOTT, 51, of Coral Gables, Florida, was convicted of one count of conspiracy to commit money laundering, which carries a maximum potential sentence of 20 years in prison, and one count of conspiracy to commit bank fraud, which carries a maximum potential sentence of 30 years in prison.  The maximum potential sentences are prescribed by Congress and are provided here for informational purposes only, as the sentencing of the defendant will be determined by the judge.  Sentencing before Judge Ramos is scheduled for February 21, 2020.
+
+Mr. Berman and Mr. Vance praised the outstanding investigative work of IRS-CI and the FBI, which jointly conducted this investigation with the Special Agents from the U.S. Attorney’s Office.
+
+The prosecution of this case is being handled by the Office’s Complex Frauds and Cybercrime Unit.  Assistant United States Attorneys Christopher J. DiMase and Nicholas Folly, and Special Assistant United States Attorney Julieta V. Lozano of the New York County District Attorney’s Office, are in charge of the prosecution.
+
+Updated November 21, 2019
+Topic
+Securities, Commodities, & Investment Fraud
+Component
+USAO - New York, Southern
+Press Release Number: 19-394
+
+https://www.justice.gov/usao-sdny/pr/former-partner-locke-lord-llp-convicted-manhattan-federal-court-conspiracy-commit-money
+
+Lawyer convicted in $400 million crypto scam loses appeal
+By David Thomas
+February 3, 20255:10 PM ESTUpdated February 3, 2025
+
+
+https://www.reuters.com/legal/government/lawyer-convicted-400-million-crypto-scam-loses-appeal-2025-02-03/
+Illustration shows representations of cryptocurrencies
+Representations of cryptocurrencies are seen in this illustration, August 10, 2022. REUTERS/Dado Ruvic/Illustration Purchase Licensing Rights, opens new tab
+Feb 3 (Reuters) - A federal appeals court in Manhattan has upheld the conviction of a former partner at law firm Locke Lord who was sentenced to 10 years in prison for his role in a nearly $400 million fraudulent cryptocurrency scheme.
+The 2nd U.S. Circuit Court of Appeals said, opens new tab on Friday that there was sufficient evidence supporting Mark Scott's 2019 convictions for conspiracy to commit money laundering and conspiracy to commit bank fraud.
+Jumpstart your morning with the latest legal news delivered straight to your inbox from The Daily Docket newsletter. Sign up here.
+Advertisement · Scroll to continue
+Samuel Conrad Scott, a Paul Weiss counsel who is defending Mark Scott, said in a statement that his client maintains his innocence "and is evaluating options for further review."
+Mark Scott said in a statement said he was "stunned" by the 2nd Circuit's decision to uphold his verdict, which he has argued has been tainted by the perjury of a government witness.
+A spokesperson for the Manhattan U.S. Attorney's Office declined to comment.
+Mark Scott was found guilty for his role in the OneCoin cryptocurrency fraud. In addition to receiving a 10-year sentence, he was ordered to forfeit more than $392 million, as well as several bank accounts, a yacht and two Porsche automobiles.
+Advertisement · Scroll to continue
+Prosecutors said Scott was introduced to OneCoin cofounder Ruja Ignatova, a German citizen also known as the "Cryptoqueen," in 2015, and began to set up fake investment funds to launder millions of dollars in fraud proceeds in 2016.
+Scott argued he gave Ignatova legal advice and that he did not know OneCoin was a scam.
+Scott had been an international mergers and acquisitions and private equity partner at Locke Lord from June 2015 to September 2016. A spokeswoman for the firm previously told Reuters that Scott was employed there a short time and that it was not aware of "his individual activities outside of the firm."
+Ignatova remains at large. She was added to the FBI's top 10 most wanted list in 2022.
+The case is United States v. Scott, 2nd Circuit U.S. Court of Appeals, No. 24-368.
+For United States: Juliana Murray and Kevin Mead of the U.S. Attorney's Office
+For Mark Scott: Samuel Conrad Scott of Paul, Weiss, Rifkind, Wharton & Garriso
+
+https://www.icij.org/news/2024/08/a-uk-court-ordered-a-global-asset-freeze-for-the-cryptoqueen-and-her-onecoin-associates/
+A UK court ordered a global asset freeze for the ‘Cryptoqueen’ and her OneCoin associates
+ICIJ previously found that OneCoin’s founder Ruja Ignatova and some of her associates had bought properties worth millions in Dubai while promoting the fraudulent cryptocurrency scheme.
+
+By Scilla Alecci
+Image: Flickr/OneCoin Official
+August 21, 2024
+
+
+
+
+
+
+Bulgarian fraudster Ruja Ignatova, who founded OneCoin and is known as the “Cryptoqueen.”
+A British law firm representing a group of OneCoin investors said that a London court has issued worldwide freezing orders on assets belonging to Bulgarian fraudster Ruja Ignatova and some of her associates, months after the International Consortium of Investigative Journalists and its media partners revealed the promoters of the fraudulent cryptocurrency scheme invested in luxury properties in the United Arab Emirates.
+
+International authorities have accused Ignatova of being the mastermind of a $4 billion pyramid scheme that has claimed more than 3.5 million victims around the world since its launch in 2014.
+
+Ignatova went missing in 2018, shortly after the U.S. Justice Department indicted her on fraud and money laundering charges.
+
+
+The FBI’s poster for Ruja Ignatova, one of its 10 most wanted fugitives. Image: U.S. Federal Bureau of Investigations
+According to ICIJ’s media partner Bird, files seized by Sofia police during a search of a slain police officer’s home appear to show that Ignatova was later killed on a yacht in Greece on the order of a Bulgarian mafia boss. But some news outlets have questioned that account.
+
+The London High Court’s decision, made public earlier this month, was part of a legal claim brought by a group of more than 400 OneCoin investors who are seeking damages to compensate them for the losses they suffered as a result of the alleged fraud, according to their lawyers at Mishcon de Reya LLP. Besides Ignatova, the order targeted seven people allegedly connected to OneCoin and two Guernsey companies used by Ignatova to buy two London properties, according to the BBC, which has reported on the scam extensively.
+
+“This is a really important step for victims who have been seeking justice for the fraud that has been perpetrated against them,” Mishcon de Reya’s partner Rhymal Persad said in a statement published on the law firm’s website. “It has taken a long time to get to this point, but this is a significant step to ensure those allegedly responsible for carrying out these unlawful acts are properly held to account.”
+
+ICIJ previously reported that, in 2015, Ignatova used a Dubai shell company called Oceana Properties Ltd. to buy a $2.7 million penthouse apartment on the top floor of a skyscraper overlooking Palm Jumeirah, an archipelago of artificial islands in the Persian Gulf.
+
+
+The view from Ruja Ignatova’s apartment.
+Like Ignatova, at least 11 of her associates owned some of Dubai’s most exclusive properties over the last nine years, the investigation revealed.
+
+The findings were part of Dubai Unlocked, an investigation into the role of the emirate as an investment hub for criminals and suspects. The project was coordinated by the Organized Crime and Corruption Reporting Project and Norwegian financial outlet E24. It was based on leaked confidential Dubai land records obtained by the Center for Advanced Defense Studies, a Washington, D.C.-based nonprofit organization that analyzes data on transnational security matters.
+
+According to the Dubai records, the buyers included OneCoin’s co-founder Karl Sebastian Greenwood, who is serving a 20-year sentence in the U.S. for his involvement in the OneCoin scheme; and Kari Wahlroos, a Finnish businessman who presented himself as OneCoin’s “European ambassador” at promotional events organized by the company. Greenwood declined to answer ICIJ partners’ questions. Wahlroos, who has not been charged, told Finnish broadcaster YLE that he owned several apartments in Dubai. He denied knowing that the company was used to launder money, as alleged by prosecutors. “I’ve never had a penny to do with OneCoin itself,” Wahlroos said.
+
+Both Greenwood and Walhroos are among the subjects of the global asset freeze alongside Ignatova, the BBC reported.
+
+Leak to us
+Contact ICIJ
+Do you have a story about corruption, fraud, or abuse of power?
+ICIJ accepts information about wrongdoing by corporate, government or public services around the world. We do our utmost to guarantee the confidentiality of our sources.
+LEAK TO ICIJ
+It is not clear if the freezing order, which is intended to prevent the defendants from disposing of their assets, will have any immediate effect. The order may not be enforceable unless the courts in the countries where the assets are located formally acknowledge and recognize it.
+
+Jonathan Levy, a lawyer representing other OneCoin fraud victims, told ICIJ he was skeptical about the order’s effects, considering that “nobody knows where Ignatova is.” He said that there are $2 billion worth of assets connected to the scheme yet to be “uncovered” around the world and that are unlikely to be in England, where the asset freeze would have the most impact.
+
+In 2019, after several banks flagged transactions involving the “Cryptoqueen” and her companies as suspicious, Ignatova’s company Oceana Properties finalized the sale of her luxurious Dubai flat.
+
+Recommended reading
+
+CRYPTOCURRENCY
+Leaked Dubai property files link luxury flats to OneCoin crypto scammers
+May 15, 2024
+Palm Island, Dubai
+REAL ESTATE
+Russians bought up $6.3B in Dubai property after 2022 Ukraine invasion, report finds
+May 22, 2024
+Composite graphical illustration showing bitcoin, a city skyline, syringes, and the heads of three men.
+SANCTIONS
+Firm related to sanctioned crypto exchange Garantex is a partner of Moscow gang leader and has links to Kremlin-controlled Rosneft
+Mar 13, 2024
+A title deed obtained by ICIJ’s partner Paper Trail Media shows that a young British lawyer bought the apartment for about $1.6 million. It is not clear who handled the sale on behalf of Ignatova and pocketed the money. The lawyer who bought the property did not respond to reporters’ questions.
+
+Ignatova remains on the FBI’s list of most wanted fugitives. The agency considers her to be alive “until there is documented evidence that she is dead,” a spokesperson told ICIJ.
+
+The U.S. government recently increased the reward offered “for information leading to the arrest and/or conviction of Ruja Ignatova” to $5 million.
+
+https://www.bbc.com/news/technology-61966824
+Missing Cryptoqueen: Is Dr Ruja Ignatova the biggest Bitcoin holder?
+1 July 2022
+
+Share
+
+Save
+Jamie Bartlett & Rob Byrne
+BBC News
+BBC The Missing Cryptoqueen BBC Sounds artworkBBC
+With crypto markets in turmoil, files seen by the BBC suggest an unlikely Bitcoin investor may have also lost a fortune - "the missing cryptoqueen", Dr Ruja Ignatova.
+
+The scammer disappeared in 2017 as her cryptocurrency OneCoin was at its height - attracting billions from investors. Fraud and money-laundering charges in the US have led to her becoming one of the FBI's 10 most wanted fugitives.
+
+The Oxford-educated entrepreneur told investors she had created the "Bitcoin killer", but the files suggest she secretly amassed billions in her rival currency before she disappeared.
+
+Details first surfaced in 2021 in leaked documents from Dubai's courts, posted online by a lawyer who crowned Dr Ruja - as she's known - the "most successful criminal in history".
+
+Cryptoqueen: How Ruja Ignatova scammed the world, then ran
+'Cryptoqueen' brother admits role in OneCoin fraud
+Why did the FCA drop its Cryptoqueen scam warning?
+A new book and upcoming episodes of BBC podcast The Missing Cryptoqueen investigate how Dr Ruja has stayed hidden - and whether this alleged crypto-hoard might help explain it.
+
+FBI Image shows FBI posterFBI
+FBI agents believe Dr Ignatova travels with armed guards or associates
+The Dubai files
+We have been able to independently verify some - but not all - of the information in the Dubai files.
+
+At the very least, the leak suggests Dubai was an important financial route for Dr Ruja, something the FBI alluded to in naming the United Arab Emirates as one of five countries she has known connections to.
+
+"You've got hundreds of millions of dollars at stake here," said Dr Jonathan Levy, the lawyer who first posted the files online, and who is relying on information from them in a compensation claim for OneCoin victims.
+
+The claim was lodged with the Supreme Court of the British Indian Ocean Territory, chosen because it hosted a web domain allegedly used by OneCoin.
+
+Dr Levy received thousands of documents, mostly in Arabic, from a whistleblower who he said thought it was wrong that people were being "unjustly enriched" in Dubai.
+
+OneCoin/Youtube Dr Ruja on the stage at a 2015 OneCoin event in DubaiOneCoin/Youtube
+Dr Ruja on the stage at a 2015 OneCoin event in Dubai, where the crypto-firm also had an office
+The 'Bitcoin deal'
+The most tantalising claim made in Dr Levy's legal case is that a massive Bitcoin deal was struck with an Emirati royal, Sheikh Saoud bin Faisal Al Qassimi, the son of a wealthy business tycoon.
+
+The files further suggest that in 2015, Sheikh Saoud gave Dr Ruja four USB memory sticks containing 230,000 bitcoin - worth €48.5m at the time.
+
+In return, Dr Ruja handed over three cheques to Sheikh Saoud from Mashreq Bank, totalling around 210m Emirati dirhams, roughly €50m.
+
+Prior to the alleged deal, Dubai's Mashreq Bank had begun closing Dr Ruja's accounts amid money-laundering concerns, so the cheques were unable to be cashed.
+
+In 2020, the Dubai authorities unfroze Dr Ruja's funds, despite the fact that more than a year earlier the US Department of Justice had published an indictment for her, labelling OneCoin a "fraudulent cryptocurrency".
+
+Months before the decision, Dr Ruja's former fund manager Mark Scott was also found guilty in New York of laundering $400m in OneCoin proceeds.
+
+Asked by the BBC about the decision, Dubai's Public Prosecutor did not respond.
+
+According to Dubai Court of Appeal records, on 28 April 2022, Sheikh Saoud was seeking to have Dr Ruja's funds handed to him - suggesting a deal of some kind did originally take place between the pair. Dr Ruja herself is named as a respondent, despite not being seen in public for nearly five years.
+
+Dr Ruja and the sheikh
+Little is known about Sheikh Saoud, but sources tell us the stocky body-building enthusiast is rarely seen in public.
+
+He features in a 2017 YouTube video for an organisation called the Intergovernmental Collaborative Action Fund for Excellence (ICAFE) which claims to support education initiatives, but after the Dubai files were released, references to Sheikh Al Qassimi as ICAFE's "Secretary-General" disappeared from its website.
+
+A recently launched cryptocurrency also lists the sheikh as its chairman. The Dubai files appear to show a once close relationship between the Al Qassimi family and Dr Ruja.
+
+WFDP/Youtube  Sheikh Saoud Al Qassimi and ICAFE co-founder Shariar RahimiWFDP/Youtube
+Sheikh Saoud Al Qassimi at an ICAFE event in Dubai, alongside its co-founder Shariar Rahimi.
+On 3 September 2015, Dubai's Mashreq Bank wrote to Dr Ruja to explain that it would be closing her personal accounts.
+
+Eleven days later, an email admitted to a US court shows Dr Ruja writing to a OneCoin colleague about moving €50m out of Mashreq Bank. She mentions a meeting the following week with "one of the Sheiks [sic] in Dubai" where she would "try to get something done for us".
+
+It is not known who Dr Ruja intended to meet or even if a meeting took place, but the files hint at one possible explanation.
+
+A photo from the files seemingly dated 8 October 2015 but taken at an unknown place, pictures Dr Ruja standing next to Sheikh Faisal, the father of Sheikh Saoud.
+
+The Al Qassimi family rules Sharjah, which borders Dubai and Ras Al Khaimah (RAK), the northernmost emirate. Sheikh Faisal did not respond to us about his family's relationship with Dr Ruja.
+
+Unknown Sheikh Faisal Bin Sultan Bin Salem Al Qassimi with Dr Ruja IgnatovaUnknown
+Sheikh Faisal Bin Sultan Bin Salem Al Qassimi with Dr Ruja Ignatova
+The files also include a diplomatic ID, issued to Ruja as a "special adviser" to ICAFE - the organisation with which Sheikh Saoud once held a senior role.
+
+The organisation appears to be connected to the United Nations, but a spokesman for the UN Secretary-General could not find any records of it being affiliated through normal routes.
+
+Co-founder Shariar Rahimi said ICAFE was "registered" with the UN, but failed to provide evidence of this. On Dr Ruja, he said any ICAFE documents provided to her came from Sheikh Saoud.
+
+Some time after Dr Ruja's alleged Bitcoin deal, their relationship appears to have soured - one letter among the leaked files shows Sheikh Saoud dismissing Dr Ruja from a role as an ICAFE ambassador, before later becoming involved in a legal dispute over her assets.
+
+The case between the pair concluded in Dubai's Court of Appeal on 28 June.
+
+unknown Alleged ICAFE document labelled 'diplomatic identification' shows Dr Ruja's name and imageunknown
+Dr Ruja’s alleged ICAFE diplomatic credentials, in the leaked Dubai files
+Asked about the alleged Bitcoin deal, his relationship with Dr Ruja, and his role at ICAFE, Sheikh Saoud's lawyer did not directly respond, but wrote: "All the information you have is baseless".
+
+The alleged Bitcoin transaction is said to have taken place using what's called cold-storage wallets, making it very difficult to ascertain if it actually happened.
+
+Bitcoin transactions can often be traced because all transfers of the virtual currency between wallets are recorded on a publicly viewable database. However, the court documents do not include any details about which - or how many - wallets these bitcoins were stored on.
+
+If she does still have them, Dr Ruja might find it difficult to move such a large amount of bitcoin.
+
+Crypto-author David Birch thinks Bitcoin's reputation as an "anonymous" currency is inaccurate because law enforcement agencies are increasingly using clever algorithms to track coins as they flow through the system.
+
+"Getting rid of a few billion dollars' worth is much harder than you think," he said.
+
+If Dr Ruja still has the 230,000 bitcoins, she would be one of the currency's largest holders. In November 2021, her stake would have peaked at nearly $15bn, but at the time of writing it has dropped to around $5bn, still more than enough to help her stay hidden.
+
+Follow Jamie Bartlett and Rob Byrne on Twitter
+
+Catch up on The Missing Cryptoqueen podcast on BBC Sounds - the search for Dr Ruja Ignatova continues in September 2022
+
+Sheikh Faisal Bin Sultan Bin Salem Al Qassimi with Dr Ruja Ignatova
+
+
+https://www.investopedia.com/terms/o/onecoin.asp
+
+OneCoin, founded in 2014 by Ruja Ignatova, claimed to operate like a legitimate cryptocurrency. However, lacking a real blockchain, it functioned as an elaborate Ponzi scheme that duped investors out of $4 billion before its implosion. Despite claiming to offer educational courses, these materials were plagiarized and part of a multi-level marketing trap. The firm's downfall saw Ignatova vanish, leaving co-founder Sebastian Greenwood jailed, while countless investors were left to deal with the fallout.
+
+
+
+OneCoin was a cryptocurrency-based Ponzi scheme that amassed $4 billion between 2014 and 2016.
+1
+U.S. Department of Justice, Southern District of New York. "Co-Founder Of Multibillion-Dollar Cryptocurrency Scheme “OneCoin” Sentenced To 20 Years In Prison."
+
+
+The company's founder, Ruja Ignatova, disappeared in 2017, while co-founder Sebastian Greenwood was sentenced to 20 years in prison.
+2
+
+OneCoin claimed to be a legitimate cryptocurrency, but it lacked a blockchain model or actual payment system.
+The scheme heavily relied on selling plagiarized educational materials as part of a multi-level marketing strategy.
+3
+
+Despite its size, OneCoin was never actively traded, nor could its coins be used in actual transactions.
+4
+
+
+How the OneCoin Scheme Operated 
+Ruja Ignatova launched OneCoin in 2014, claiming it functioned like any other cryptocurrency.
+1
+ The claim was that OneCoins could be mined (with 120 billion coins available) and used to make payments, even having an e-wallet.
+5
+ However, OneCoin lacked a blockchain model or payment system.
+
+The company primarily sold educational materials, like cryptocurrency courses. The courses included other areas as well, such as trading and investing.
+3
+ The courses were part of a multi-level marketing (MLM) scheme, where buyers were offered rewards for bringing in more participants.
+
+Buyers of the course packages were to receive tokens that could be used to mine OneCoins. Much of the course material offered was said to be plagiarized.
+5
+
+Inside the OneCoin Exchange: xcoinx
+OneCoin Exchange xcoinx was an internal marketplace for converting OneCoin into other currencies. Members were able to access the exchange if they bought more than just the beginner package.
+3
+
+Selling limits were placed on the accounts based on the level of education package purchased. In January 2017, the exchange was shut down.
+6
+ Leading up to the shutdown, OneCoin denied the majority of withdrawal requests. The exchange was the only way for affiliates to cash out.
+
+Investigations and Legal Actions Against OneCoin
+In 2016, questions started to come up about OneCoin as many countries began to investigate the company, with some calling it a pyramid scheme. In March 2016, Norway's Direct Selling Association first labeled OneCoin as a pyramid scheme.
+5
+ In May 2016, the Hungarian Central Bank warned against OneCoin being a pyramid scheme.
+7
+
+In 2017, OneCoin claimed it was the first company to become licensed by the Vietnamese government and legally allowed to be used as a digital currency. The Vietnamese government rebutted the claim.
+8
+
+In early 2018, the Bulgarian police raided the company’s office. Founder Ruja disappeared in 2017 when a warrant was filed for her arrest.
+1
+9
+ Her brother, Konstantin Ignatov, replaced her as the face and manager of the company. Co-founder Greenwood was arrested in 2018 and Konstantin was arrested in November 2019.
+10
+
+Konstantin pleaded guilty to fraud and money laundering.
+11
+ Greenwood was sentenced to 20 years in prison.
+1
+ OneCoin was never actively traded, nor could the coins be used to purchase anything.
+3
+
+Has Ruja Ignatova Ever Been Found?
+Ruja Ignatova, the Bulgarian founder of OneCoin, known as Cryptoqueen, has not resurfaced since going into hiding in 2017.
+1
+
+What Are the Biggest Crypto Ponzi Schemes?
+There have been a number of other big Ponzi schemes in addition to OneCoin, the biggest crypto scheme ever. Bitconnect was exposed in 2018, ultimately crashing and causing its investors to lose $3.5 billion. PlusToken scammed investors until 2019, when it was closed down, after costing investors over $3 billion. GainBitcoin was an India-based coin that robbed investors of over $300 million before it closed down. Mining Max scammed investors out of $250 million until authorities shut it down in 2021.
+12
+
+How Much Is One Bitcoin Worth?
+The price of Bitcoin varies, but as of September 2023, was trading at $26,551. The price has fluctuated between roughly $26,000 and $67,500 over the 12 months between June 2021 and September 2023.
+13
+
+
+
+The Bottom Line
+OneCoin, founded by Ruja Ignatova, was exposed as a $4 billion Ponzi scheme masquerading as a cryptocurrency venture. The scam involved selling educational materials through a multi-level marketing model while falsely promising cryptocurrency mining and trading capabilities. With no legitimate blockchain or cryptocurrency exchange, OneCoin failed to deliver on its promises. Ignatova remains missing, while co-founder Sebastian Greenwood has been imprisoned and other leaders have faced legal consequences. Investors should exercise caution and conduct thorough due diligence before participating in any cryptocurrency venture to avoid similar fraudulent schemes.
+
+ 

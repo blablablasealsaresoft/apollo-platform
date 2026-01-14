@@ -1,0 +1,221 @@
+version: '3.8'
+
+services:
+  # PostgreSQL - Primary Database
+  postgresql:
+    image: postgres:15-alpine
+    container_name: apollo-postgresql
+    environment:
+      POSTGRES_DB: ${DB_NAME:-apollo}
+      POSTGRES_USER: ${DB_USER:-apollo}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-apollo_password}
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+      - ./infrastructure/databases/postgresql/schemas:/docker-entrypoint-initdb.d
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - apollo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apollo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # TimescaleDB - Time-Series Data
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    container_name: apollo-timescaledb
+    environment:
+      POSTGRES_DB: ${TIMESCALE_DB:-apollo_ts}
+      POSTGRES_USER: ${DB_USER:-apollo}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-apollo_password}
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+      - ./infrastructure/databases/timescaledb/schemas:/docker-entrypoint-initdb.d
+    ports:
+      - "${TIMESCALE_PORT:-5433}:5432"
+    networks:
+      - apollo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apollo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Neo4j - Graph Database
+  neo4j:
+    image: neo4j:5.15
+    container_name: apollo-neo4j
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-apollo_password}
+      NEO4J_PLUGINS: '["graph-data-science", "apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*,gds.*
+      NEO4J_dbms_memory_heap_max__size: 2G
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - ./infrastructure/databases/neo4j/graph-schemas:/var/lib/neo4j/import
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    networks:
+      - apollo-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:7474 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # Elasticsearch - Search and Analytics
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: apollo-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - cluster.name=apollo-cluster
+      - node.name=apollo-node-1
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+      - ./infrastructure/databases/elasticsearch/mappings:/usr/share/elasticsearch/config/mappings
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - apollo-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis - Cache and Message Broker
+  redis:
+    image: redis:7-alpine
+    container_name: apollo-redis
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+      - ./infrastructure/databases/redis/config/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    networks:
+      - apollo-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # Weaviate - Vector Database for AI
+  weaviate:
+    image: semitechnologies/weaviate:latest
+    container_name: apollo-weaviate
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      DEFAULT_VECTORIZER_MODULE: 'none'
+      CLUSTER_HOSTNAME: 'node1'
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    ports:
+      - "8080:8080"
+    networks:
+      - apollo-network
+    restart: unless-stopped
+
+  # Prometheus - Metrics Collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: apollo-prometheus
+    volumes:
+      - ./infrastructure/monitoring/prometheus/config:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    networks:
+      - apollo-network
+    restart: unless-stopped
+
+  # Grafana - Monitoring Dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: apollo-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./infrastructure/monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+      - "3100:3000"
+    networks:
+      - apollo-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # PgAdmin - Database Management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: apollo-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@apollo.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    networks:
+      - apollo-network
+    depends_on:
+      - postgresql
+      - timescaledb
+    restart: unless-stopped
+
+volumes:
+  postgresql_data:
+    driver: local
+  timescaledb_data:
+    driver: local
+  neo4j_data:
+    driver: local
+  neo4j_logs:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  redis_data:
+    driver: local
+  weaviate_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  apollo-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

@@ -1,0 +1,101 @@
+{
+  "name": "apollo-platform",
+  "version": "0.1.0",
+  "description": "Next-generation AI-enhanced criminal investigation platform for hunting cryptocurrency criminals and predators",
+  "private": true,
+  "workspaces": [
+    "ai-engine/*",
+    "intelligence/*",
+    "redteam/*",
+    "services/*",
+    "frontend/*"
+  ],
+  "scripts": {
+    "setup:dev": "npm run install:all && npm run setup:databases && npm run setup:ai-models",
+    "install:all": "npm install && npm run install:workspaces",
+    "install:workspaces": "npm install --workspaces",
+    "setup:databases": "./scripts/setup/init-database.sh",
+    "setup:ai-models": "./scripts/setup/setup-ai-models.sh",
+    "build": "npm run build --workspaces",
+    "build:frontend": "cd frontend/web-console && npm run build",
+    "build:services": "npm run build --workspace=services/*",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "jest --config=jest.config.js --testPathPattern=testing/unit-tests",
+    "test:integration": "jest --config=jest.config.js --testPathPattern=testing/integration-tests",
+    "test:e2e": "cd testing/e2e-tests && npx playwright test",
+    "test:security": "npm run security:scan && npm run security:dependencies",
+    "lint": "npm run lint --workspaces",
+    "lint:fix": "npm run lint:fix --workspaces",
+    "type-check": "tsc --noEmit",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up -d",
+    "k8s:deploy": "kubectl apply -f infrastructure/kubernetes/",
+    "k8s:delete": "kubectl delete -f infrastructure/kubernetes/",
+    "security:scan": "npm audit && snyk test",
+    "security:dependencies": "npm audit",
+    "security:code": "semgrep --config=auto",
+    "clean": "npm run clean --workspaces && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apollo-platform/apollo.git"
+  },
+  "keywords": [
+    "ai",
+    "investigation",
+    "intelligence",
+    "cybersecurity",
+    "cryptocurrency",
+    "osint",
+    "geoint",
+    "sigint",
+    "red-team",
+    "c2",
+    "law-enforcement"
+  ],
+  "author": "Apollo Platform Team <dev@apollo-platform.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/apollo-platform/apollo/issues"
+  },
+  "homepage": "https://apollo-platform.com",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.28.0",
+    "eslint-plugin-security": "^1.7.1",
+    "husky": "^8.0.3",
+    "jest": "^29.7.0",
+    "lint-staged": "^15.0.0",
+    "prettier": "^3.0.0",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.2.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "winston": "^3.11.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  }
+}

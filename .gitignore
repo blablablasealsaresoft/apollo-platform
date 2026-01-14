@@ -1,0 +1,286 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+.vite/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage and test reports
+coverage/
+*.lcov
+.nyc_output/
+test-results/
+playwright-report/
+junit.xml
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Apollo secrets and sensitive data
+.apollo/secrets/**
+.apollo/keys/**
+.apollo/certificates/**
+secrets/**
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor directories and files
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+.~*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Docker
+.dockerignore
+*.log
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+secrets.yaml
+*-secret.yaml
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform.lock.hcl
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CI/CD
+.gitlab-ci-local/
+
+# Package manager lock files (optional - uncomment if not committing)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Intelligence data (keep out of version control)
+intelligence/*/data/
+intelligence/*/cache/
+data/cache/
+data/temp/
+
+# AI models (large files)
+*.h5
+*.pb
+*.pt
+*.pth
+*.onnx
+*.bin
+ai-engine/*/models/*.bin
+ai-engine/*/models/*.pb
+ai-engine/criminal-behavior-ai/training/datasets/**
+
+# Red team payloads (sensitive)
+redteam/*/payloads/**/*.exe
+redteam/*/payloads/**/*.dll
+redteam/*/payloads/**/*.bin
+redteam/*/payloads/**/*.elf
+
+# C2 operational data
+redteam/c2-frameworks/*/sessions/
+redteam/c2-frameworks/*/loot/
+redteam/c2-frameworks/*/screenshots/
+
+# Investigation data (sensitive)
+services/operation-management/evidence/
+services/file-storage/uploads/
+
+# Monitoring and metrics
+prometheus_data/
+grafana_data/
+elasticsearch_data/
+
+# macOS
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# IDEs
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.code-workspace
+
+# Backup files
+*.bak
+*.gho
+*.ori
+*.orig
+*.tmp
+
+# Archives (development artifacts)
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Certificates and keys (critical!)
+*.pem
+*.key
+*.csr
+*.crt
+*.cer
+*.p7b
+*.p7s
+*.pfx
+*.p12
+
+# API keys and tokens
+.apikeys
+tokens.json
+credentials.json
+service-account*.json
+
+# Local development
+.local/
+.cache/
+local.properties

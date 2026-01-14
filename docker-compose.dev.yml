@@ -1,0 +1,192 @@
+version: '3.8'
+
+services:
+  # Extends base docker-compose.yml for development environment
+
+  # Hot-reload enabled services
+  bugtrace-ai-dev:
+    build:
+      context: ./ai-engine/bugtrace-ai
+      dockerfile: Dockerfile.dev
+    container_name: apollo-bugtrace-ai-dev
+    environment:
+      - NODE_ENV=development
+      - DEBUG=apollo:bugtrace:*
+      - LOG_LEVEL=debug
+    volumes:
+      - ./ai-engine/bugtrace-ai/src:/app/src:cached
+      - /app/node_modules
+    ports:
+      - "3005:3000"
+      - "9229:9229"  # Node debugger
+    networks:
+      - apollo-network
+    depends_on:
+      - redis
+      - elasticsearch
+    restart: unless-stopped
+    command: npm run dev
+
+  osint-engine-dev:
+    build:
+      context: ./intelligence/osint-engine
+      dockerfile: Dockerfile.dev
+    container_name: apollo-osint-engine-dev
+    environment:
+      - NODE_ENV=development
+      - DEBUG=apollo:osint:*
+      - LOG_LEVEL=debug
+    volumes:
+      - ./intelligence/osint-engine:/app:cached
+      - /app/node_modules
+    ports:
+      - "3006:3000"
+    networks:
+      - apollo-network
+    depends_on:
+      - redis
+      - elasticsearch
+      - neo4j
+    restart: unless-stopped
+    command: npm run dev
+
+  web-console-dev:
+    build:
+      context: ./frontend/web-console
+      dockerfile: Dockerfile.dev
+    container_name: apollo-web-console-dev
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:3000/api
+      - VITE_WS_URL=ws://localhost:3000/ws
+    volumes:
+      - ./frontend/web-console/src:/app/src:cached
+      - /app/node_modules
+    ports:
+      - "8080:8080"
+    networks:
+      - apollo-network
+    restart: unless-stopped
+    command: npm run dev
+
+  # Development Database with Debug Tools
+  postgresql-dev:
+    extends:
+      file: docker-compose.yml
+      service: postgresql
+    container_name: apollo-postgresql-dev
+    environment:
+      POSTGRES_DB: apollo_dev
+      POSTGRES_USER: apollo_dev
+      POSTGRES_PASSWORD: apollo_dev_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgresql_dev_data:/var/lib/postgresql/data
+      - ./infrastructure/databases/postgresql/schemas:/docker-entrypoint-initdb.d
+      - ./testing/test-data/sql-fixtures:/fixtures
+    ports:
+      - "5432:5432"
+
+  # Testing Database (Ephemeral)
+  postgresql-test:
+    image: postgres:15-alpine
+    container_name: apollo-postgresql-test
+    environment:
+      POSTGRES_DB: apollo_test
+      POSTGRES_USER: apollo_test
+      POSTGRES_PASSWORD: apollo_test_password
+    tmpfs:
+      - /var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - apollo-network
+    restart: unless-stopped
+
+  # Code Quality Tools
+  sonarqube:
+    image: sonarqube:community
+    container_name: apollo-sonarqube
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+      - SONAR_JDBC_URL=jdbc:postgresql://postgresql-dev:5432/sonarqube
+      - SONAR_JDBC_USERNAME=apollo_dev
+      - SONAR_JDBC_PASSWORD=apollo_dev_password
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    ports:
+      - "9000:9000"
+    networks:
+      - apollo-network
+    depends_on:
+      - postgresql-dev
+    restart: unless-stopped
+
+  # Mailhog - Email Testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: apollo-mailhog
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - apollo-network
+    restart: unless-stopped
+
+  # Redis Commander - Redis GUI
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: apollo-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    networks:
+      - apollo-network
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # Elasticsearch Head - ES GUI
+  elasticsearch-head:
+    image: mobz/elasticsearch-head:5
+    container_name: apollo-es-head
+    ports:
+      - "9100:9100"
+    networks:
+      - apollo-network
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+
+  # Jaeger - Distributed Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: apollo-jaeger
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"  # Web UI
+      - "14268:14268"
+      - "14250:14250"
+      - "9411:9411"
+    networks:
+      - apollo-network
+    restart: unless-stopped
+
+volumes:
+  postgresql_dev_data:
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_extensions:
+
+networks:
+  apollo-network:
+    external: true
+    name: apollo-network
