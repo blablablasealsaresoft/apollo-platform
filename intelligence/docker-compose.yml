@@ -1,0 +1,162 @@
+version: '3.8'
+
+services:
+  # Intelligence API Server
+  intelligence-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: apollo-intelligence-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_HOST=rabbitmq
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=apollo
+      - POSTGRES_USER=apollo
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+    depends_on:
+      - elasticsearch
+      - redis
+      - rabbitmq
+      - postgres
+    networks:
+      - apollo-network
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+
+  # Celery Workers
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.celery
+    container_name: apollo-celery-worker
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - redis
+      - rabbitmq
+      - elasticsearch
+    networks:
+      - apollo-network
+    restart: unless-stopped
+    deploy:
+      replicas: 3
+
+  # Celery Beat (Scheduler)
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.celery
+    container_name: apollo-celery-beat
+    command: celery -A celery_tasks beat --loglevel=info
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - redis
+      - rabbitmq
+    networks:
+      - apollo-network
+    restart: unless-stopped
+
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: apollo-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - apollo-network
+    restart: unless-stopped
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: apollo-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - apollo-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: apollo-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - apollo-network
+    restart: unless-stopped
+
+  # PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: apollo-postgres
+    environment:
+      - POSTGRES_DB=apollo
+      - POSTGRES_USER=apollo
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - apollo-network
+    restart: unless-stopped
+
+  # Flower (Celery Monitoring)
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile.celery
+    container_name: apollo-flower
+    command: celery -A celery_tasks flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - redis
+      - rabbitmq
+    networks:
+      - apollo-network
+    restart: unless-stopped
+
+networks:
+  apollo-network:
+    driver: bridge
+
+volumes:
+  elasticsearch-data:
+  redis-data:
+  rabbitmq-data:
+  postgres-data:
