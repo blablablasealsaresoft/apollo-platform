@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # Red Team API Server
+  redteam-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: apollo-redteam-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://apollo:apollo_secure_pass@postgres:5432/apollo_redteam
+      - REDIS_URL=redis://redis:6379/1
+      - API_KEY=${REDTEAM_API_KEY}
+      - LEGAL_DISCLAIMER_ACKNOWLEDGED=${DISCLAIMER_ACK}
+    volumes:
+      - ./data:/app/redteam/data
+      - ./reports:/app/redteam/reports
+    networks:
+      - apollo-redteam
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_RAW  # For packet capture
+      - NET_ADMIN  # For network operations
+
+  # PostgreSQL for data storage
+  postgres:
+    image: postgres:15-alpine
+    container_name: apollo-redteam-db
+    environment:
+      - POSTGRES_DB=apollo_redteam
+      - POSTGRES_USER=apollo
+      - POSTGRES_PASSWORD=apollo_secure_pass
+    volumes:
+      - redteam-postgres-data:/var/lib/postgresql/data
+    networks:
+      - apollo-redteam
+    restart: unless-stopped
+
+  # Redis for caching and task queue
+  redis:
+    image: redis:7-alpine
+    container_name: apollo-redteam-redis
+    networks:
+      - apollo-redteam
+    restart: unless-stopped
+
+  # Sliver C2 Server (requires separate image)
+  # sliver-c2:
+  #   image: bishopfox/sliver:latest
+  #   container_name: apollo-sliver-c2
+  #   ports:
+  #     - "31337:31337"
+  #     - "8443:8443"
+  #   networks:
+  #     - apollo-redteam
+  #   restart: unless-stopped
+
+  # Gophish Server (requires separate image)
+  # gophish:
+  #   image: gophish/gophish:latest
+  #   container_name: apollo-gophish
+  #   ports:
+  #     - "3333:3333"  # Admin interface
+  #     - "8080:80"    # Phishing server
+  #   volumes:
+  #     - gophish-data:/app/gophish
+  #   networks:
+  #     - apollo-redteam
+  #   restart: unless-stopped
+
+networks:
+  apollo-redteam:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+volumes:
+  redteam-postgres-data:
+  gophish-data:
