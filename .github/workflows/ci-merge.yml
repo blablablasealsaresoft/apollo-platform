@@ -1,0 +1,329 @@
+name: CI - Pre-Merge Validation
+
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+    types: [opened, synchronize, reopened, ready_for_review]
+
+env:
+  NODE_VERSION: '18.x'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Full test suite
+  full-test-suite:
+    name: Full Test Suite
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: apollo_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+      rabbitmq:
+        image: rabbitmq:3-management
+        env:
+          RABBITMQ_DEFAULT_USER: admin
+          RABBITMQ_DEFAULT_PASS: admin
+        ports:
+          - 5672:5672
+          - 15672:15672
+
+      elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: false
+        ports:
+          - 9200:9200
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov
+
+      - name: Run all unit tests
+        run: npm run test:unit -- --coverage
+
+      - name: Run all integration tests
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+          TEST_DB_NAME: apollo_test
+          TEST_DB_USER: postgres
+          TEST_DB_PASSWORD: postgres
+          TEST_REDIS_HOST: localhost
+          TEST_REDIS_PORT: 6379
+          TEST_RABBITMQ_URL: amqp://admin:admin@localhost:5672
+          ELASTICSEARCH_NODE: http://localhost:9200
+        run: npm run test:integration
+
+      - name: Check coverage threshold
+        run: |
+          npm run test:unit -- --coverage --coverageReporters=json-summary
+          COVERAGE=$(jq '.total.lines.pct' coverage/coverage-summary.json)
+          echo "Coverage: $COVERAGE%"
+          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+            echo "❌ Coverage $COVERAGE% is below 80% threshold"
+            exit 1
+          fi
+          echo "✅ Coverage $COVERAGE% meets 80% threshold"
+
+  # E2E Tests
+  e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Start application
+        run: |
+          docker-compose -f docker-compose.dev.yml up -d
+          sleep 30  # Wait for services to be ready
+
+      - name: Run Playwright E2E tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: testing/e2e-tests/playwright-report/
+          retention-days: 30
+
+      - name: Stop application
+        if: always()
+        run: docker-compose -f docker-compose.dev.yml down
+
+  # Load Tests
+  load-tests:
+    name: Load & Performance Tests
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Start application
+        run: |
+          docker-compose -f docker-compose.dev.yml up -d
+          sleep 30
+
+      - name: Run load tests
+        run: k6 run testing/performance-tests/load-tests/investigation-api-load.js
+
+      - name: Upload k6 results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-load-test-results
+          path: testing/performance-tests/load-tests/summary.*
+
+      - name: Stop application
+        if: always()
+        run: docker-compose -f docker-compose.dev.yml down
+
+  # Security Audit
+  security-audit:
+    name: Comprehensive Security Audit
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          pip install bandit semgrep trufflehog
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high --json > npm-audit.json || true
+
+      - name: Run Snyk test
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Run Semgrep
+        run: semgrep --config=auto --json --output=semgrep-results.json .
+
+      - name: Run Bandit (Python)
+        run: bandit -r . -f json -o bandit-results.json || true
+
+      - name: Secret scanning
+        run: trufflehog filesystem . --json > trufflehog-results.json || true
+
+      - name: Check for critical vulnerabilities
+        run: |
+          if [ -f semgrep-results.json ]; then
+            CRITICAL_COUNT=$(jq '[.results[] | select(.extra.severity == "ERROR")] | length' semgrep-results.json)
+            echo "Critical vulnerabilities found: $CRITICAL_COUNT"
+            if [ "$CRITICAL_COUNT" -gt 0 ]; then
+              echo "❌ Critical security vulnerabilities detected!"
+              exit 1
+            fi
+          fi
+          echo "✅ No critical vulnerabilities found"
+
+      - name: Upload security scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-results
+          path: |
+            npm-audit.json
+            semgrep-results.json
+            bandit-results.json
+            trufflehog-results.json
+
+  # Code Quality Gate
+  code-quality:
+    name: Code Quality Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=apollo-platform
+            -Dsonar.organization=apollo
+            -Dsonar.sources=.
+            -Dsonar.tests=testing
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+
+  # Approval Gate
+  approval-required:
+    name: Manual Approval Required
+    runs-on: ubuntu-latest
+    needs: [full-test-suite, e2e-tests, load-tests, security-audit, code-quality]
+    if: github.event.pull_request.draft == false
+    environment:
+      name: merge-approval
+
+    steps:
+      - name: Request approval
+        run: |
+          echo "🔍 All automated checks passed!"
+          echo "👥 Awaiting manual approval before merge to master"
+
+      - name: Generate merge report
+        run: |
+          echo "# Merge Readiness Report" > $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## ✅ All Checks Passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Full Test Suite" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ E2E Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Load Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Security Audit" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Code Quality Gate" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** Ready for merge to master" >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ **All pre-merge checks passed!**\n\n' +
+                    '- ✅ Full Test Suite\n' +
+                    '- ✅ E2E Tests\n' +
+                    '- ✅ Load Tests\n' +
+                    '- ✅ Security Audit\n' +
+                    '- ✅ Code Quality Gate\n\n' +
+                    '**Status:** Ready for approval and merge to master'
+            })

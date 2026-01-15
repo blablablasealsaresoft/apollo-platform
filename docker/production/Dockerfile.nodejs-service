@@ -1,0 +1,96 @@
+# Multi-stage production Dockerfile for Node.js services
+# Optimized for security, size, and performance
+
+# Stage 1: Build dependencies
+FROM node:18-alpine AS dependencies
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git
+
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies only
+RUN npm ci --only=production && npm cache clean --force
+
+# Stage 2: Build application
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY tsconfig.json ./
+
+# Install all dependencies (including dev)
+RUN npm ci
+
+# Copy source code
+COPY src ./src
+
+# Build TypeScript
+RUN npm run build
+
+# Remove dev dependencies
+RUN npm prune --production
+
+# Stage 3: Production image
+FROM node:18-alpine AS production
+
+# Set production environment
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Create non-root user
+RUN addgroup -g 1001 apollo && \
+    adduser -D -u 1001 -G apollo apollo
+
+WORKDIR /app
+
+# Install security updates
+RUN apk upgrade --no-cache && \
+    apk add --no-cache \
+    dumb-init \
+    curl
+
+# Copy built application from builder
+COPY --from=builder --chown=apollo:apollo /app/dist ./dist
+COPY --from=dependencies --chown=apollo:apollo /app/node_modules ./node_modules
+COPY --chown=apollo:apollo package*.json ./
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health || exit 1
+
+# Switch to non-root user
+USER apollo
+
+# Expose port
+EXPOSE ${PORT}
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start application
+CMD ["node", "dist/index.js"]
+
+# Metadata
+LABEL maintainer="Apollo Platform Team <dev@apollo-platform.com>"
+LABEL org.opencontainers.image.title="Apollo Platform Service"
+LABEL org.opencontainers.image.description="Production-ready microservice for Apollo Platform"
+LABEL org.opencontainers.image.vendor="Apollo Platform"
+LABEL org.opencontainers.image.licenses="MIT"
+
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+
+LABEL org.opencontainers.image.created="${BUILD_DATE}"
+LABEL org.opencontainers.image.revision="${VCS_REF}"
+LABEL org.opencontainers.image.version="${VERSION}"

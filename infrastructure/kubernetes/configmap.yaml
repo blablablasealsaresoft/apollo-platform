@@ -1,0 +1,95 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apollo-config
+  namespace: apollo-production
+  labels:
+    app: apollo
+data:
+  # Redis Configuration
+  redis.host: "apollo-redis"
+  redis.port: "6379"
+  redis.db: "0"
+
+  # Elasticsearch Configuration
+  elasticsearch.node: "http://apollo-elasticsearch:9200"
+  elasticsearch.index.prefix: "apollo-prod"
+
+  # RabbitMQ Configuration
+  rabbitmq.host: "apollo-rabbitmq"
+  rabbitmq.port: "5672"
+  rabbitmq.vhost: "/apollo"
+
+  # Application Configuration
+  app.name: "Apollo Platform"
+  app.version: "1.0.0"
+  app.environment: "production"
+  app.log.level: "info"
+  app.cors.origins: "https://apollo-platform.com,https://www.apollo-platform.com"
+
+  # Feature Flags
+  features.facial_recognition: "true"
+  features.blockchain_tracking: "true"
+  features.ai_intelligence: "true"
+  features.real_time_alerts: "true"
+
+  # Rate Limiting
+  rate_limit.window: "900000"  # 15 minutes
+  rate_limit.max_requests: "100"
+
+  # File Upload
+  upload.max_size: "104857600"  # 100MB
+  upload.allowed_types: "pdf,doc,docx,jpg,jpeg,png,gif,mp4,mov"
+
+  # Session
+  session.duration: "3600000"  # 1 hour
+  session.refresh_threshold: "300000"  # 5 minutes
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apollo-config
+  namespace: apollo-staging
+  labels:
+    app: apollo
+data:
+  # Redis Configuration
+  redis.host: "apollo-redis"
+  redis.port: "6379"
+  redis.db: "1"
+
+  # Elasticsearch Configuration
+  elasticsearch.node: "http://apollo-elasticsearch:9200"
+  elasticsearch.index.prefix: "apollo-staging"
+
+  # RabbitMQ Configuration
+  rabbitmq.host: "apollo-rabbitmq"
+  rabbitmq.port: "5672"
+  rabbitmq.vhost: "/apollo-staging"
+
+  # Application Configuration
+  app.name: "Apollo Platform (Staging)"
+  app.version: "1.0.0-staging"
+  app.environment: "staging"
+  app.log.level: "debug"
+  app.cors.origins: "https://staging.apollo-platform.com"
+
+  # Feature Flags
+  features.facial_recognition: "true"
+  features.blockchain_tracking: "true"
+  features.ai_intelligence: "true"
+  features.real_time_alerts: "true"
+
+  # Rate Limiting
+  rate_limit.window: "900000"
+  rate_limit.max_requests: "1000"  # More lenient for testing
+
+  # File Upload
+  upload.max_size: "104857600"
+  upload.allowed_types: "pdf,doc,docx,jpg,jpeg,png,gif,mp4,mov"
+
+  # Session
+  session.duration: "7200000"  # 2 hours for staging
+  session.refresh_threshold: "600000"  # 10 minutes

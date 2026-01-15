@@ -1,0 +1,28 @@
+{
+  "name": "@apollo/api-gateway",
+  "version": "1.0.0",
+  "description": "Apollo API Gateway with routing, authentication, and rate limiting",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@apollo/shared": "file:../shared",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5",
+    "http-proxy-middleware": "^2.0.6",
+    "winston": "^3.11.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/jsonwebtoken": "^9.0.5",
+    "typescript": "^5.2.0",
+    "ts-node-dev": "^2.0.0"
+  }
+}

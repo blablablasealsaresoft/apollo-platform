@@ -1,0 +1,326 @@
+name: CD - Production Deployment
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Build production images
+  build-production:
+    name: Build Production Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        service:
+          - authentication
+          - investigation
+          - intelligence-fusion
+          - search
+          - notification
+          - analytics
+          - file-storage
+          - reporting
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/${{ matrix.service }}
+          file: ./services/${{ matrix.service }}/Dockerfile.production
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ github.ref_name }}
+
+      - name: Sign image with Cosign
+        run: |
+          cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-${{ matrix.service }}:${{ github.sha }}
+        env:
+          COSIGN_EXPERIMENTAL: 1
+
+  # Deploy to staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build-production
+    environment:
+      name: staging
+      url: https://staging.apollo-platform.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > $HOME/.kube/config
+
+      - name: Deploy to Kubernetes staging
+        run: |
+          kubectl set image deployment/apollo-authentication apollo-authentication=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-authentication:${{ github.sha }} -n apollo-staging
+          kubectl set image deployment/apollo-investigation apollo-investigation=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-investigation:${{ github.sha }} -n apollo-staging
+          kubectl set image deployment/apollo-intelligence-fusion apollo-intelligence-fusion=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-intelligence-fusion:${{ github.sha }} -n apollo-staging
+          kubectl set image deployment/apollo-search apollo-search=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-search:${{ github.sha }} -n apollo-staging
+          kubectl set image deployment/apollo-notification apollo-notification=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-notification:${{ github.sha }} -n apollo-staging
+          kubectl set image deployment/apollo-analytics apollo-analytics=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-analytics:${{ github.sha }} -n apollo-staging
+          kubectl set image deployment/apollo-file-storage apollo-file-storage=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-file-storage:${{ github.sha }} -n apollo-staging
+          kubectl set image deployment/apollo-reporting apollo-reporting=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-reporting:${{ github.sha }} -n apollo-staging
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/apollo-authentication -n apollo-staging --timeout=5m
+          kubectl rollout status deployment/apollo-investigation -n apollo-staging --timeout=5m
+          kubectl rollout status deployment/apollo-intelligence-fusion -n apollo-staging --timeout=5m
+          kubectl rollout status deployment/apollo-search -n apollo-staging --timeout=5m
+          kubectl rollout status deployment/apollo-notification -n apollo-staging --timeout=5m
+          kubectl rollout status deployment/apollo-analytics -n apollo-staging --timeout=5m
+          kubectl rollout status deployment/apollo-file-storage -n apollo-staging --timeout=5m
+          kubectl rollout status deployment/apollo-reporting -n apollo-staging --timeout=5m
+
+      - name: Run smoke tests
+        run: |
+          npm ci
+          npm run test:smoke:staging
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          kubectl rollout undo deployment/apollo-authentication -n apollo-staging
+          kubectl rollout undo deployment/apollo-investigation -n apollo-staging
+          kubectl rollout undo deployment/apollo-intelligence-fusion -n apollo-staging
+          kubectl rollout undo deployment/apollo-search -n apollo-staging
+          kubectl rollout undo deployment/apollo-notification -n apollo-staging
+          kubectl rollout undo deployment/apollo-analytics -n apollo-staging
+          kubectl rollout undo deployment/apollo-file-storage -n apollo-staging
+          kubectl rollout undo deployment/apollo-reporting -n apollo-staging
+
+  # Health checks
+  health-check-staging:
+    name: Staging Health Checks
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check service health
+        run: |
+          services=(
+            "authentication"
+            "investigation"
+            "intelligence-fusion"
+            "search"
+            "notification"
+            "analytics"
+            "file-storage"
+            "reporting"
+          )
+
+          for service in "${services[@]}"; do
+            echo "Checking health of $service..."
+            response=$(curl -s -o /dev/null -w "%{http_code}" https://staging.apollo-platform.com/api/$service/health)
+            if [ "$response" != "200" ]; then
+              echo "❌ Health check failed for $service (HTTP $response)"
+              exit 1
+            fi
+            echo "✅ $service is healthy"
+          done
+
+      - name: Run integration smoke tests
+        run: |
+          curl -X POST https://staging.apollo-platform.com/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"email":"test@apollo.com","password":"${{ secrets.TEST_PASSWORD }}"}'
+
+  # Production deployment (manual approval required)
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: health-check-staging
+    environment:
+      name: production
+      url: https://apollo-platform.com
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 -d > $HOME/.kube/config
+
+      - name: Create database backup
+        run: |
+          kubectl exec -n apollo-production deployment/postgres -- pg_dump -U postgres apollo > backup-$(date +%Y%m%d-%H%M%S).sql
+          aws s3 cp backup-*.sql s3://apollo-backups/pre-deployment/
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Deploy to Kubernetes production
+        run: |
+          kubectl set image deployment/apollo-authentication apollo-authentication=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-authentication:${{ github.sha }} -n apollo-production
+          kubectl set image deployment/apollo-investigation apollo-investigation=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-investigation:${{ github.sha }} -n apollo-production
+          kubectl set image deployment/apollo-intelligence-fusion apollo-intelligence-fusion=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-intelligence-fusion:${{ github.sha }} -n apollo-production
+          kubectl set image deployment/apollo-search apollo-search=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-search:${{ github.sha }} -n apollo-production
+          kubectl set image deployment/apollo-notification apollo-notification=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-notification:${{ github.sha }} -n apollo-production
+          kubectl set image deployment/apollo-analytics apollo-analytics=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-analytics:${{ github.sha }} -n apollo-production
+          kubectl set image deployment/apollo-file-storage apollo-file-storage=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-file-storage:${{ github.sha }} -n apollo-production
+          kubectl set image deployment/apollo-reporting apollo-reporting=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-reporting:${{ github.sha }} -n apollo-production
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/apollo-authentication -n apollo-production --timeout=10m
+          kubectl rollout status deployment/apollo-investigation -n apollo-production --timeout=10m
+          kubectl rollout status deployment/apollo-intelligence-fusion -n apollo-production --timeout=10m
+          kubectl rollout status deployment/apollo-search -n apollo-production --timeout=10m
+          kubectl rollout status deployment/apollo-notification -n apollo-production --timeout=10m
+          kubectl rollout status deployment/apollo-analytics -n apollo-production --timeout=10m
+          kubectl rollout status deployment/apollo-file-storage -n apollo-production --timeout=10m
+          kubectl rollout status deployment/apollo-reporting -n apollo-production --timeout=10m
+
+      - name: Run production smoke tests
+        run: |
+          npm ci
+          npm run test:smoke:production
+
+      - name: Monitor for errors
+        run: |
+          sleep 60
+          ERROR_COUNT=$(kubectl logs -n apollo-production -l app=apollo --tail=100 | grep -i error | wc -l)
+          if [ "$ERROR_COUNT" -gt 10 ]; then
+            echo "❌ High error rate detected: $ERROR_COUNT errors"
+            exit 1
+          fi
+          echo "✅ Error rate acceptable: $ERROR_COUNT errors"
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "🔄 Rolling back production deployment..."
+          kubectl rollout undo deployment/apollo-authentication -n apollo-production
+          kubectl rollout undo deployment/apollo-investigation -n apollo-production
+          kubectl rollout undo deployment/apollo-intelligence-fusion -n apollo-production
+          kubectl rollout undo deployment/apollo-search -n apollo-production
+          kubectl rollout undo deployment/apollo-notification -n apollo-production
+          kubectl rollout undo deployment/apollo-analytics -n apollo-production
+          kubectl rollout undo deployment/apollo-file-storage -n apollo-production
+          kubectl rollout undo deployment/apollo-reporting -n apollo-production
+
+      - name: Notify team
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK }}
+          payload: |
+            {
+              "text": "${{ job.status == 'success' && '✅' || '❌' }} Production Deployment ${{ job.status }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Apollo Platform Production Deployment*\n*Status:* ${{ job.status }}\n*Commit:* ${{ github.sha }}\n*Author:* ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
+
+  # Post-deployment validation
+  post-deployment:
+    name: Post-Deployment Validation
+    runs-on: ubuntu-latest
+    needs: deploy-production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run full health checks
+        run: |
+          npm ci
+          npm run test:health:production
+
+      - name: Monitor metrics
+        run: |
+          # Check Prometheus metrics
+          curl -s "https://prometheus.apollo-platform.com/api/v1/query?query=up{job='apollo'}" | jq .
+
+      - name: Generate deployment report
+        run: |
+          echo "# 🚀 Production Deployment Report" > $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Author:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## ✅ Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All services deployed and validated successfully." >> $GITHUB_STEP_SUMMARY

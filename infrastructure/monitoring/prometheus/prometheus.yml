@@ -1,0 +1,208 @@
+# Prometheus Configuration for Apollo Platform
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'apollo-production'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - '/etc/prometheus/rules/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # Apollo Services
+  - job_name: 'apollo-authentication'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - apollo-production
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: authentication
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+
+  - job_name: 'apollo-investigation'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - apollo-production
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: investigation
+
+  - job_name: 'apollo-intelligence-fusion'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - apollo-production
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: intelligence-fusion
+
+  - job_name: 'apollo-search'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - apollo-production
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: search
+
+  - job_name: 'apollo-notification'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - apollo-production
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: notification
+
+  - job_name: 'apollo-analytics'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - apollo-production
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: analytics
+
+  - job_name: 'apollo-file-storage'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - apollo-production
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: file-storage
+
+  - job_name: 'apollo-reporting'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - apollo-production
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_component]
+        action: keep
+        regex: reporting
+
+  # Infrastructure Services
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['apollo-postgres:9187']
+        labels:
+          service: 'postgresql'
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['apollo-redis:9121']
+        labels:
+          service: 'redis'
+
+  - job_name: 'elasticsearch'
+    static_configs:
+      - targets: ['apollo-elasticsearch:9114']
+        labels:
+          service: 'elasticsearch'
+
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['apollo-rabbitmq:15692']
+        labels:
+          service: 'rabbitmq'
+
+  # Node Exporter for system metrics
+  - job_name: 'node-exporter'
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '(.*):10250'
+        replacement: '${1}:9100'
+        target_label: __address__
+
+  # Kubernetes API Server
+  - job_name: 'kubernetes-apiservers'
+    kubernetes_sd_configs:
+      - role: endpoints
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: default;kubernetes;https
+
+  # Kubernetes Nodes
+  - job_name: 'kubernetes-nodes'
+    kubernetes_sd_configs:
+      - role: node
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+
+  # Kubernetes Pods
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name

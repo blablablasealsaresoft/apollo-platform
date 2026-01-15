@@ -1,0 +1,190 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build:
+      context: ..
+      dockerfile: services/api-gateway/Dockerfile
+    container_name: apollo-api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - API_GATEWAY_PORT=3000
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - USER_SERVICE_URL=http://user-service:3002
+      - OPERATIONS_SERVICE_URL=http://operations-service:3003
+      - INTELLIGENCE_SERVICE_URL=http://intelligence-service:3004
+      - NOTIFICATIONS_SERVICE_URL=http://notifications-service:3005
+      - ANALYTICS_SERVICE_URL=http://analytics-service:3006
+      - SEARCH_SERVICE_URL=http://search-service:3007
+    networks:
+      - apollo-network
+    depends_on:
+      - auth-service
+      - user-service
+    restart: unless-stopped
+
+  # Authentication Service
+  auth-service:
+    build:
+      context: ..
+      dockerfile: services/authentication/Dockerfile
+    container_name: apollo-auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - AUTH_SERVICE_PORT=3001
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=apollo
+      - DB_USER=apollo
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ACCESS_EXPIRATION=15m
+      - JWT_REFRESH_EXPIRATION=7d
+    networks:
+      - apollo-network
+    depends_on:
+      - postgresql
+      - redis
+    restart: unless-stopped
+
+  # User Management Service
+  user-service:
+    build:
+      context: ..
+      dockerfile: services/user-management/Dockerfile
+    container_name: apollo-user-service
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - USER_SERVICE_PORT=3002
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=apollo
+      - DB_USER=apollo
+      - DB_PASSWORD=${DB_PASSWORD}
+    networks:
+      - apollo-network
+    depends_on:
+      - postgresql
+    restart: unless-stopped
+
+  # Operations Service
+  operations-service:
+    build:
+      context: ..
+      dockerfile: services/operations/Dockerfile
+    container_name: apollo-operations-service
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=production
+      - OPERATIONS_SERVICE_PORT=3003
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=apollo
+      - DB_USER=apollo
+      - DB_PASSWORD=${DB_PASSWORD}
+    networks:
+      - apollo-network
+    depends_on:
+      - postgresql
+    restart: unless-stopped
+
+  # Intelligence Service
+  intelligence-service:
+    build:
+      context: ..
+      dockerfile: services/intelligence/Dockerfile
+    container_name: apollo-intelligence-service
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=production
+      - INTELLIGENCE_SERVICE_PORT=3004
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=apollo
+      - DB_USER=apollo
+      - DB_PASSWORD=${DB_PASSWORD}
+    networks:
+      - apollo-network
+    depends_on:
+      - postgresql
+    restart: unless-stopped
+
+  # Notifications Service
+  notifications-service:
+    build:
+      context: ..
+      dockerfile: services/notifications/Dockerfile
+    container_name: apollo-notifications-service
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=production
+      - NOTIFICATIONS_SERVICE_PORT=3005
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=apollo
+      - DB_USER=apollo
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - apollo-network
+    depends_on:
+      - postgresql
+      - redis
+    restart: unless-stopped
+
+  # Analytics Service
+  analytics-service:
+    build:
+      context: ..
+      dockerfile: services/analytics/Dockerfile
+    container_name: apollo-analytics-service
+    ports:
+      - "3006:3006"
+    environment:
+      - NODE_ENV=production
+      - ANALYTICS_SERVICE_PORT=3006
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=apollo
+      - DB_USER=apollo
+      - DB_PASSWORD=${DB_PASSWORD}
+    networks:
+      - apollo-network
+    depends_on:
+      - postgresql
+    restart: unless-stopped
+
+  # Search Service
+  search-service:
+    build:
+      context: ..
+      dockerfile: services/search/Dockerfile
+    container_name: apollo-search-service
+    ports:
+      - "3007:3007"
+    environment:
+      - NODE_ENV=production
+      - SEARCH_SERVICE_PORT=3007
+      - ELASTICSEARCH_NODE=http://elasticsearch:9200
+    networks:
+      - apollo-network
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+
+networks:
+  apollo-network:
+    external: true

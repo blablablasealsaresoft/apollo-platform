@@ -1,0 +1,41 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Run lint-staged
+npx lint-staged
+
+# Run type checking
+echo "📝 Type checking..."
+npm run type-check || {
+  echo "❌ Type check failed. Please fix TypeScript errors."
+  exit 1
+}
+
+# Run unit tests for changed files
+echo "🧪 Running tests..."
+npm run test:unit -- --bail --findRelatedTests || {
+  echo "❌ Tests failed. Please fix failing tests."
+  exit 1
+}
+
+# Check for secrets
+echo "🔐 Scanning for secrets..."
+if command -v trufflehog &> /dev/null; then
+  trufflehog filesystem . --since-commit HEAD --only-verified --fail || {
+    echo "❌ Secrets detected! Please remove them before committing."
+    exit 1
+  }
+fi
+
+# Check for large files
+echo "📦 Checking file sizes..."
+large_files=$(git diff --cached --name-only | xargs ls -l 2>/dev/null | awk '$5 > 5242880 {print $9}')
+if [ ! -z "$large_files" ]; then
+  echo "❌ Large files detected (>5MB). Please use Git LFS or reduce file size:"
+  echo "$large_files"
+  exit 1
+fi
+
+echo "✅ Pre-commit checks passed!"
