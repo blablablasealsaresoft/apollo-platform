@@ -1,0 +1,29 @@
+{
+  "name": "@apollo/shared",
+  "version": "1.0.0",
+  "description": "Shared utilities and types for Apollo microservices",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "winston": "^3.11.0",
+    "dotenv": "^16.3.1",
+    "joi": "^17.11.0",
+    "pg": "^8.11.3",
+    "redis": "^4.6.11",
+    "jsonwebtoken": "^9.0.2",
+    "@types/jsonwebtoken": "^9.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/pg": "^8.10.9",
+    "typescript": "^5.2.0"
+  }
+}

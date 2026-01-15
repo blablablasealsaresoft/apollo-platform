@@ -1,0 +1,176 @@
+---
+# OWASP ZAP Security Testing Configuration for Apollo Platform
+
+env:
+  contexts:
+    - name: apollo-platform
+      urls:
+        - http://localhost:3000
+      includePaths:
+        - "http://localhost:3000/.*"
+      excludePaths:
+        - "http://localhost:3000/static/.*"
+        - "http://localhost:3000/assets/.*"
+      authentication:
+        method: "json"
+        loginUrl: "http://localhost:3000/api/auth/login"
+        loginRequestData: |
+          {
+            "email": "security-test@apollo.com",
+            "password": "SecurityTest123!"
+          }
+      users:
+        - name: "security-tester"
+          credentials:
+            email: "security-test@apollo.com"
+            password: "SecurityTest123!"
+
+  parameters:
+    failOnError: true
+    failOnWarning: false
+    progressToStdout: true
+
+  vars:
+    apiUrl: "http://localhost:3000/api"
+
+jobs:
+  - type: spider
+    name: spider-apollo
+    parameters:
+      context: apollo-platform
+      url: http://localhost:3000
+      maxDuration: 10
+      maxDepth: 10
+      maxChildren: 100
+
+  - type: spiderAjax
+    name: ajax-spider-apollo
+    parameters:
+      context: apollo-platform
+      url: http://localhost:3000
+      maxDuration: 10
+      maxCrawlDepth: 10
+      numberOfBrowsers: 5
+
+  - type: passiveScan-wait
+    name: wait-for-passive-scan
+    parameters:
+      maxDuration: 5
+
+  - type: activeScan
+    name: active-scan-apollo
+    parameters:
+      context: apollo-platform
+      policy: Default Policy
+      maxRuleDurationInMins: 10
+      maxScanDurationInMins: 30
+
+  # Specific vulnerability tests
+  - type: activeScan
+    name: sql-injection-test
+    parameters:
+      context: apollo-platform
+      scanners:
+        - 40018  # SQL Injection
+        - 40019  # SQL Injection - MySQL
+        - 40020  # SQL Injection - PostgreSQL
+        - 40021  # SQL Injection - Oracle
+      maxRuleDurationInMins: 5
+
+  - type: activeScan
+    name: xss-test
+    parameters:
+      context: apollo-platform
+      scanners:
+        - 40012  # Cross Site Scripting (Reflected)
+        - 40014  # Cross Site Scripting (Persistent)
+        - 40016  # Cross Site Scripting (Persistent) - Prime
+        - 40017  # Cross Site Scripting (Persistent) - Spider
+      maxRuleDurationInMins: 5
+
+  - type: activeScan
+    name: auth-test
+    parameters:
+      context: apollo-platform
+      scanners:
+        - 10055  # CSP Scanner
+        - 10098  # Authentication Credentials Captured
+        - 40013  # Session Fixation
+      maxRuleDurationInMins: 5
+
+  - type: activeScan
+    name: injection-test
+    parameters:
+      context: apollo-platform
+      scanners:
+        - 90019  # Code Injection
+        - 90020  # Command Injection
+        - 7     # Remote File Inclusion
+      maxRuleDurationInMins: 5
+
+  - type: report
+    name: security-report
+    parameters:
+      template: traditional-html
+      reportDir: testing/security-tests/reports
+      reportFile: zap-security-report
+      reportTitle: Apollo Platform Security Test Report
+      reportDescription: Comprehensive security scan of the Apollo Platform
+
+  - type: report
+    name: security-report-json
+    parameters:
+      template: traditional-json
+      reportDir: testing/security-tests/reports
+      reportFile: zap-security-report
+      reportTitle: Apollo Platform Security Test Report
+
+# Alert filters
+alertFilters:
+  - ruleId: 10015
+    newRisk: INFO
+    context: apollo-platform
+    url: "http://localhost:3000/static/.*"
+
+  - ruleId: 10021
+    newRisk: INFO
+    context: apollo-platform
+    url: "http://localhost:3000/assets/.*"
+
+# Scanner options
+scanners:
+  - id: 40018  # SQL Injection
+    name: SQL Injection
+    strength: INSANE
+    alertThreshold: LOW
+
+  - id: 40012  # XSS Reflected
+    name: Cross Site Scripting (Reflected)
+    strength: INSANE
+    alertThreshold: LOW
+
+  - id: 40014  # XSS Persistent
+    name: Cross Site Scripting (Persistent)
+    strength: INSANE
+    alertThreshold: LOW
+
+  - id: 90019  # Code Injection
+    name: Code Injection
+    strength: HIGH
+    alertThreshold: MEDIUM
+
+  - id: 90020  # Command Injection
+    name: Command Injection
+    strength: HIGH
+    alertThreshold: MEDIUM
+
+# Risk confidence levels
+riskConfig:
+  high:
+    fail: true
+  medium:
+    fail: false
+    warn: true
+  low:
+    fail: false
+    warn: false

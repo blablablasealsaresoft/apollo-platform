@@ -1,0 +1,24 @@
+{
+  "name": "@apollo/search",
+  "version": "1.0.0",
+  "description": "Apollo Search Service with Elasticsearch",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@apollo/shared": "file:../shared",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "winston": "^3.11.0",
+    "@elastic/elasticsearch": "^8.11.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "typescript": "^5.2.0",
+    "ts-node-dev": "^2.0.0"
+  }
+}

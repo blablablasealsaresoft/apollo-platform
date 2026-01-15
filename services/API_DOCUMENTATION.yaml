@@ -1,0 +1,399 @@
+openapi: 3.0.0
+info:
+  title: Apollo Platform API
+  description: Complete API documentation for Apollo criminal investigation platform
+  version: 1.0.0
+  contact:
+    name: Apollo Platform Team
+    email: dev@apollo-platform.com
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://api.apollo-platform.com
+    description: Production server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        role:
+          type: string
+          enum: [admin, investigator, analyst, viewer]
+        clearanceLevel:
+          type: string
+          enum: [top_secret, secret, confidential, restricted, unclassified]
+        isActive:
+          type: boolean
+        isMfaEnabled:
+          type: boolean
+
+    Operation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        codename:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [planning, active, on_hold, completed, archived]
+        priority:
+          type: string
+          enum: [critical, high, medium, low]
+        clearanceLevel:
+          type: string
+        leadInvestigatorId:
+          type: string
+          format: uuid
+        startDate:
+          type: string
+          format: date-time
+
+    IntelligenceReport:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        summary:
+          type: string
+        content:
+          type: string
+        source:
+          type: string
+          enum: [humint, sigint, osint, geoint, finint, techint]
+        confidence:
+          type: string
+          enum: [verified, high, medium, low, unconfirmed]
+        tags:
+          type: array
+          items:
+            type: string
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, username, password, firstName, lastName]
+              properties:
+                email:
+                  type: string
+                  format: email
+                username:
+                  type: string
+                password:
+                  type: string
+                  format: password
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+      responses:
+        '201':
+          description: User registered successfully
+        '400':
+          description: Validation error
+        '409':
+          description: User already exists
+
+  /api/auth/login:
+    post:
+      summary: Login with email and password
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      accessToken:
+                        type: string
+                      refreshToken:
+                        type: string
+        '401':
+          description: Invalid credentials
+
+  /api/auth/refresh:
+    post:
+      summary: Refresh access token
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed successfully
+
+  /api/auth/me:
+    get:
+      summary: Get current user
+      tags: [Authentication]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /api/users:
+    get:
+      summary: Get all users
+      tags: [User Management]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of users
+
+  /api/users/{id}:
+    get:
+      summary: Get user by ID
+      tags: [User Management]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User details
+        '404':
+          description: User not found
+
+  /api/operations:
+    post:
+      summary: Create a new operation
+      tags: [Operations]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, codename, priority, clearanceLevel, leadInvestigatorId, startDate]
+              properties:
+                name:
+                  type: string
+                codename:
+                  type: string
+                description:
+                  type: string
+                priority:
+                  type: string
+                clearanceLevel:
+                  type: string
+                leadInvestigatorId:
+                  type: string
+                  format: uuid
+                startDate:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Operation created
+
+    get:
+      summary: Get all operations
+      tags: [Operations]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: priority
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of operations
+
+  /api/intelligence:
+    post:
+      summary: Create intelligence report
+      tags: [Intelligence]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, content, source, confidence, clearanceLevel, authorId]
+              properties:
+                title:
+                  type: string
+                summary:
+                  type: string
+                content:
+                  type: string
+                source:
+                  type: string
+                confidence:
+                  type: string
+                clearanceLevel:
+                  type: string
+                authorId:
+                  type: string
+                  format: uuid
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Intelligence report created
+
+  /api/search:
+    post:
+      summary: Search across all indices
+      tags: [Search]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query:
+                  type: string
+                indices:
+                  type: array
+                  items:
+                    type: string
+                filters:
+                  type: object
+      responses:
+        '200':
+          description: Search results
+
+  /api/analytics/investigations:
+    get:
+      summary: Get investigation metrics
+      tags: [Analytics]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Investigation statistics
+
+  /api/notifications/user/{userId}:
+    get:
+      summary: Get user notifications
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User notifications
