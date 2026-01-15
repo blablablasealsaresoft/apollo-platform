@@ -1,0 +1,119 @@
+# Apollo Red Team Platform - Python Dependencies
+# AUTHORIZED USE ONLY
+
+# Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+python-multipart==0.0.6
+
+# HTTP Clients
+httpx==0.25.1
+requests==2.31.0
+aiohttp==3.9.1
+
+# Security Tools Integration
+python-nmap==0.7.1
+scapy==2.5.0
+dnspython==2.4.2
+cryptography==41.0.7
+
+# Database
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+alembic==1.12.1
+
+# Data Processing
+pandas==2.1.3
+numpy==1.26.2
+
+# Web Scraping & Parsing
+beautifulsoup4==4.12.2
+lxml==4.9.3
+selenium==4.15.2
+
+# Network Analysis
+pyshark==0.6
+impacket==0.11.0
+
+# Forensics & Malware Analysis
+pefile==2023.2.7
+capstone==5.0.1
+yara-python==4.3.1
+
+# Steganography
+Pillow==10.1.0
+stegano==0.11.2
+
+# Password Analysis
+passlib==1.7.4
+bcrypt==4.1.1
+
+# OSINT
+shodan==1.30.1
+censys==2.2.8
+
+# Report Generation
+jinja2==3.1.2
+markdown==3.5.1
+reportlab==4.0.7
+
+# Utilities
+python-dotenv==1.0.0
+PyYAML==6.0.1
+click==8.1.7
+rich==13.7.0
+colorama==0.4.6
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+
+# Code Quality
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+
+# Async Support
+asyncio==3.4.3
+aiofiles==23.2.1
+
+# JWT for API Authentication
+PyJWT==2.8.0
+
+# Redis for caching (optional)
+redis==5.0.1
+
+# Celery for task queue (optional)
+celery==5.3.4
+
+# Prometheus metrics (optional)
+prometheus-client==0.19.0
+
+# Additional Security Tools
+hashlib==20081119
+ipaddress==1.0.23
+
+# MITRE ATT&CK
+mitreattack-python==3.0.4
+
+# Certificate transparency
+certstream==1.12
+
+# Subdomain enumeration
+sublist3r==1.1
+
+# Note: Some tools require separate installation:
+# - Sliver C2: https://github.com/BishopFox/sliver
+# - Havoc C2: https://github.com/HavocFramework/Havoc
+# - Mythic C2: https://github.com/its-a-feature/Mythic
+# - Metasploit: https://www.metasploit.com/
+# - Nmap: https://nmap.org/
+# - Masscan: https://github.com/robertdavidgraham/masscan
+# - Burp Suite: https://portswigger.net/burp
+# - SQLMap: https://sqlmap.org/
+# - Hashcat: https://hashcat.net/hashcat/
+# - John the Ripper: https://www.openwall.com/john/
+# - Gophish: https://getgophish.com/
+# - BBOT: https://github.com/blacklanternsecurity/bbot
