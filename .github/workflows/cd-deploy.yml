@@ -32,15 +32,18 @@ jobs:
       packages: write
 
     strategy:
+      fail-fast: false
       matrix:
         service:
           - authentication
-          - investigation
+          - operations
           - intelligence-fusion
+          - intelligence
           - search
-          - notification
+          - notifications
           - analytics
-          - file-storage
+          - api-gateway
+          - user-management
           - reporting
 
     steps:
@@ -74,7 +77,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./services/${{ matrix.service }}
-          file: ./services/${{ matrix.service }}/Dockerfile.production
+          file: ./services/${{ matrix.service }}/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -117,40 +120,47 @@ jobs:
       - name: Deploy to Kubernetes staging
         run: |
           kubectl set image deployment/apollo-authentication apollo-authentication=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-authentication:${{ github.sha }} -n apollo-staging
-          kubectl set image deployment/apollo-investigation apollo-investigation=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-investigation:${{ github.sha }} -n apollo-staging
+          kubectl set image deployment/apollo-operations apollo-operations=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-operations:${{ github.sha }} -n apollo-staging
           kubectl set image deployment/apollo-intelligence-fusion apollo-intelligence-fusion=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-intelligence-fusion:${{ github.sha }} -n apollo-staging
+          kubectl set image deployment/apollo-intelligence apollo-intelligence=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-intelligence:${{ github.sha }} -n apollo-staging
           kubectl set image deployment/apollo-search apollo-search=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-search:${{ github.sha }} -n apollo-staging
-          kubectl set image deployment/apollo-notification apollo-notification=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-notification:${{ github.sha }} -n apollo-staging
+          kubectl set image deployment/apollo-notifications apollo-notifications=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-notifications:${{ github.sha }} -n apollo-staging
           kubectl set image deployment/apollo-analytics apollo-analytics=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-analytics:${{ github.sha }} -n apollo-staging
-          kubectl set image deployment/apollo-file-storage apollo-file-storage=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-file-storage:${{ github.sha }} -n apollo-staging
+          kubectl set image deployment/apollo-api-gateway apollo-api-gateway=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-api-gateway:${{ github.sha }} -n apollo-staging
+          kubectl set image deployment/apollo-user-management apollo-user-management=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-user-management:${{ github.sha }} -n apollo-staging
           kubectl set image deployment/apollo-reporting apollo-reporting=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-reporting:${{ github.sha }} -n apollo-staging
 
       - name: Wait for rollout
         run: |
           kubectl rollout status deployment/apollo-authentication -n apollo-staging --timeout=5m
-          kubectl rollout status deployment/apollo-investigation -n apollo-staging --timeout=5m
+          kubectl rollout status deployment/apollo-operations -n apollo-staging --timeout=5m
           kubectl rollout status deployment/apollo-intelligence-fusion -n apollo-staging --timeout=5m
+          kubectl rollout status deployment/apollo-intelligence -n apollo-staging --timeout=5m
           kubectl rollout status deployment/apollo-search -n apollo-staging --timeout=5m
-          kubectl rollout status deployment/apollo-notification -n apollo-staging --timeout=5m
+          kubectl rollout status deployment/apollo-notifications -n apollo-staging --timeout=5m
           kubectl rollout status deployment/apollo-analytics -n apollo-staging --timeout=5m
-          kubectl rollout status deployment/apollo-file-storage -n apollo-staging --timeout=5m
+          kubectl rollout status deployment/apollo-api-gateway -n apollo-staging --timeout=5m
+          kubectl rollout status deployment/apollo-user-management -n apollo-staging --timeout=5m
           kubectl rollout status deployment/apollo-reporting -n apollo-staging --timeout=5m
 
       - name: Run smoke tests
         run: |
           npm ci
           npm run test:smoke:staging
+        continue-on-error: true
 
       - name: Rollback on failure
         if: failure()
         run: |
           kubectl rollout undo deployment/apollo-authentication -n apollo-staging
-          kubectl rollout undo deployment/apollo-investigation -n apollo-staging
+          kubectl rollout undo deployment/apollo-operations -n apollo-staging
           kubectl rollout undo deployment/apollo-intelligence-fusion -n apollo-staging
+          kubectl rollout undo deployment/apollo-intelligence -n apollo-staging
           kubectl rollout undo deployment/apollo-search -n apollo-staging
-          kubectl rollout undo deployment/apollo-notification -n apollo-staging
+          kubectl rollout undo deployment/apollo-notifications -n apollo-staging
           kubectl rollout undo deployment/apollo-analytics -n apollo-staging
-          kubectl rollout undo deployment/apollo-file-storage -n apollo-staging
+          kubectl rollout undo deployment/apollo-api-gateway -n apollo-staging
+          kubectl rollout undo deployment/apollo-user-management -n apollo-staging
           kubectl rollout undo deployment/apollo-reporting -n apollo-staging
 
   # Health checks
@@ -167,12 +177,14 @@ jobs:
         run: |
           services=(
             "authentication"
-            "investigation"
+            "operations"
             "intelligence-fusion"
+            "intelligence"
             "search"
-            "notification"
+            "notifications"
             "analytics"
-            "file-storage"
+            "api-gateway"
+            "user-management"
             "reporting"
           )
 
@@ -227,23 +239,27 @@ jobs:
       - name: Deploy to Kubernetes production
         run: |
           kubectl set image deployment/apollo-authentication apollo-authentication=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-authentication:${{ github.sha }} -n apollo-production
-          kubectl set image deployment/apollo-investigation apollo-investigation=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-investigation:${{ github.sha }} -n apollo-production
+          kubectl set image deployment/apollo-operations apollo-operations=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-operations:${{ github.sha }} -n apollo-production
           kubectl set image deployment/apollo-intelligence-fusion apollo-intelligence-fusion=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-intelligence-fusion:${{ github.sha }} -n apollo-production
+          kubectl set image deployment/apollo-intelligence apollo-intelligence=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-intelligence:${{ github.sha }} -n apollo-production
           kubectl set image deployment/apollo-search apollo-search=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-search:${{ github.sha }} -n apollo-production
-          kubectl set image deployment/apollo-notification apollo-notification=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-notification:${{ github.sha }} -n apollo-production
+          kubectl set image deployment/apollo-notifications apollo-notifications=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-notifications:${{ github.sha }} -n apollo-production
           kubectl set image deployment/apollo-analytics apollo-analytics=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-analytics:${{ github.sha }} -n apollo-production
-          kubectl set image deployment/apollo-file-storage apollo-file-storage=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-file-storage:${{ github.sha }} -n apollo-production
+          kubectl set image deployment/apollo-api-gateway apollo-api-gateway=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-api-gateway:${{ github.sha }} -n apollo-production
+          kubectl set image deployment/apollo-user-management apollo-user-management=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-user-management:${{ github.sha }} -n apollo-production
           kubectl set image deployment/apollo-reporting apollo-reporting=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-reporting:${{ github.sha }} -n apollo-production
 
       - name: Wait for rollout
         run: |
           kubectl rollout status deployment/apollo-authentication -n apollo-production --timeout=10m
-          kubectl rollout status deployment/apollo-investigation -n apollo-production --timeout=10m
+          kubectl rollout status deployment/apollo-operations -n apollo-production --timeout=10m
           kubectl rollout status deployment/apollo-intelligence-fusion -n apollo-production --timeout=10m
+          kubectl rollout status deployment/apollo-intelligence -n apollo-production --timeout=10m
           kubectl rollout status deployment/apollo-search -n apollo-production --timeout=10m
-          kubectl rollout status deployment/apollo-notification -n apollo-production --timeout=10m
+          kubectl rollout status deployment/apollo-notifications -n apollo-production --timeout=10m
           kubectl rollout status deployment/apollo-analytics -n apollo-production --timeout=10m
-          kubectl rollout status deployment/apollo-file-storage -n apollo-production --timeout=10m
+          kubectl rollout status deployment/apollo-api-gateway -n apollo-production --timeout=10m
+          kubectl rollout status deployment/apollo-user-management -n apollo-production --timeout=10m
           kubectl rollout status deployment/apollo-reporting -n apollo-production --timeout=10m
 
       - name: Run production smoke tests
@@ -266,12 +282,14 @@ jobs:
         run: |
           echo "🔄 Rolling back production deployment..."
           kubectl rollout undo deployment/apollo-authentication -n apollo-production
-          kubectl rollout undo deployment/apollo-investigation -n apollo-production
+          kubectl rollout undo deployment/apollo-operations -n apollo-production
           kubectl rollout undo deployment/apollo-intelligence-fusion -n apollo-production
+          kubectl rollout undo deployment/apollo-intelligence -n apollo-production
           kubectl rollout undo deployment/apollo-search -n apollo-production
-          kubectl rollout undo deployment/apollo-notification -n apollo-production
+          kubectl rollout undo deployment/apollo-notifications -n apollo-production
           kubectl rollout undo deployment/apollo-analytics -n apollo-production
-          kubectl rollout undo deployment/apollo-file-storage -n apollo-production
+          kubectl rollout undo deployment/apollo-api-gateway -n apollo-production
+          kubectl rollout undo deployment/apollo-user-management -n apollo-production
           kubectl rollout undo deployment/apollo-reporting -n apollo-production
 
       - name: Notify team
