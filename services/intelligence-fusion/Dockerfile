@@ -1,11 +1,7 @@
 # Intelligence Fusion Service Dockerfile
 # Multi-stage build for optimized production image
 
-# ============================================
-# BUILD STAGE
-# ============================================
 FROM node:20-alpine AS builder
-
 WORKDIR /app
 
 # Install build dependencies
@@ -13,29 +9,23 @@ RUN apk add --no-cache python3 make g++
 
 # Copy package files from repo root
 COPY package*.json ./
-COPY tsconfig.json ./
-
-# Copy shared package (dependency)
-COPY services/shared ./services/shared
-
-# Copy service-specific files
-COPY services/intelligence-fusion/package*.json ./services/intelligence-fusion/
-COPY services/intelligence-fusion/tsconfig.json ./services/intelligence-fusion/
+COPY services/shared/package.json ./services/shared/
+COPY services/intelligence-fusion/package.json ./services/intelligence-fusion/
 
 # Install dependencies
 RUN npm install --workspaces --if-present
 
 # Copy source code
-COPY services/intelligence-fusion/src ./services/intelligence-fusion/src
+COPY services/shared/ ./services/shared/
+COPY services/intelligence-fusion/ ./services/intelligence-fusion/
+COPY tsconfig.json ./
 
-# Build TypeScript
-RUN npm run build --workspace=@apollo/shared || true
-RUN npm run build --workspace=services/intelligence-fusion || cd services/intelligence-fusion && npm run build || true
+# Build
+RUN npm run build --workspace=@apollo/shared
+RUN npm run build --workspace=@apollo/intelligence-fusion
 
-# ============================================
-# PRODUCTION STAGE
-# ============================================
-FROM node:20-alpine AS production
+# Production stage
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -43,10 +33,20 @@ WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S fusion -u 1001 -G nodejs
 
-# Copy built application
-COPY --from=builder --chown=fusion:nodejs /app/services/intelligence-fusion/dist ./dist
-COPY --from=builder --chown=fusion:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=fusion:nodejs /app/services/intelligence-fusion/package.json ./
+# Copy package files
+COPY package*.json ./
+COPY services/shared/package.json ./services/shared/
+COPY services/intelligence-fusion/package.json ./services/intelligence-fusion/
+
+# Install production dependencies only
+RUN npm install --workspaces --if-present --omit=dev
+
+# Copy built files
+COPY --from=builder /app/services/shared/dist ./services/shared/dist
+COPY --from=builder /app/services/intelligence-fusion/dist ./services/intelligence-fusion/dist
+
+# Create logs directory
+RUN mkdir -p /app/logs && chown -R fusion:nodejs /app
 
 # Set environment
 ENV NODE_ENV=production
@@ -63,4 +63,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 USER fusion
 
 # Start application
-CMD ["node", "dist/index.js"]
+CMD ["node", "services/intelligence-fusion/dist/index.js"]

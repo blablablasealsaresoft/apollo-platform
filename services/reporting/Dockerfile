@@ -6,24 +6,25 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install build dependencies
+# Install build dependencies for puppeteer/chromium
 RUN apk add --no-cache python3 make g++ chromium
 
-# Copy package files
+# Copy package files from repo root
 COPY package*.json ./
-COPY tsconfig.json ./
-
-# Copy shared library
-COPY ../shared ./shared/
+COPY services/shared/package.json ./services/shared/
+COPY services/reporting/package.json ./services/reporting/
 
 # Install dependencies
-RUN npm install
+RUN npm install --workspaces --if-present
 
 # Copy source code
-COPY src ./src
+COPY services/shared/ ./services/shared/
+COPY services/reporting/ ./services/reporting/
+COPY tsconfig.json ./
 
-# Build TypeScript
-RUN npm run build
+# Build
+RUN npm run build --workspace=@apollo/shared
+RUN npm run build --workspace=@apollo/reporting
 
 # Stage 2: Production
 FROM node:20-alpine AS production
@@ -51,18 +52,21 @@ RUN addgroup -g 1001 -S apollo && \
 
 # Copy package files
 COPY package*.json ./
+COPY services/shared/package.json ./services/shared/
+COPY services/reporting/package.json ./services/reporting/
 
 # Install production dependencies only
-RUN npm install --omit=dev && npm cache clean --force
+RUN npm install --workspaces --if-present --omit=dev
 
-# Copy built application
-COPY --from=builder /app/dist ./dist
+# Copy built files
+COPY --from=builder /app/services/shared/dist ./services/shared/dist
+COPY --from=builder /app/services/reporting/dist ./services/reporting/dist
 
 # Create reports directory
 RUN mkdir -p /tmp/apollo-reports && chown -R apollo:apollo /tmp/apollo-reports
 
-# Set ownership
-RUN chown -R apollo:apollo /app
+# Create logs directory
+RUN mkdir -p /app/logs && chown -R apollo:apollo /app
 
 # Switch to non-root user
 USER apollo
@@ -80,4 +84,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 EXPOSE 3008
 
 # Start the service
-CMD ["node", "dist/index.js"]
+CMD ["node", "services/reporting/dist/index.js"]
