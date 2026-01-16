@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY services/shared/package.json ./services/shared/
 COPY services/api-gateway/package.json ./services/api-gateway/
-RUN npm ci --workspaces --if-present
+RUN npm install --workspaces --if-present
 COPY services/shared/ ./services/shared/
 COPY services/api-gateway/ ./services/api-gateway/
 COPY tsconfig.json ./
@@ -15,7 +15,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY services/shared/package.json ./services/shared/
 COPY services/api-gateway/package.json ./services/api-gateway/
-RUN npm ci --workspaces --if-present --omit=dev
+RUN npm install --workspaces --if-present --omit=dev
 COPY --from=builder /app/services/shared/dist ./services/shared/dist
 COPY --from=builder /app/services/api-gateway/dist ./services/api-gateway/dist
 RUN mkdir -p /app/logs

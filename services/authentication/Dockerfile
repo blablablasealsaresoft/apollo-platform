@@ -8,7 +8,7 @@ COPY services/shared/package.json ./services/shared/
 COPY services/authentication/package.json ./services/authentication/
 
 # Install dependencies
-RUN npm ci --workspaces --if-present
+RUN npm install --workspaces --if-present
 
 # Copy source code
 COPY services/shared/ ./services/shared/
@@ -30,7 +30,7 @@ COPY services/shared/package.json ./services/shared/
 COPY services/authentication/package.json ./services/authentication/
 
 # Install production dependencies only
-RUN npm ci --workspaces --if-present --omit=dev
+RUN npm install --workspaces --if-present --omit=dev
 
 # Copy built files
 COPY --from=builder /app/services/shared/dist ./services/shared/dist

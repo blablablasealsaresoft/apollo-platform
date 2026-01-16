@@ -17,7 +17,7 @@ COPY tsconfig.json ./
 COPY ../shared ./shared/
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY src ./src
@@ -53,7 +53,7 @@ RUN addgroup -g 1001 -S apollo && \
 COPY package*.json ./
 
 # Install production dependencies only
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm install --omit=dev && npm cache clean --force
 
 # Copy built application
 COPY --from=builder /app/dist ./dist

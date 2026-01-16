@@ -23,7 +23,7 @@ COPY services/intelligence-fusion/package*.json ./services/intelligence-fusion/
 COPY services/intelligence-fusion/tsconfig.json ./services/intelligence-fusion/
 
 # Install dependencies
-RUN npm ci --workspaces --if-present
+RUN npm install --workspaces --if-present
 
 # Copy source code
 COPY services/intelligence-fusion/src ./services/intelligence-fusion/src

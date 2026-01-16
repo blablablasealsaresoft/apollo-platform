@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY services/shared/package.json ./services/shared/
 COPY services/notifications/package.json ./services/notifications/
-RUN npm ci --workspaces --if-present
+RUN npm install --workspaces --if-present
 COPY services/shared/ ./services/shared/
 COPY services/notifications/ ./services/notifications/
 COPY tsconfig.json ./
@@ -15,7 +15,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY services/shared/package.json ./services/shared/
 COPY services/notifications/package.json ./services/notifications/
-RUN npm ci --workspaces --if-present --omit=dev
+RUN npm install --workspaces --if-present --omit=dev
 COPY --from=builder /app/services/shared/dist ./services/shared/dist
 COPY --from=builder /app/services/notifications/dist ./services/notifications/dist
 RUN mkdir -p /app/logs
