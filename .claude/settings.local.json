@@ -13,7 +13,15 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:www.straiker.ai)",
       "Bash(python3:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(git log:*)",
+      "Bash(git push:*)",
+      "Bash(gh auth:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(gh.exe auth:*)",
+      "Bash(git config:*)",
+      "Bash(gh.exe run list:*)",
+      "Bash(gh.exe run view:*)"
     ]
   }
 }

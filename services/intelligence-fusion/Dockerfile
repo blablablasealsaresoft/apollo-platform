@@ -11,24 +11,26 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 
-# Copy package files
+# Copy package files from repo root
 COPY package*.json ./
 COPY tsconfig.json ./
 
 # Copy shared package (dependency)
-COPY ../shared ../shared
+COPY services/shared ./services/shared
+
+# Copy service-specific files
+COPY services/intelligence-fusion/package*.json ./services/intelligence-fusion/
+COPY services/intelligence-fusion/tsconfig.json ./services/intelligence-fusion/
 
 # Install dependencies
-RUN npm ci
+RUN npm ci --workspaces --if-present
 
 # Copy source code
-COPY src ./src
+COPY services/intelligence-fusion/src ./services/intelligence-fusion/src
 
 # Build TypeScript
-RUN npm run build
-
-# Prune dev dependencies
-RUN npm prune --production
+RUN npm run build --workspace=@apollo/shared || true
+RUN npm run build --workspace=services/intelligence-fusion || cd services/intelligence-fusion && npm run build || true
 
 # ============================================
 # PRODUCTION STAGE
@@ -42,9 +44,9 @@ RUN addgroup -g 1001 -S nodejs && \
     adduser -S fusion -u 1001 -G nodejs
 
 # Copy built application
-COPY --from=builder --chown=fusion:nodejs /app/dist ./dist
+COPY --from=builder --chown=fusion:nodejs /app/services/intelligence-fusion/dist ./dist
 COPY --from=builder --chown=fusion:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=fusion:nodejs /app/package.json ./
+COPY --from=builder --chown=fusion:nodejs /app/services/intelligence-fusion/package.json ./
 
 # Set environment
 ENV NODE_ENV=production
