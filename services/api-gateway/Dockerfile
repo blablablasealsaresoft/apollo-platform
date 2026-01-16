@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY services/shared/package.json ./services/shared/
 COPY services/api-gateway/package.json ./services/api-gateway/
-RUN npm install --workspaces --if-present
+RUN npm install --workspaces --if-present --ignore-scripts
 COPY services/shared/ ./services/shared/
 COPY services/api-gateway/ ./services/api-gateway/
 COPY tsconfig.json ./

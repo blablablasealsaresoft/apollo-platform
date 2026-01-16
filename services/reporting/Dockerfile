@@ -15,7 +15,7 @@ COPY services/shared/package.json ./services/shared/
 COPY services/reporting/package.json ./services/reporting/
 
 # Install dependencies
-RUN npm install --workspaces --if-present
+RUN npm install --workspaces --if-present --ignore-scripts
 
 # Copy source code
 COPY services/shared/ ./services/shared/
