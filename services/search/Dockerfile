@@ -15,7 +15,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY services/shared/package.json ./services/shared/
 COPY services/search/package.json ./services/search/
-RUN npm install --workspaces --if-present --omit=dev
+RUN npm install --workspaces --if-present --omit=dev --ignore-scripts
 COPY --from=builder /app/services/shared/dist ./services/shared/dist
 COPY --from=builder /app/services/search/dist ./services/search/dist
 RUN mkdir -p /app/logs

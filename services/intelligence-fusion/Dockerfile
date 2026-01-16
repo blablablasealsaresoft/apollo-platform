@@ -39,7 +39,7 @@ COPY services/shared/package.json ./services/shared/
 COPY services/intelligence-fusion/package.json ./services/intelligence-fusion/
 
 # Install production dependencies only
-RUN npm install --workspaces --if-present --omit=dev
+RUN npm install --workspaces --if-present --omit=dev --ignore-scripts
 
 # Copy built files
 COPY --from=builder /app/services/shared/dist ./services/shared/dist

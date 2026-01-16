@@ -30,7 +30,7 @@ COPY services/shared/package.json ./services/shared/
 COPY services/authentication/package.json ./services/authentication/
 
 # Install production dependencies only
-RUN npm install --workspaces --if-present --omit=dev
+RUN npm install --workspaces --if-present --omit=dev --ignore-scripts
 
 # Copy built files
 COPY --from=builder /app/services/shared/dist ./services/shared/dist

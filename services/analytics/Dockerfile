@@ -15,7 +15,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY services/shared/package.json ./services/shared/
 COPY services/analytics/package.json ./services/analytics/
-RUN npm install --workspaces --if-present --omit=dev
+RUN npm install --workspaces --if-present --omit=dev --ignore-scripts
 COPY --from=builder /app/services/shared/dist ./services/shared/dist
 COPY --from=builder /app/services/analytics/dist ./services/analytics/dist
 RUN mkdir -p /app/logs
