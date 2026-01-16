@@ -1,0 +1,165 @@
+# Cyberspike Villager Configuration
+# AI-Native C2 Framework Settings
+
+ai_orchestration:
+  default_model: claude-3-sonnet
+  fallback_model: deepseek-v3
+  temperature: 0.7
+  max_tokens: 8000
+
+  # Model selection by complexity
+  models:
+    simple: gemini-flash
+    medium: deepseek-v3
+    complex: claude-3-opus
+    critical: gpt-4
+
+c2_server:
+  host: 0.0.0.0
+  port: 37695
+  ssl: true
+  ssl_cert: /etc/villager/certs/server.crt
+  ssl_key: /etc/villager/certs/server.key
+
+operations:
+  mode: supervised  # supervised, semi_autonomous, fully_autonomous
+
+  # Require operator approval for these actions
+  require_approval:
+    - exploitation
+    - data_extraction
+    - lateral_movement
+    - privilege_escalation
+
+  # Auto-approve these actions
+  auto_approve:
+    - reconnaissance
+    - analysis
+    - vulnerability_scanning
+
+  # Operation timeouts
+  timeouts:
+    reconnaissance: 3600  # 1 hour
+    analysis: 7200  # 2 hours
+    exploitation: 10800  # 3 hours
+    default: 3600
+
+legal_framework:
+  require_warrant: true
+  require_legal_review: true
+  require_supervisor_approval: true
+  audit_all_operations: true
+  preserve_evidence: true
+  chain_of_custody: true
+
+  # Restrictions
+  restrictions:
+    no_unauthorized_targets: true
+    no_civilian_systems: true
+    no_excessive_force: true
+    no_collateral_damage: true
+
+opsec:
+  traffic_obfuscation: maximum
+  proxy_chaining: true
+  randomize_timings: true
+  mimic_legit_traffic: true
+  burn_on_detection: true
+  preserve_evidence_before_burn: true
+
+  # OPSEC levels
+  levels:
+    low:
+      delay_ms: 100
+      obfuscation: minimal
+    medium:
+      delay_ms: 500
+      obfuscation: standard
+    high:
+      delay_ms: 2000
+      obfuscation: advanced
+    maximum:
+      delay_ms: 5000
+      obfuscation: maximum
+
+evidence:
+  storage_path: /var/villager/evidence
+  encryption: aes-256
+  compression: true
+  chain_of_custody_required: true
+
+  # Evidence types
+  types:
+    - network_traffic
+    - system_logs
+    - file_artifacts
+    - memory_dumps
+    - screenshots
+    - database_extracts
+    - communications
+
+logging:
+  level: info  # debug, info, warning, error
+  file: /var/log/villager/operations.log
+  max_size: 100MB
+  rotation: daily
+  retention_days: 90
+
+missions:
+  # Mission-specific configurations
+  cryptocurrency_crime:
+    priority: high
+    tools:
+      - bbot
+      - subhunterx
+      - bugtrace-ai
+      - dnsreaper
+      - crypto-trace
+    evidence_requirements:
+      - wallet_data
+      - transaction_logs
+      - user_database
+      - operator_identification
+
+  predator_hunting:
+    priority: critical
+    speed: maximum
+    tools:
+      - bugtrace-ai
+      - nuclei
+      - evidence-collector
+    evidence_requirements:
+      - victim_identification
+      - perpetrator_communications
+      - network_mapping
+      - rescue_coordination
+
+  infrastructure_disruption:
+    priority: high
+    authorization_level: executive
+    tools:
+      - dnsreaper
+      - infrastructure-analyzer
+    evidence_requirements:
+      - pre_disruption_state
+      - disruption_logs
+      - post_disruption_verification
+
+containers:
+  kali:
+    image: kalilinux/kali-rolling:latest
+    self_destruct_hours: 24
+    preserve_evidence: true
+    randomize_ports: true
+
+  browser_automation:
+    image: selenium/standalone-chrome:latest
+    headless: true
+    self_destruct_hours: 12
+
+mcp:
+  # Model Context Protocol settings
+  enabled: true
+  tool_discovery: automatic
+  tool_registration: dynamic
+  max_tools: 1000

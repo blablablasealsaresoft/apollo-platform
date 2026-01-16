@@ -1,0 +1,55 @@
+pipeline {
+  agent any
+  options {
+    timestamps()
+    ansiColor('xterm')
+  }
+  environment {
+    REGISTRY = 'ghcr.io/security-threat-intel/apollo'
+  }
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+    stage('Install & Test') {
+      parallel {
+        stage('Node services') {
+          agent { docker { image 'node:20-alpine' } }
+          steps {
+            sh 'npm ci'
+            sh 'npm run lint'
+            sh 'npm test'
+          }
+        }
+        stage('Python services') {
+          agent { docker { image 'python:3.11-slim' } }
+          steps {
+            sh 'pip install -r requirements.txt'
+            sh 'pytest'
+          }
+        }
+      }
+    }
+    stage('Security Checks') {
+      steps {
+        sh './infrastructure/ci-cd/scripts/security-scan.sh'
+      }
+    }
+    stage('Build Images') {
+      steps {
+        sh 'docker build -t ${REGISTRY}:${env.BUILD_NUMBER} .'
+      }
+    }
+    stage('Deploy') {
+      when { branch 'main' }
+      steps {
+        sh "./infrastructure/ci-cd/scripts/deploy.sh ${REGISTRY}:${env.BUILD_NUMBER}"
+      }
+    }
+  }
+  post {
+    always {
+      cleanWs()
+    }
+  }
+}

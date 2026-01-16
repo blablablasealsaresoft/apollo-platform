@@ -1,0 +1,147 @@
+service:
+  name: notifications-service
+  port: 4005
+  version: 1.0.0
+  description: Multi-channel notification and alerting service
+
+runtime:
+  workers: 4
+  max_memory: 2GB
+  timeout: 30s
+  restart_policy: always
+  graceful_shutdown_timeout: 10s
+
+features:
+  email_notifications: true
+  webhook_notifications: true
+  in_app_notifications: true
+  sms_notifications: false  # Requires external provider
+  push_notifications: true
+  slack_integration: true
+  teams_integration: true
+
+channels:
+  email:
+    enabled: true
+    smtp_host: ${SMTP_HOST}
+    smtp_port: ${SMTP_PORT}
+    smtp_user: ${SMTP_USER}
+    smtp_password: ${SMTP_PASSWORD}
+    from_address: noreply@apollo.local
+    templates_path: /app/templates/email
+
+  webhook:
+    enabled: true
+    max_retries: 3
+    retry_delay: 5s
+    timeout: 10s
+
+  slack:
+    enabled: true
+    webhook_url: ${SLACK_WEBHOOK_URL}
+    bot_token: ${SLACK_BOT_TOKEN}
+    default_channel: #apollo-alerts
+
+  teams:
+    enabled: true
+    webhook_url: ${TEAMS_WEBHOOK_URL}
+
+  in_app:
+    enabled: true
+    websocket_port: 4015
+    redis_pubsub: true
+
+notification_types:
+  alerts:
+    priority: high
+    channels: [email, slack, in_app]
+
+  surveillance_match:
+    priority: critical
+    channels: [email, slack, webhook, in_app]
+
+  investigation_update:
+    priority: medium
+    channels: [in_app, email]
+
+  evidence_uploaded:
+    priority: medium
+    channels: [in_app]
+
+  system_event:
+    priority: low
+    channels: [in_app]
+
+  security_alert:
+    priority: critical
+    channels: [email, slack, webhook]
+
+database:
+  postgresql:
+    connection: ${DATABASE_URL}
+    pool_size: 15
+
+  redis:
+    connection: ${REDIS_URL}
+    pubsub_channels:
+      - apollo_notifications
+      - apollo_alerts
+    max_connections: 30
+
+queue:
+  type: redis
+  default_queue: notifications
+  priority_queues:
+    critical: notifications_critical
+    high: notifications_high
+    medium: notifications_medium
+    low: notifications_low
+  worker_concurrency: 10
+  max_retry_attempts: 3
+
+templates:
+  engine: handlebars
+  path: /app/templates
+  cache: true
+  cache_ttl: 1h
+
+rate_limiting:
+  email: 100/minute
+  webhook: 200/minute
+  slack: 50/minute
+  in_app: unlimited
+
+delivery:
+  retry_strategy: exponential_backoff
+  max_retries: 3
+  dead_letter_queue: notifications_dlq
+
+monitoring:
+  metrics: true
+  health_check: /health
+  readiness_check: /ready
+  prometheus_endpoint: /metrics
+  custom_metrics:
+    - notifications_sent_total
+    - notifications_failed_total
+    - delivery_duration_seconds
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - stdout
+    - file: /var/log/apollo/notifications.log
+
+api:
+  version: v1
+  base_path: /api/v1
+  authentication: jwt
+  rate_limiting: 500/minute
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: notifications-service
+    health_check_interval: 10s

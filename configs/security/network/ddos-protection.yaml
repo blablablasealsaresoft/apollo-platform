@@ -1,0 +1,133 @@
+# DDoS Protection Configuration for Apollo Platform
+
+ddos_protection:
+  enabled: true
+
+  # Layer 3/4 Protection (Network/Transport)
+  l3_l4_protection:
+    # SYN Flood Protection
+    syn_flood:
+      enabled: true
+      threshold: 10000/s
+      action: drop
+      syncookies: enabled
+
+    # UDP Flood Protection
+    udp_flood:
+      enabled: true
+      threshold: 50000/s
+      action: rate_limit
+
+    # ICMP Flood Protection
+    icmp_flood:
+      enabled: true
+      threshold: 1000/s
+      action: drop
+
+    # Connection Rate Limiting
+    connection_rate:
+      max_connections_per_ip: 100
+      max_connections_per_subnet: 1000
+      timeout: 60s
+
+  # Layer 7 Protection (Application)
+  l7_protection:
+    # HTTP Flood Protection
+    http_flood:
+      enabled: true
+      threshold: 1000/s
+      challenge_captcha: true
+      javascript_challenge: true
+
+    # Slowloris Protection
+    slowloris:
+      enabled: true
+      request_timeout: 30s
+      max_concurrent_slow: 10
+
+    # Slow POST Protection
+    slow_post:
+      enabled: true
+      min_data_rate: 1KB/s
+      timeout: 60s
+
+  # Rate Limiting
+  rate_limiting:
+    per_ip: 1000/s
+    per_subnet: 10000/s
+    burst_allowance: 1.5x
+
+  # Geo-blocking
+  geo_blocking:
+    enabled: true
+    block_high_risk_countries: true
+    whitelist_known_locations: true
+
+  # IP Reputation
+  ip_reputation:
+    enabled: true
+    block_known_attackers: true
+    threat_intelligence_feeds:
+      - cloudflare
+      - aws_shield
+      - akamai
+
+  # Behavioral Analysis
+  behavioral_analysis:
+    enabled: true
+    ml_based_detection: true
+    anomaly_threshold: 3_sigma
+    learning_period: 7d
+
+  # Challenge Mechanisms
+  challenges:
+    captcha:
+      enabled: true
+      provider: recaptcha_v3
+      threshold_score: 0.5
+
+    javascript_challenge:
+      enabled: true
+      timeout: 5s
+
+    proof_of_work:
+      enabled: true
+      difficulty: medium
+
+  # Mitigation Actions
+  mitigation:
+    auto_mitigation: true
+    actions:
+      - rate_limit
+      - challenge
+      - block_ip
+      - drop_packets
+
+    escalation:
+      level_1: rate_limit
+      level_2: challenge
+      level_3: block_ip
+      level_4: upstream_mitigation
+
+  # CDN Integration
+  cdn:
+    provider: cloudflare
+    always_on_ddos: true
+    spectrum_protection: true
+
+  # Monitoring and Alerting
+  monitoring:
+    real_time_monitoring: true
+    alert_threshold: 5000/s
+    escalation_threshold: 10000/s
+
+    alerts:
+      - security_team
+      - noc_team
+      - ciso
+
+  # Logging
+  logging:
+    log_attacks: true
+    log_mitigations: true
+    retention: 90d

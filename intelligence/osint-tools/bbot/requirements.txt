@@ -1,0 +1,80 @@
+# BBOT Reconnaissance System - Python Dependencies
+# Apollo Intelligence Platform
+
+# Core BBOT Library (optional - enables native BBOT integration)
+# Uncomment to use native BBOT functionality
+# bbot>=2.0.0
+
+# Async HTTP client
+aiohttp>=3.9.0
+
+# DNS operations
+dnspython>=2.4.0
+
+# Configuration management
+PyYAML>=6.0
+
+# HTML parsing
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# SSL/TLS operations
+pyOpenSSL>=23.3.0
+certifi>=2023.11.17
+
+# Data structures and utilities
+dataclasses>=0.6  # For Python < 3.7 compatibility
+pydantic>=2.0.0
+
+# Neo4j for graph storage
+neo4j>=5.0.0
+
+# Elasticsearch for results storage
+elasticsearch>=8.0.0
+
+# Optional dependencies for enhanced functionality
+# Uncomment if needed:
+
+# For advanced SSL/TLS analysis
+# cryptography>=41.0.0
+
+# For HTTP/2 support
+# h2>=4.1.0
+
+# For SOCKS proxy support
+# aiohttp-socks>=0.8.0
+
+# For advanced DNS features
+# aiodns>=3.1.0
+
+# For database storage
+# aiosqlite>=0.19.0
+# sqlalchemy>=2.0.0
+
+# For Redis caching
+# aioredis>=2.0.0
+
+# For screenshot capture
+# playwright>=1.40.0
+# Pillow>=10.1.0
+
+# For PDF report generation
+# reportlab>=4.0.0
+# weasyprint>=60.0
+
+# For advanced network operations
+# scapy>=2.5.0  # Requires admin/root for raw sockets
+
+# For IP geolocation
+# geoip2>=4.7.0
+
+# For enhanced logging
+# colorlog>=6.8.0
+# python-json-logger>=2.0.0
+
+# Development dependencies
+# pytest>=7.4.0
+# pytest-asyncio>=0.21.0
+# black>=23.11.0
+# flake8>=6.1.0
+# mypy>=1.7.0

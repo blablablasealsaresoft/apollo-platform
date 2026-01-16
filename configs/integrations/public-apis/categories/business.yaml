@@ -1,0 +1,48 @@
+category: business
+total_apis: 18
+priority: medium
+apollo_use: "Company intelligence, business data, corporate investigations, email/phone verification"
+
+apis:
+  hunter_io:
+    name: Hunter.io
+    url: https://api.hunter.io/v2
+    authentication: apiKey
+    free_tier: 50/month
+    apollo_integration:
+      use_case: "Email intelligence, find contact information for targets"
+      priority: high
+
+  pipl:
+    name: Pipl
+    url: https://api.pipl.com/search
+    authentication: apiKey
+    apollo_integration:
+      use_case: "Deep people search intelligence for target identification"
+      priority: critical
+
+  fullcontact:
+    name: FullContact
+    url: https://api.fullcontact.com/v3
+    authentication: apiKey
+    apollo_integration:
+      use_case: "Person enrichment intelligence"
+      priority: high
+
+  companies_house:
+    name: UK Companies House
+    url: https://api.company-information.service.gov.uk
+    authentication: apiKey
+    free_tier: 600/5min
+    apollo_integration:
+      use_case: "UK corporate intelligence"
+      priority: high
+
+deployment:
+  mode: continuous
+  priority: medium
+
+intelligence_fusion:
+  feed_to:
+    - apollo.business_intelligence
+    - apollo.target_enrichment

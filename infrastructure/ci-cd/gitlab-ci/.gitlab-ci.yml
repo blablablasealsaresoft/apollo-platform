@@ -1,0 +1,64 @@
+stages:
+  - lint
+  - test
+  - security
+  - build
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+
+include:
+  - local: infrastructure/ci-cd/gitlab-ci/templates/stages.yml
+
+lint:
+  stage: lint
+  image: node:20-alpine
+  script:
+    - npm ci
+    - npm run lint
+  only:
+    - merge_requests
+    - main
+
+test:python:
+  stage: test
+  image: python:3.11-slim
+  script:
+    - pip install -r requirements.txt
+    - pytest --junitxml=reports/junit.xml
+  artifacts:
+    when: always
+    reports:
+      junit: reports/junit.xml
+
+security:trivy:
+  stage: security
+  image:
+    name: aquasec/trivy:0.49.1
+    entrypoint: ['']
+  script:
+    - trivy fs --exit-code 1 --severity HIGH,CRITICAL .
+
+build:image:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  only:
+    - main
+
+k8s:deploy:
+  stage: deploy
+  image: bitnami/kubectl:1.29
+  script:
+    - echo "$KUBECONFIG" > kubeconfig
+    - kubectl --kubeconfig kubeconfig apply -k infrastructure/kubernetes/overlays/${DEPLOY_ENV:-staging}
+  environment:
+    name: $DEPLOY_ENV
+  only:
+    - main

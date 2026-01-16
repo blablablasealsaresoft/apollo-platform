@@ -1,0 +1,530 @@
+name: Security Scanning
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+  schedule:
+    # Run daily at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of security scan'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - sast
+          - dependencies
+          - containers
+          - secrets
+
+env:
+  NODE_VERSION: '18.x'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Static Application Security Testing (SAST)
+  sast:
+    name: SAST Analysis
+    runs-on: ubuntu-latest
+    if: inputs.scan_type == 'full' || inputs.scan_type == 'sast' || inputs.scan_type == ''
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          pip install bandit semgrep flake8 pylint
+
+      - name: Run Semgrep SAST
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+            p/nodejs
+            p/typescript
+            p/python
+            p/docker
+            p/kubernetes
+          generateSarif: true
+
+      - name: Upload Semgrep SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+      - name: Run Bandit (Python SAST)
+        run: |
+          bandit -r . -f sarif -o bandit-results.sarif \
+            --exclude "./.venv,./node_modules,./testing" \
+            --severity-level medium || true
+
+      - name: Upload Bandit SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: bandit-results.sarif
+          category: bandit
+
+      - name: Run ESLint Security Plugin
+        run: |
+          npx eslint . \
+            --ext .js,.jsx,.ts,.tsx \
+            --format @microsoft/eslint-formatter-sarif \
+            --output-file eslint-results.sarif \
+            --rule "no-eval: error" \
+            --rule "no-implied-eval: error" || true
+
+      - name: Upload ESLint SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: eslint-results.sarif
+          category: eslint
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, python
+          queries: security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: codeql
+
+  # Dependency vulnerability scanning
+  dependency-scan:
+    name: Dependency Scanning
+    runs-on: ubuntu-latest
+    if: inputs.scan_type == 'full' || inputs.scan_type == 'dependencies' || inputs.scan_type == ''
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          pip install safety pip-audit
+
+      - name: Run npm audit
+        run: |
+          npm audit --json > npm-audit.json || true
+
+          # Parse and report critical vulnerabilities
+          CRITICAL=$(jq '.metadata.vulnerabilities.critical // 0' npm-audit.json)
+          HIGH=$(jq '.metadata.vulnerabilities.high // 0' npm-audit.json)
+
+          echo "## NPM Vulnerability Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Critical: $CRITICAL" >> $GITHUB_STEP_SUMMARY
+          echo "- High: $HIGH" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "❌ Critical vulnerabilities found!"
+            exit 1
+          fi
+
+      - name: Run Snyk
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --sarif-file-output=snyk.sarif
+
+      - name: Upload Snyk SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: snyk.sarif
+          category: snyk
+
+      - name: Run Safety (Python)
+        run: |
+          find . -name "requirements*.txt" -exec safety check --file {} \; || true
+
+      - name: Run pip-audit
+        run: |
+          find . -name "requirements*.txt" -exec pip-audit -r {} \; || true
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        if: github.event_name == 'pull_request'
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0, AGPL-3.0
+
+      - name: SBOM Generation
+        uses: anchore/sbom-action@v0
+        with:
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.spdx.json
+
+  # Container image scanning
+  container-scan:
+    name: Container Scanning
+    runs-on: ubuntu-latest
+    if: inputs.scan_type == 'full' || inputs.scan_type == 'containers' || inputs.scan_type == ''
+    permissions:
+      security-events: write
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api-gateway
+          - authentication
+          - intelligence
+          - operations
+          - search
+          - notifications
+          - analytics
+          - user-management
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image for scanning
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/${{ matrix.service }}
+          file: ./services/${{ matrix.service }}/Dockerfile
+          push: false
+          load: true
+          tags: apollo-${{ matrix.service }}:scan
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: apollo-${{ matrix.service }}:scan
+          format: 'sarif'
+          output: trivy-${{ matrix.service }}.sarif
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          ignore-unfixed: true
+
+      - name: Upload Trivy SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-${{ matrix.service }}.sarif
+          category: trivy-${{ matrix.service }}
+
+      - name: Run Grype scanner
+        uses: anchore/scan-action@v3
+        with:
+          image: apollo-${{ matrix.service }}:scan
+          fail-build: false
+          severity-cutoff: high
+          output-format: sarif
+
+      - name: Upload Grype SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: results.sarif
+          category: grype-${{ matrix.service }}
+
+      - name: Scan Dockerfile with Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ./services/${{ matrix.service }}/Dockerfile
+          format: sarif
+          output-file: hadolint-${{ matrix.service }}.sarif
+          failure-threshold: warning
+
+      - name: Upload Hadolint SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: hadolint-${{ matrix.service }}.sarif
+          category: hadolint-${{ matrix.service }}
+
+  # Secret scanning
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    if: inputs.scan_type == 'full' || inputs.scan_type == 'secrets' || inputs.scan_type == ''
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+
+      - name: Detect-secrets scan
+        run: |
+          pip install detect-secrets
+          detect-secrets scan --all-files --exclude-files "package-lock.json|yarn.lock" > .secrets-results.json || true
+
+          # Check for secrets
+          SECRETS_COUNT=$(jq '.results | length' .secrets-results.json)
+          if [ "$SECRETS_COUNT" -gt 0 ]; then
+            echo "⚠️ Potential secrets detected: $SECRETS_COUNT"
+            jq '.results' .secrets-results.json
+          fi
+
+      - name: Check for hardcoded credentials
+        run: |
+          # Check for common credential patterns
+          FOUND=0
+
+          # API keys
+          if grep -rn "api_key\s*=\s*['\"][^'\"]+['\"]" --include="*.py" --include="*.ts" --include="*.js" . 2>/dev/null | grep -v "example\|test\|mock"; then
+            echo "⚠️ Potential API key found"
+            FOUND=1
+          fi
+
+          # AWS credentials
+          if grep -rn "AKIA[0-9A-Z]{16}" . 2>/dev/null | grep -v ".git"; then
+            echo "❌ AWS Access Key found!"
+            FOUND=1
+          fi
+
+          # Private keys
+          if grep -rn "BEGIN RSA PRIVATE KEY\|BEGIN PRIVATE KEY\|BEGIN EC PRIVATE KEY" . 2>/dev/null | grep -v ".git"; then
+            echo "❌ Private key found!"
+            FOUND=1
+          fi
+
+          if [ $FOUND -eq 1 ]; then
+            echo "⚠️ Credential patterns detected - review required"
+          else
+            echo "✅ No obvious credential patterns found"
+          fi
+
+  # Infrastructure as Code scanning
+  iac-scan:
+    name: IaC Security Scan
+    runs-on: ubuntu-latest
+    if: inputs.scan_type == 'full' || inputs.scan_type == ''
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: infrastructure/
+          framework: terraform,kubernetes,dockerfile
+          output_format: sarif
+          output_file_path: checkov.sarif
+          soft_fail: true
+
+      - name: Upload Checkov SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov.sarif
+          category: checkov
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          working_directory: infrastructure/terraform
+          format: sarif
+          sarif_file: tfsec.sarif
+          soft_fail: true
+
+      - name: Upload tfsec SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: tfsec.sarif
+          category: tfsec
+
+      - name: Run Kubesec
+        run: |
+          curl -sSL https://github.com/controlplaneio/kubesec/releases/download/v2.13.0/kubesec_linux_amd64.tar.gz | tar xz
+          chmod +x kubesec
+
+          find infrastructure/kubernetes -name "*.yaml" -o -name "*.yml" | while read file; do
+            echo "Scanning $file..."
+            ./kubesec scan "$file" || true
+          done
+
+  # DAST preparation (runs separately)
+  dast-prep:
+    name: DAST Preparation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' && (inputs.scan_type == 'full' || inputs.scan_type == '')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Prepare DAST configuration
+        run: |
+          echo "DAST scanning should be run against staging environment"
+          echo "Configure OWASP ZAP or similar tool to scan:"
+          echo "  - https://staging.apollo-platform.com"
+
+      - name: Run ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.12.0
+        continue-on-error: true
+        with:
+          target: 'https://staging.apollo-platform.com'
+          rules_file_name: 'testing/security-tests/owasp-zap-config.yaml'
+          allow_issue_writing: false
+
+  # Security report generation
+  report:
+    name: Security Report
+    runs-on: ubuntu-latest
+    needs: [sast, dependency-scan, container-scan, secret-scan, iac-scan]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate security summary
+        run: |
+          echo "# 🔒 Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Scan Date:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Scan Type | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| SAST Analysis | ${{ needs.sast.result == 'success' && '✅ Passed' || '❌ Issues Found' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency Scan | ${{ needs.dependency-scan.result == 'success' && '✅ Passed' || '⚠️ Review Required' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Container Scan | ${{ needs.container-scan.result == 'success' && '✅ Passed' || '⚠️ Review Required' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Secret Scan | ${{ needs.secret-scan.result == 'success' && '✅ Passed' || '❌ Secrets Detected' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| IaC Scan | ${{ needs.iac-scan.result == 'success' && '✅ Passed' || '⚠️ Review Required' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Recommendations" >> $GITHUB_STEP_SUMMARY
+          echo "- Review all findings in the GitHub Security tab" >> $GITHUB_STEP_SUMMARY
+          echo "- Prioritize Critical and High severity issues" >> $GITHUB_STEP_SUMMARY
+          echo "- Update dependencies with known vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          echo "- Ensure no secrets are committed to the repository" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on critical findings
+        if: needs.sast.result == 'failure' || needs.secret-scan.result == 'failure'
+        uses: slackapi/slack-github-action@v1
+        continue-on-error: true
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_SECURITY }}
+          payload: |
+            {
+              "text": "🚨 Security Alert: Critical findings in Apollo Platform",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "🚨 Security Scan Alert"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Critical security issues detected in the Apollo Platform repository.\n\n*Branch:* ${{ github.ref_name }}\n*Commit:* `${{ github.sha }}`"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Security Alerts"
+                      },
+                      "url": "https://github.com/${{ github.repository }}/security/code-scanning",
+                      "style": "danger"
+                    }
+                  ]
+                }
+              ]
+            }
+
+      - name: Create security issue for critical findings
+        if: needs.sast.result == 'failure' && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🔒 Security: Critical findings from scheduled scan',
+              body: `## Security Scan Results\n\nThe scheduled security scan has detected critical issues that require immediate attention.\n\n**Scan Date:** ${new Date().toISOString()}\n**Commit:** ${context.sha}\n\n### Action Required\n1. Review findings in the Security tab\n2. Prioritize and remediate critical issues\n3. Update this issue with remediation status\n\n### Links\n- [Security Alerts](https://github.com/${context.repo.owner}/${context.repo.repo}/security/code-scanning)\n- [Workflow Run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+              labels: ['security', 'critical', 'automated']
+            });

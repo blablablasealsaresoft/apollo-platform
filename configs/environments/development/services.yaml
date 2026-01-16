@@ -1,0 +1,456 @@
+# Apollo Platform - Development Services Configuration
+# ===========================================================
+
+environment: development
+
+# Global service defaults
+global:
+  log_level: debug
+  enable_metrics: true
+  enable_tracing: true
+  enable_profiling: true
+  graceful_shutdown_timeout: 10s
+
+# Backend microservices
+services:
+  # Authentication Service
+  authentication:
+    enabled: true
+    port: 4001
+    host: localhost
+    workers: 1
+    debug: true
+
+    features:
+      jwt_auth: true
+      oauth2: false  # Disabled in dev
+      mfa: false     # Disabled in dev
+      session_management: true
+      api_keys: true
+
+    rate_limiting:
+      enabled: false
+      max_requests: 100
+      window: 1m
+
+    cors:
+      enabled: true
+      origins:
+        - http://localhost:3000
+        - http://localhost:4000
+
+  # Operations Service
+  operations:
+    enabled: true
+    port: 4002
+    host: localhost
+    workers: 1
+    debug: true
+
+    features:
+      case_management: true
+      task_management: true
+      team_collaboration: true
+      evidence_chain: true
+
+    processing:
+      max_concurrent_operations: 10
+      operation_timeout: 300s
+
+  # Intelligence Fusion Service
+  intelligence-fusion:
+    enabled: true
+    port: 4003
+    host: localhost
+    workers: 1
+    debug: true
+
+    features:
+      multi_source_aggregation: true
+      ai_analysis: true
+      relationship_mapping: true
+      threat_scoring: true
+
+    ai_models:
+      enabled: true
+      max_concurrent_requests: 5
+      request_timeout: 60s
+
+  # RedTeam Operations Service
+  redteam-ops:
+    enabled: true
+    port: 4004
+    host: localhost
+    workers: 1
+    debug: true
+
+    features:
+      network_scanning: true
+      vulnerability_assessment: true
+      exploit_database: true
+      payload_generation: false  # Disabled in dev
+
+    safety:
+      require_approval: true
+      audit_all_operations: true
+      sandbox_mode: true
+
+  # Notifications Service
+  notifications:
+    enabled: true
+    port: 4005
+    host: localhost
+    workers: 1
+    debug: true
+
+    channels:
+      email: true
+      sms: false      # Disabled in dev
+      slack: true
+      discord: true
+      webhook: true
+
+    processing:
+      max_queue_size: 1000
+      batch_size: 10
+      retry_attempts: 3
+
+  # Alert Orchestration Service
+  alert-orchestration:
+    enabled: true
+    port: 4006
+    host: localhost
+    workers: 1
+    debug: true
+
+    features:
+      real_time_alerts: true
+      alert_aggregation: true
+      priority_routing: true
+      escalation_chains: true
+
+    thresholds:
+      critical: immediate
+      high: 5m
+      medium: 15m
+      low: 1h
+
+  # Audit Logging Service
+  audit-logging:
+    enabled: true
+    port: 4007
+    host: localhost
+    workers: 1
+    debug: true
+
+    features:
+      comprehensive_logging: true
+      tamper_detection: false  # Disabled in dev
+      compliance_reporting: true
+
+    storage:
+      buffer_size: 1000
+      flush_interval: 10s
+      retention: 90d
+
+  # Evidence Management Service
+  evidence-management:
+    enabled: true
+    port: 4008
+    host: localhost
+    workers: 1
+    debug: true
+
+    features:
+      chain_of_custody: true
+      cryptographic_hashing: true
+      metadata_extraction: true
+      version_control: true
+
+    storage:
+      max_file_size: 500mb
+      allowed_types:
+        - image/*
+        - video/*
+        - audio/*
+        - application/pdf
+        - application/json
+        - text/*
+
+# Frontend application
+frontend:
+  enabled: true
+  port: 3000
+  host: localhost
+
+  features:
+    hot_reload: true
+    source_maps: true
+    dev_tools: true
+    mock_data: false
+
+  build:
+    optimization: false
+    minification: false
+    code_splitting: true
+
+  api_proxy:
+    enabled: true
+    target: http://localhost:4000
+    websockets: true
+
+# Surveillance components
+surveillance:
+  # Facial Recognition Service
+  facial-recognition:
+    enabled: true
+    port: 5001
+    host: localhost
+    workers: 2
+    debug: true
+
+    processing:
+      gpu: false  # CPU mode for dev
+      model: hog  # hog (fast, CPU) or cnn (accurate, GPU)
+      batch_size: 1
+      detection_threshold: 0.6
+      recognition_threshold: 0.6
+
+    database:
+      path: c:/SECURE_THREAT_INTEL/YoureGunnaHAveToShootMeToStopME/apollo/data/dev/face_database
+      encoding_file: ignatova_face_encodings.npy
+      metadata_file: ignatova_face_metadata.json
+
+  # Voice Recognition Service
+  voice-recognition:
+    enabled: true
+    port: 5002
+    host: localhost
+    workers: 1
+    debug: true
+
+    processing:
+      sample_rate: 16000
+      channels: 1
+      format: wav
+      min_duration: 1s
+      max_duration: 300s
+
+    database:
+      path: c:/SECURE_THREAT_INTEL/YoureGunnaHAveToShootMeToStopME/apollo/data/dev/voice_database
+      voiceprint_file: ignatova_voiceprint.npy
+      metadata_file: ignatova_voice_metadata.json
+
+  # Camera Feed Manager
+  camera-manager:
+    enabled: false  # Disabled in dev (no physical cameras)
+    port: 5003
+    host: localhost
+    workers: 1
+    debug: true
+
+    feeds:
+      max_concurrent: 10
+      reconnect_attempts: 3
+      reconnect_delay: 5s
+      frame_rate: 30
+      resolution: 1920x1080
+
+    processing:
+      motion_detection: true
+      object_detection: false  # Requires GPU
+      face_detection: true
+
+  # ALPR Service
+  alpr:
+    enabled: false  # Disabled in dev
+    port: 5004
+    host: localhost
+    workers: 1
+    debug: true
+
+    processing:
+      gpu: false
+      regions: [us, eu]
+      confidence_threshold: 0.8
+
+# AI Engine services
+ai-engine:
+  # Model Router
+  router:
+    enabled: true
+    port: 6001
+    host: localhost
+    workers: 1
+    debug: true
+
+    features:
+      model_selection: true
+      load_balancing: true
+      fallback_models: true
+      cost_optimization: true
+
+  # Prompt Manager
+  prompt-manager:
+    enabled: true
+    port: 6002
+    host: localhost
+
+    features:
+      template_management: true
+      variable_substitution: true
+      version_control: true
+
+  # Response Processor
+  response-processor:
+    enabled: true
+    port: 6003
+    host: localhost
+
+    features:
+      structured_extraction: true
+      validation: true
+      post_processing: true
+
+# External integrations
+integrations:
+  # OSINT Aggregator
+  osint-aggregator:
+    enabled: true
+    port: 7001
+    host: localhost
+    workers: 2
+
+    sources:
+      - shodan
+      - dehashed
+      - hunter_io
+      - have_i_been_pwned
+
+    rate_limiting:
+      enabled: true
+      max_requests_per_minute: 60
+
+  # Blockchain Monitor
+  blockchain-monitor:
+    enabled: true
+    port: 7002
+    host: localhost
+    workers: 1
+
+    networks:
+      - bitcoin
+      - ethereum
+      - binance_smart_chain
+
+    polling_interval: 60s
+
+  # Social Media Monitor
+  social-media-monitor:
+    enabled: true
+    port: 7003
+    host: localhost
+    workers: 2
+
+    platforms:
+      - twitter
+      - linkedin
+      - facebook
+
+    polling_interval: 300s
+
+# Message queue workers
+workers:
+  # High Priority Queue Worker
+  high-priority:
+    enabled: true
+    concurrency: 5
+    prefetch: 1
+    queue: apollo.tasks.high
+
+  # Normal Priority Queue Worker
+  normal-priority:
+    enabled: true
+    concurrency: 3
+    prefetch: 5
+    queue: apollo.tasks.normal
+
+  # Surveillance Queue Worker
+  surveillance:
+    enabled: true
+    concurrency: 2
+    prefetch: 1
+    queue: apollo.surveillance
+
+  # Intelligence Queue Worker
+  intelligence:
+    enabled: true
+    concurrency: 2
+    prefetch: 2
+    queue: apollo.intelligence
+
+# Development tools
+dev-tools:
+  # API Documentation
+  swagger:
+    enabled: true
+    port: 8080
+    path: /api-docs
+
+  # GraphQL Playground
+  graphql-playground:
+    enabled: true
+    port: 4000
+    path: /graphql
+
+  # Database Admin
+  adminer:
+    enabled: true
+    port: 8081
+
+  # Queue Management UI
+  rabbitmq-management:
+    enabled: true
+    port: 15672
+
+  # Redis Commander
+  redis-commander:
+    enabled: true
+    port: 8082
+
+# Health checks
+health:
+  enabled: true
+  port: 9000
+  path: /health
+
+  checks:
+    - name: database
+      type: postgres
+      critical: true
+    - name: cache
+      type: redis
+      critical: false
+    - name: queue
+      type: rabbitmq
+      critical: true
+    - name: search
+      type: elasticsearch
+      critical: false
+
+  check_interval: 30s
+
+# Metrics collection
+metrics:
+  enabled: true
+  port: 9090
+  path: /metrics
+
+  collectors:
+    - system
+    - database
+    - api
+    - queue
+    - cache
+
+  export_interval: 15s

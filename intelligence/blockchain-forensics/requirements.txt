@@ -111,6 +111,18 @@ python-decouple==3.8
 blockcypher==1.0.93
 blockchain==1.4.4
 
+# AML/Compliance
+# Note: For production, consider commercial feeds for OFAC SDN list updates
+
+# Hashing and Address Validation
+coincurve==18.0.0  # Secp256k1 for address validation
+bech32==1.2.0  # For Bitcoin bech32 address support
+ecdsa==0.18.0
+
+# Additional async support
+anyio==4.2.0
+asyncio-throttle==1.0.2
+
 # Development
 ipython==8.19.0
 ipdb==0.13.13

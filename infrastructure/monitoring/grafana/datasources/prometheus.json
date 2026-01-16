@@ -1,0 +1,103 @@
+{
+  "apiVersion": 1,
+  "datasources": [
+    {
+      "name": "Prometheus",
+      "type": "prometheus",
+      "uid": "prometheus",
+      "access": "proxy",
+      "url": "http://prometheus.monitoring.svc:9090",
+      "isDefault": true,
+      "editable": false,
+      "jsonData": {
+        "timeInterval": "15s",
+        "queryTimeout": "60s",
+        "httpMethod": "POST",
+        "manageAlerts": true,
+        "prometheusType": "Prometheus",
+        "prometheusVersion": "2.45.0"
+      }
+    },
+    {
+      "name": "Alertmanager",
+      "type": "alertmanager",
+      "uid": "alertmanager",
+      "access": "proxy",
+      "url": "http://alertmanager.monitoring.svc:9093",
+      "editable": false,
+      "jsonData": {
+        "implementation": "prometheus"
+      }
+    },
+    {
+      "name": "Elasticsearch",
+      "type": "elasticsearch",
+      "uid": "elasticsearch",
+      "access": "proxy",
+      "url": "http://elasticsearch.monitoring.svc:9200",
+      "editable": false,
+      "jsonData": {
+        "esVersion": "8.0.0",
+        "timeField": "@timestamp",
+        "logLevelField": "level",
+        "logMessageField": "message",
+        "maxConcurrentShardRequests": 5
+      },
+      "database": "apollo-*"
+    },
+    {
+      "name": "Elasticsearch - Security Logs",
+      "type": "elasticsearch",
+      "uid": "elasticsearch-security",
+      "access": "proxy",
+      "url": "http://elasticsearch.monitoring.svc:9200",
+      "editable": false,
+      "jsonData": {
+        "esVersion": "8.0.0",
+        "timeField": "@timestamp",
+        "logLevelField": "level",
+        "logMessageField": "message"
+      },
+      "database": "apollo-security-*"
+    },
+    {
+      "name": "Elasticsearch - Audit Logs",
+      "type": "elasticsearch",
+      "uid": "elasticsearch-audit",
+      "access": "proxy",
+      "url": "http://elasticsearch.monitoring.svc:9200",
+      "editable": false,
+      "jsonData": {
+        "esVersion": "8.0.0",
+        "timeField": "@timestamp"
+      },
+      "database": "apollo-audit-*"
+    },
+    {
+      "name": "Jaeger",
+      "type": "jaeger",
+      "uid": "jaeger",
+      "access": "proxy",
+      "url": "http://jaeger-query.monitoring.svc:16686",
+      "editable": false
+    },
+    {
+      "name": "PostgreSQL",
+      "type": "postgres",
+      "uid": "postgres",
+      "access": "proxy",
+      "url": "apollo-postgres.apollo-production.svc:5432",
+      "editable": false,
+      "jsonData": {
+        "database": "apollo",
+        "sslmode": "disable",
+        "maxOpenConns": 10,
+        "maxIdleConns": 5
+      },
+      "secureJsonData": {
+        "password": "${POSTGRES_GRAFANA_PASSWORD}"
+      },
+      "user": "grafana_reader"
+    }
+  ]
+}

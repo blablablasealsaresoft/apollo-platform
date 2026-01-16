@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: apollo-gateway
+  namespace: apollo-system
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: apollo-ca
+spec:
+  tls:
+    - hosts: [ "apollo.local" ]
+      secretName: apollo-gateway-tls
+  rules:
+    - host: apollo.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: apollo-api
+                port:
+                  number: 8080

@@ -1,0 +1,10 @@
+[
+  {
+    "id": "investigation-overview",
+    "title": "Investigation Overview",
+    "widgets": [
+      { "type": "stat", "metric": "anomalies" },
+      { "type": "timeseries", "metric": "sentiment" }
+    ]
+  }
+]

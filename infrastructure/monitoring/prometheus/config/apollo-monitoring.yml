@@ -1,0 +1,18 @@
+scrape_configs:
+  - job_name: apollo-api
+    static_configs:
+      - targets: [ 'apollo-api.apollo-system.svc.cluster.local:8080' ]
+        labels:
+          service: api
+  - job_name: apollo-workers
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [ 'apollo-intelligence' ]
+    relabel_configs:
+      - action: keep
+        source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_scrape ]
+        regex: 'true'
+      - action: replace
+        source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_path ]
+        target_label: __metrics_path__

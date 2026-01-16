@@ -1,0 +1,17 @@
+# API Orchestrator Requirements
+
+# Core dependencies
+aiohttp>=3.9.0
+asyncio>=3.4.3
+
+# Redis for caching and distributed rate limiting
+redis>=5.0.0
+
+# Optional: async redis client
+redis[hiredis]>=5.0.0
+
+# JSON processing
+python-json-logger>=2.0.0
+
+# Utilities
+python-dotenv>=1.0.0

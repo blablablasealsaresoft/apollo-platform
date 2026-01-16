@@ -1,0 +1,25 @@
+# Public Records Intelligence System Requirements
+
+# Core dependencies
+aiohttp>=3.9.0          # Async HTTP client
+beautifulsoup4>=4.12.0  # HTML parsing
+lxml>=4.9.0             # XML parsing
+
+# Optional dependencies for enhanced functionality
+pandas>=2.0.0           # Data analysis and manipulation
+matplotlib>=3.7.0       # Visualization
+seaborn>=0.12.0         # Statistical visualization
+networkx>=3.1           # Network graph analysis
+python-dateutil>=2.8.0  # Date parsing utilities
+
+# Export and reporting
+jinja2>=3.1.0           # HTML template rendering
+openpyxl>=3.1.0         # Excel file support
+xlsxwriter>=3.1.0       # Excel writing
+
+# API clients (optional)
+requests>=2.31.0        # Synchronous HTTP fallback
+
+# Utilities
+python-dotenv>=1.0.0    # Environment variable management
+pyyaml>=6.0             # YAML configuration files

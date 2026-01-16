@@ -1,16 +1,38 @@
 """
 Configuration Management for Apollo Intelligence
 Loads settings from environment variables
+
+SECURITY: In production, all secrets must be provided via environment variables.
+No default values are used for sensitive configuration in production mode.
 """
 
 import os
+import sys
+import logging
 from typing import List, Optional
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, field_validator
+
+logger = logging.getLogger(__name__)
+
+
+class ConfigurationError(Exception):
+    """Raised when required configuration is missing"""
+    pass
+
+
+def require_in_production(value: Optional[str], field_name: str, environment: str) -> Optional[str]:
+    """Helper to enforce required fields in production"""
+    if environment == 'production' and not value:
+        raise ConfigurationError(
+            f"SECURITY ERROR: {field_name} is required in production environment. "
+            f"Set the {field_name} environment variable."
+        )
+    return value
 
 
 class Settings(BaseSettings):
-    """Application settings"""
+    """Application settings with production security enforcement"""
 
     # Environment
     environment: str = Field(default='development', env='ENVIRONMENT')
@@ -21,6 +43,53 @@ class Settings(BaseSettings):
     api_host: str = Field(default='0.0.0.0', env='API_HOST')
     api_port: int = Field(default=8000, env='API_PORT')
     api_workers: int = Field(default=4, env='API_WORKERS')
+    api_version: str = Field(default='v1', env='API_VERSION')
+
+    # Convenience properties for API server
+    @property
+    def HOST(self) -> str:
+        return self.api_host
+
+    @property
+    def PORT(self) -> int:
+        return self.api_port
+
+    @property
+    def WORKERS(self) -> int:
+        return self.api_workers
+
+    @property
+    def API_VERSION(self) -> str:
+        return self.api_version
+
+    @property
+    def ENVIRONMENT(self) -> str:
+        return self.environment
+
+    @property
+    def DEBUG(self) -> bool:
+        # Force debug off in production
+        if self.environment == 'production':
+            return False
+        return self.debug
+
+    @property
+    def CORS_ORIGINS(self) -> list:
+        if self.environment == 'production' and self.cors_origins == '*':
+            raise ConfigurationError(
+                "SECURITY ERROR: CORS_ORIGINS cannot be '*' in production. "
+                "Specify explicit allowed origins."
+            )
+        return self.cors_origins.split(',') if self.cors_origins != '*' else ['*']
+
+    @property
+    def ALLOWED_HOSTS(self) -> list:
+        if self.environment == 'production' and self.allowed_hosts == '*':
+            raise ConfigurationError(
+                "SECURITY ERROR: ALLOWED_HOSTS cannot be '*' in production. "
+                "Specify explicit allowed hosts."
+            )
+        return self.allowed_hosts.split(',') if self.allowed_hosts != '*' else ['*']
 
     # Elasticsearch
     elasticsearch_hosts: List[str] = Field(
@@ -30,24 +99,68 @@ class Settings(BaseSettings):
     elasticsearch_username: Optional[str] = Field(None, env='ELASTICSEARCH_USERNAME')
     elasticsearch_password: Optional[str] = Field(None, env='ELASTICSEARCH_PASSWORD')
 
-    # Redis
+    # Redis - password required in production
     redis_host: str = Field(default='localhost', env='REDIS_HOST')
     redis_port: int = Field(default=6379, env='REDIS_PORT')
     redis_password: Optional[str] = Field(None, env='REDIS_PASSWORD')
     redis_db: int = Field(default=0, env='REDIS_DB')
 
-    # RabbitMQ
+    @field_validator('redis_password')
+    @classmethod
+    def validate_redis_password(cls, v, info):
+        env = os.getenv('ENVIRONMENT', 'development')
+        if env == 'production' and not v:
+            raise ValueError('REDIS_PASSWORD is required in production')
+        return v
+
+    # RabbitMQ - no default credentials
     rabbitmq_host: str = Field(default='localhost', env='RABBITMQ_HOST')
     rabbitmq_port: int = Field(default=5672, env='RABBITMQ_PORT')
-    rabbitmq_user: str = Field(default='guest', env='RABBITMQ_USER')
-    rabbitmq_password: str = Field(default='guest', env='RABBITMQ_PASSWORD')
+    rabbitmq_user: Optional[str] = Field(None, env='RABBITMQ_USER')
+    rabbitmq_password: Optional[str] = Field(None, env='RABBITMQ_PASSWORD')
 
-    # PostgreSQL
+    @field_validator('rabbitmq_user')
+    @classmethod
+    def validate_rabbitmq_user(cls, v, info):
+        env = os.getenv('ENVIRONMENT', 'development')
+        if env == 'production' and not v:
+            raise ValueError('RABBITMQ_USER is required in production')
+        # Default to 'guest' only in development
+        return v if v else ('guest' if env != 'production' else None)
+
+    @field_validator('rabbitmq_password')
+    @classmethod
+    def validate_rabbitmq_password(cls, v, info):
+        env = os.getenv('ENVIRONMENT', 'development')
+        if env == 'production' and not v:
+            raise ValueError('RABBITMQ_PASSWORD is required in production')
+        # Default to 'guest' only in development
+        return v if v else ('guest' if env != 'production' else None)
+
+    # PostgreSQL - no default credentials in production
     postgres_host: str = Field(default='localhost', env='POSTGRES_HOST')
     postgres_port: int = Field(default=5432, env='POSTGRES_PORT')
     postgres_db: str = Field(default='apollo', env='POSTGRES_DB')
-    postgres_user: str = Field(default='apollo', env='POSTGRES_USER')
-    postgres_password: str = Field(default='changeme', env='POSTGRES_PASSWORD')
+    postgres_user: Optional[str] = Field(None, env='POSTGRES_USER')
+    postgres_password: Optional[str] = Field(None, env='POSTGRES_PASSWORD')
+
+    @field_validator('postgres_user')
+    @classmethod
+    def validate_postgres_user(cls, v, info):
+        env = os.getenv('ENVIRONMENT', 'development')
+        if env == 'production' and not v:
+            raise ValueError('POSTGRES_USER is required in production')
+        return v if v else ('apollo' if env != 'production' else None)
+
+    @field_validator('postgres_password')
+    @classmethod
+    def validate_postgres_password(cls, v, info):
+        env = os.getenv('ENVIRONMENT', 'development')
+        if env == 'production' and not v:
+            raise ValueError('POSTGRES_PASSWORD is required in production')
+        if env == 'production' and v and len(v) < 12:
+            raise ValueError('POSTGRES_PASSWORD must be at least 12 characters in production')
+        return v if v else ('changeme' if env != 'production' else None)
 
     # OSINT APIs
     shodan_api_key: Optional[str] = Field(None, env='SHODAN_API_KEY')
@@ -82,13 +195,46 @@ class Settings(BaseSettings):
     twilio_account_sid: Optional[str] = Field(None, env='TWILIO_ACCOUNT_SID')
     twilio_auth_token: Optional[str] = Field(None, env='TWILIO_AUTH_TOKEN')
 
-    # Security
-    secret_key: str = Field(
-        default='change-this-in-production',
-        env='SECRET_KEY'
-    )
+    # Security - NO defaults for secrets in production
+    secret_key: Optional[str] = Field(None, env='SECRET_KEY')
     allowed_hosts: str = Field(default='*', env='ALLOWED_HOSTS')
     cors_origins: str = Field(default='*', env='CORS_ORIGINS')
+
+    @field_validator('secret_key')
+    @classmethod
+    def validate_secret_key(cls, v, info):
+        env = os.getenv('ENVIRONMENT', 'development')
+        if env == 'production':
+            if not v:
+                raise ValueError('SECRET_KEY is required in production')
+            if len(v) < 64:
+                raise ValueError('SECRET_KEY must be at least 64 characters in production')
+            if v in ['change-this-in-production', 'your-secret-key-change-this-in-production']:
+                raise ValueError('SECRET_KEY cannot use default placeholder values in production')
+        # Use a development-only default
+        return v if v else 'dev-only-secret-key-not-for-production-use-change-in-prod'
+
+    @field_validator('cors_origins')
+    @classmethod
+    def validate_cors_origins(cls, v, info):
+        env = os.getenv('ENVIRONMENT', 'development')
+        if env == 'production' and v == '*':
+            raise ValueError(
+                'CORS_ORIGINS cannot be "*" in production. '
+                'Specify comma-separated list of allowed origins (e.g., "https://app.example.com,https://admin.example.com")'
+            )
+        return v
+
+    @field_validator('allowed_hosts')
+    @classmethod
+    def validate_allowed_hosts(cls, v, info):
+        env = os.getenv('ENVIRONMENT', 'development')
+        if env == 'production' and v == '*':
+            raise ValueError(
+                'ALLOWED_HOSTS cannot be "*" in production. '
+                'Specify comma-separated list of allowed hosts (e.g., "api.example.com,*.example.com")'
+            )
+        return v
 
     # Rate Limiting
     rate_limit_per_minute: int = Field(default=60, env='RATE_LIMIT_PER_MINUTE')

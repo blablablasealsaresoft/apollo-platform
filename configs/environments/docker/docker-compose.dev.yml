@@ -1,0 +1,275 @@
+version: '3.8'
+
+# Apollo Platform - Development Docker Compose
+# ===========================================================
+
+services:
+  # PostgreSQL - Primary relational database
+  postgres:
+    image: postgres:15-alpine
+    container_name: apollo-postgres-dev
+    environment:
+      POSTGRES_USER: apollo_admin
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_DB: apollo_dev
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts/postgres:/docker-entrypoint-initdb.d
+    networks:
+      - apollo-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apollo_admin -d apollo_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Neo4j - Graph database
+  neo4j:
+    image: neo4j:5-community
+    container_name: apollo-neo4j-dev
+    environment:
+      NEO4J_AUTH: neo4j/dev_neo4j_pass
+      NEO4J_PLUGINS: '["apoc", "graph-data-science"]'
+      NEO4J_dbms_memory_pagecache_size: 1G
+      NEO4J_dbms_memory_heap_initial__size: 1G
+      NEO4J_dbms_memory_heap_max__size: 2G
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_plugins:/plugins
+    networks:
+      - apollo-dev
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis - Cache and session store
+  redis:
+    image: redis:7-alpine
+    container_name: apollo-redis-dev
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - apollo-dev
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Elasticsearch - Search and analytics
+  elasticsearch:
+    image: elasticsearch:8.11.0
+    container_name: apollo-elasticsearch-dev
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data
+    networks:
+      - apollo-dev
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # MongoDB - Document store
+  mongodb:
+    image: mongo:7
+    container_name: apollo-mongodb-dev
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: apollo
+      MONGO_INITDB_ROOT_PASSWORD: dev_mongo_pass
+      MONGO_INITDB_DATABASE: apollo_dev
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - mongo_config:/data/configdb
+    networks:
+      - apollo-dev
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # RabbitMQ - Message queue
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: apollo-rabbitmq-dev
+    environment:
+      RABBITMQ_DEFAULT_USER: apollo
+      RABBITMQ_DEFAULT_PASS: dev_rabbit
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbit_data:/var/lib/rabbitmq
+      - rabbit_logs:/var/log/rabbitmq
+    networks:
+      - apollo-dev
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # TimescaleDB - Time-series database
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    container_name: apollo-timescale-dev
+    environment:
+      POSTGRES_USER: apollo_admin
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_DB: apollo_timeseries_dev
+    ports:
+      - "5433:5432"  # Different port to avoid conflict with postgres
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+    networks:
+      - apollo-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apollo_admin -d apollo_timeseries_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Prometheus - Metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: apollo-prometheus-dev
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - apollo-dev
+    restart: unless-stopped
+
+  # Grafana - Metrics visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: apollo-grafana-dev
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: admin
+      GF_INSTALL_PLUGINS: grafana-clock-panel
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - apollo-dev
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # Jaeger - Distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: apollo-jaeger-dev
+    environment:
+      COLLECTOR_ZIPKIN_HOST_PORT: ":9411"
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"  # UI
+      - "14268:14268"
+      - "14250:14250"
+      - "9411:9411"
+    networks:
+      - apollo-dev
+    restart: unless-stopped
+
+  # Adminer - Database admin UI
+  adminer:
+    image: adminer:latest
+    container_name: apollo-adminer-dev
+    ports:
+      - "8081:8080"
+    networks:
+      - apollo-dev
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    restart: unless-stopped
+
+  # Redis Commander - Redis UI
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: apollo-redis-commander-dev
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8082:8081"
+    networks:
+      - apollo-dev
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+networks:
+  apollo-dev:
+    driver: bridge
+    name: apollo-dev-network
+
+volumes:
+  postgres_data:
+    name: apollo-postgres-data-dev
+  neo4j_data:
+    name: apollo-neo4j-data-dev
+  neo4j_logs:
+    name: apollo-neo4j-logs-dev
+  neo4j_plugins:
+    name: apollo-neo4j-plugins-dev
+  redis_data:
+    name: apollo-redis-data-dev
+  elastic_data:
+    name: apollo-elastic-data-dev
+  mongo_data:
+    name: apollo-mongo-data-dev
+  mongo_config:
+    name: apollo-mongo-config-dev
+  rabbit_data:
+    name: apollo-rabbit-data-dev
+  rabbit_logs:
+    name: apollo-rabbit-logs-dev
+  timescale_data:
+    name: apollo-timescale-data-dev
+  prometheus_data:
+    name: apollo-prometheus-data-dev
+  grafana_data:
+    name: apollo-grafana-data-dev

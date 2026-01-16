@@ -1,0 +1,49 @@
+category: finance
+total_apis: 22
+priority: high
+apollo_use: "Financial intelligence, market monitoring, corporate tracking, investment analysis"
+
+apis:
+  alpha_vantage:
+    name: Alpha Vantage
+    url: https://www.alphavantage.co/query
+    authentication: apiKey
+    free_tier: 500/day
+    apollo_integration:
+      use_case: "Track OneCoin-related stocks, market intelligence"
+      priority: high
+
+  yahoo_finance:
+    name: Yahoo Finance
+    url: https://query1.finance.yahoo.com/v8
+    authentication: none
+    free_tier: true
+    apollo_integration:
+      use_case: "Real-time stock monitoring"
+      priority: high
+
+  financial_modeling_prep:
+    name: Financial Modeling Prep
+    url: https://financialmodelingprep.com/api/v3
+    authentication: apiKey
+    free_tier: 250/day
+    apollo_integration:
+      use_case: "Corporate financial intelligence, balance sheets"
+      priority: high
+
+  clearbit_company:
+    name: Clearbit Company
+    url: https://company.clearbit.com/v2
+    authentication: apiKey
+    apollo_integration:
+      use_case: "Company enrichment intelligence"
+      priority: high
+
+deployment:
+  mode: continuous
+  priority: high
+
+intelligence_fusion:
+  feed_to:
+    - apollo.financial_intelligence
+    - apollo.corporate_intelligence

@@ -1,0 +1,14 @@
+stages:
+  - lint
+  - test
+  - security
+  - build
+  - deploy
+
+default:
+  before_script:
+    - echo "Apollo Pipeline for $CI_PROJECT_NAME"
+  cache:
+    paths:
+      - node_modules/
+      - .cache/pip

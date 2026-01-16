@@ -1,0 +1,172 @@
+# JWT Configuration for Apollo Platform
+# Provides secure token-based authentication with short-lived access tokens
+# and long-lived refresh tokens with rotation support
+
+jwt:
+  # Access Token Configuration
+  access_token:
+    # Secret key for signing access tokens (min 32 characters)
+    # CRITICAL: Must be set via environment variable in production
+    secret: ${JWT_SECRET}
+
+    # Signing algorithm - HS256 provides strong security with symmetric keys
+    algorithm: HS256
+
+    # Short expiry for security - forces regular re-authentication
+    expiry: 15m
+
+    # Token issuer identification
+    issuer: apollo-platform
+
+    # Expected audience for token validation
+    audience: apollo-api
+
+    # Token refresh grace period before hard expiry
+    refresh_grace_period: 5m
+
+  # Refresh Token Configuration
+  refresh_token:
+    # Separate secret for refresh tokens (must differ from access secret)
+    secret: ${JWT_REFRESH_SECRET}
+
+    # Signing algorithm
+    algorithm: HS256
+
+    # Longer expiry for convenience
+    expiry: 7d
+
+    # Enable automatic rotation on use
+    rotation: true
+
+    # Maximum refresh tokens per user (device limit)
+    max_devices: 5
+
+    # Invalidate old refresh token after rotation
+    invalidate_on_rotation: true
+
+    # Sliding expiration - extends expiry on each use
+    sliding_expiration: true
+
+  # JWT Claims Configuration
+  claims:
+    # Standard claims to include in token payload
+    include:
+      - userId
+      - email
+      - role
+      - permissions
+      - agency
+      - badgeNumber
+      - sessionId
+      - deviceId
+
+    # Exclude sensitive information from tokens
+    exclude_sensitive: true
+
+    # Custom claim namespace to avoid conflicts
+    namespace: https://apollo-platform.com
+
+    # Include token metadata
+    metadata:
+      - issued_at
+      - expires_at
+      - issuer
+      - audience
+
+  # Security Configuration
+  security:
+    # Require HTTPS for all token operations
+    require_https: true
+
+    # Use secure cookies for token storage
+    secure_cookies: true
+
+    # SameSite cookie policy (strict, lax, none)
+    same_site: strict
+
+    # HttpOnly flag prevents JavaScript access
+    http_only: true
+
+    # Cookie domain restriction
+    domain: ${APOLLO_DOMAIN}
+
+    # Cookie path restriction
+    path: /
+
+    # Maximum clock skew for token validation (seconds)
+    clock_tolerance: 30
+
+  # Token Validation Rules
+  validation:
+    # Validate token signature
+    verify_signature: true
+
+    # Validate token expiration
+    verify_expiration: true
+
+    # Validate issuer claim
+    verify_issuer: true
+
+    # Validate audience claim
+    verify_audience: true
+
+    # Validate not-before claim
+    verify_not_before: true
+
+    # Require specific claims to be present
+    required_claims:
+      - userId
+      - email
+      - role
+      - exp
+      - iat
+
+  # Token Revocation
+  revocation:
+    # Enable token revocation capability
+    enabled: true
+
+    # Revocation storage backend
+    backend: redis
+
+    # Check revocation on every request
+    check_on_request: true
+
+    # Revocation list cache TTL
+    cache_ttl: 5m
+
+  # Rate Limiting for Token Operations
+  rate_limiting:
+    # Token issuance rate limit per user
+    token_issuance: 10/minute
+
+    # Token refresh rate limit per user
+    token_refresh: 20/minute
+
+    # Failed validation attempts before lockout
+    max_failed_validations: 5
+
+  # Logging and Monitoring
+  logging:
+    # Log all token operations
+    log_operations: true
+
+    # Log token validation failures
+    log_validation_failures: true
+
+    # Log token revocations
+    log_revocations: true
+
+    # Include sensitive data in logs (disable in production)
+    log_sensitive_data: false
+
+  # Development Settings (override in production)
+  development:
+    # Allow HTTP in development
+    allow_http: ${ALLOW_HTTP:-false}
+
+    # Extended token expiry for debugging
+    extended_expiry: false
+
+    # Log token contents for debugging
+    debug_logging: false

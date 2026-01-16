@@ -1,0 +1,111 @@
+{
+  "monitoring": {
+    "keywords": [
+      "target_keyword",
+      "company_name",
+      "data breach",
+      "credentials"
+    ],
+    "marketplaces": [
+      "alphabay",
+      "hydra",
+      "darkbay"
+    ],
+    "forums": [
+      "dread",
+      "envoy",
+      "darknetlive"
+    ],
+    "paste_sites": [
+      "pastebin",
+      "ghostbin",
+      "0bin",
+      "rentry"
+    ],
+    "telegram_channels": [
+      "@darknet_news",
+      "@marketplace_alerts",
+      "@breach_reports"
+    ],
+    "tor_search_engines": [
+      "ahmia",
+      "onionland",
+      "darksearch",
+      "torch"
+    ]
+  },
+  "tor": {
+    "socks_port": 9050,
+    "control_port": 9051,
+    "tor_path": null,
+    "circuit_rotation_interval": 600
+  },
+  "crawler": {
+    "max_depth": 3,
+    "max_pages": 100,
+    "timeout": 30,
+    "delay": 2.0,
+    "max_concurrent": 5,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0",
+    "follow_external": false,
+    "extract_emails": true,
+    "extract_crypto": true,
+    "respect_robots": true
+  },
+  "monitoring_config": {
+    "continuous": false,
+    "interval": 3600,
+    "output_dir": "darkweb_results",
+    "db_path": "darkweb_intel.db",
+    "enable_alerts": true,
+    "user_agents_rotation": true
+  },
+  "alerts": {
+    "webhook_url": null,
+    "email": {
+      "enabled": false,
+      "smtp_host": "smtp.gmail.com",
+      "smtp_port": 587,
+      "username": "",
+      "password": "",
+      "from": "alerts@example.com",
+      "to": "security@example.com"
+    },
+    "alert_file": "darkweb_alerts.jsonl",
+    "rules": {
+      "high_risk_content": {
+        "enabled": true,
+        "severity": "high",
+        "threshold": 80
+      },
+      "cryptocurrency_found": {
+        "enabled": true,
+        "severity": "medium"
+      },
+      "credentials_leak": {
+        "enabled": true,
+        "severity": "critical"
+      },
+      "entity_mention": {
+        "enabled": true,
+        "severity": "medium"
+      }
+    }
+  },
+  "telegram": {
+    "api_id": null,
+    "api_hash": null,
+    "phone_number": null
+  },
+  "output": {
+    "formats": ["json", "html", "csv"],
+    "auto_export": true,
+    "export_interval": 3600
+  },
+  "security": {
+    "encrypt_database": false,
+    "encryption_key": null,
+    "audit_log": true,
+    "audit_log_path": "audit.log"
+  }
+}

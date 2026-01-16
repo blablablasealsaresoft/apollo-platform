@@ -1,0 +1,35 @@
+# IMINT System Requirements
+
+# Core dependencies
+pillow>=10.0.0
+numpy>=1.24.0
+opencv-python>=4.8.0
+requests>=2.31.0
+
+# Face recognition
+face_recognition>=1.3.0
+deepface>=0.0.79
+dlib>=19.24.0
+
+# Deep learning (optional but recommended)
+tensorflow>=2.13.0
+torch>=2.0.0
+torchvision>=0.15.0
+
+# EXIF and metadata
+exifread>=3.0.0
+
+# Video processing
+ffmpeg-python>=0.2.0
+
+# YouTube download
+yt-dlp>=2023.10.0
+
+# Additional utilities
+opencv-contrib-python>=4.8.0
+scikit-image>=0.21.0
+scipy>=1.11.0
+
+# Optional: GPU acceleration
+# tensorflow-gpu>=2.13.0
+# torch-cuda>=2.0.0

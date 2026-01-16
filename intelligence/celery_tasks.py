@@ -50,13 +50,21 @@ def run_async(coro):
 
 # Sherlock Tasks
 @app.task(bind=True, name='intelligence.sherlock.search_username')
-def search_username_task(self, username: str, platforms: Optional[List[str]] = None):
+def search_username_task(
+    self,
+    username: str,
+    platforms: Optional[List[str]] = None,
+    categories: Optional[List[str]] = None,
+    reliable_only: bool = False
+):
     """
     Search for username across social media platforms
 
     Args:
         username: Username to search
         platforms: List of platforms (None = all)
+        categories: Platform categories to filter by
+        reliable_only: Only search reliable platforms
 
     Returns:
         Dictionary with search results
@@ -64,17 +72,46 @@ def search_username_task(self, username: str, platforms: Optional[List[str]] = N
     logger.info(f"Starting username search for: {username}")
 
     try:
-        from osint_tools.sherlock import SherlockEngine
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'osint-tools', 'sherlock'))
+        from sherlock_engine import SherlockEngine
 
-        engine = SherlockEngine()
-        results = run_async(engine.search_username(username, platforms))
+        engine = SherlockEngine(max_concurrent=50, timeout=15)
+        results = run_async(engine.search_username(
+            username=username,
+            platforms=platforms,
+            categories=categories,
+            reliable_only=reliable_only
+        ))
+
+        found_count = sum(1 for r in results if r.status == 'found')
+        not_found_count = sum(1 for r in results if r.status == 'not_found')
+        error_count = len(results) - found_count - not_found_count
+
+        # Get found profiles only for response
+        found_profiles = [
+            {
+                'platform': r.platform,
+                'url': r.url,
+                'status': r.status,
+                'confidence_score': r.confidence_score,
+                'response_time_ms': r.response_time_ms,
+                'category': r.metadata.get('category', 'unknown')
+            }
+            for r in results
+            if r.status == 'found'
+        ]
 
         return {
             'task_id': self.request.id,
             'username': username,
-            'total_results': len(results),
-            'found_count': sum(1 for r in results if r.status == 'found'),
-            'results': [
+            'total_platforms': len(results),
+            'found_count': found_count,
+            'not_found_count': not_found_count,
+            'error_count': error_count,
+            'found_profiles': found_profiles,
+            'all_results': [
                 {
                     'platform': r.platform,
                     'url': r.url,
@@ -83,6 +120,7 @@ def search_username_task(self, username: str, platforms: Optional[List[str]] = N
                 }
                 for r in results
             ],
+            'statistics': engine.get_statistics(),
             'completed_at': datetime.now().isoformat()
         }
     except Exception as e:
@@ -94,7 +132,8 @@ def search_username_task(self, username: str, platforms: Optional[List[str]] = N
 def batch_search_usernames_task(
     self,
     usernames: List[str],
-    platforms: Optional[List[str]] = None
+    platforms: Optional[List[str]] = None,
+    categories: Optional[List[str]] = None
 ):
     """
     Batch search for multiple usernames
@@ -102,6 +141,7 @@ def batch_search_usernames_task(
     Args:
         usernames: List of usernames
         platforms: List of platforms
+        categories: Platform categories to filter by
 
     Returns:
         Dictionary with batch results
@@ -109,22 +149,124 @@ def batch_search_usernames_task(
     logger.info(f"Starting batch search for {len(usernames)} usernames")
 
     try:
-        from osint_tools.sherlock import SherlockEngine, BatchUsernameProcessor
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'osint-tools', 'sherlock'))
+        from sherlock_engine import SherlockEngine
+        from batch_processor import BatchUsernameProcessor
 
-        engine = SherlockEngine()
-        processor = BatchUsernameProcessor(engine)
-        batch_result = run_async(processor.search_batch(usernames, platforms))
+        engine = SherlockEngine(max_concurrent=50, timeout=15)
+        processor = BatchUsernameProcessor(engine, max_concurrent_usernames=5)
+
+        # For batch, we pass categories via the engine's filter
+        async def run_batch():
+            results = {}
+            for username in usernames:
+                search_results = await engine.search_username(
+                    username=username,
+                    platforms=platforms,
+                    categories=categories
+                )
+                results[username] = search_results
+            return results
+
+        results_by_username = run_async(run_batch())
+
+        # Aggregate statistics
+        total_found = 0
+        total_not_found = 0
+        total_errors = 0
+        summary_by_username = {}
+
+        for username, results in results_by_username.items():
+            found = sum(1 for r in results if r.status == 'found')
+            not_found = sum(1 for r in results if r.status == 'not_found')
+            errors = len(results) - found - not_found
+
+            total_found += found
+            total_not_found += not_found
+            total_errors += errors
+
+            summary_by_username[username] = {
+                'found': found,
+                'not_found': not_found,
+                'errors': errors,
+                'profiles': [
+                    {
+                        'platform': r.platform,
+                        'url': r.url,
+                        'confidence': r.confidence_score
+                    }
+                    for r in results if r.status == 'found'
+                ]
+            }
 
         return {
             'task_id': self.request.id,
-            'total_usernames': batch_result.total_usernames,
-            'total_platforms': batch_result.total_platforms,
-            'found_results': batch_result.found_results,
-            'duration_seconds': batch_result.duration_seconds,
+            'total_usernames': len(usernames),
+            'total_platforms_checked': engine.get_platform_count(),
+            'total_found': total_found,
+            'total_not_found': total_not_found,
+            'total_errors': total_errors,
+            'results_by_username': summary_by_username,
+            'statistics': engine.get_statistics(),
             'completed_at': datetime.now().isoformat()
         }
     except Exception as e:
         logger.error(f"Batch search failed: {e}")
+        raise
+
+
+@app.task(bind=True, name='intelligence.sherlock.search_variants')
+def search_username_variants_task(
+    self,
+    base_username: str,
+    platforms: Optional[List[str]] = None
+):
+    """
+    Search for username variants automatically generated from base username
+
+    Args:
+        base_username: Base username to generate variants from
+        platforms: List of platforms (None = all)
+
+    Returns:
+        Dictionary with results for all variants
+    """
+    logger.info(f"Starting variant search for base username: {base_username}")
+
+    try:
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'osint-tools', 'sherlock'))
+        from sherlock_engine import SherlockEngine
+        from batch_processor import BatchUsernameProcessor
+
+        engine = SherlockEngine(max_concurrent=50, timeout=15)
+        processor = BatchUsernameProcessor(engine)
+
+        batch_result = run_async(processor.search_username_variants(
+            base_username=base_username,
+            platforms=platforms
+        ))
+
+        return {
+            'task_id': self.request.id,
+            'base_username': base_username,
+            'variants_searched': batch_result.total_usernames,
+            'total_found': batch_result.found_results,
+            'duration_seconds': batch_result.duration_seconds,
+            'results_by_variant': {
+                username: [
+                    {'platform': r.platform, 'url': r.url, 'confidence': r.confidence_score}
+                    for r in results if r.status == 'found'
+                ]
+                for username, results in batch_result.results_by_username.items()
+            },
+            'completed_at': datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Variant search failed: {e}")
         raise
 
 
@@ -166,6 +308,216 @@ def domain_scan_task(
         }
     except Exception as e:
         logger.error(f"Domain scan failed: {e}")
+        raise
+
+
+@app.task(bind=True, name='intelligence.bbot.subdomain_enum')
+def subdomain_enumeration_task(
+    self,
+    domain: str,
+    sources: Optional[List[str]] = None,
+    brute_force: bool = False
+):
+    """
+    Enumerate subdomains for a domain using BBOT
+
+    Args:
+        domain: Target domain
+        sources: Data sources to use
+        brute_force: Enable DNS brute forcing
+
+    Returns:
+        Dictionary with subdomain enumeration results
+    """
+    logger.info(f"Starting subdomain enumeration for: {domain}")
+
+    try:
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'osint-tools', 'bbot'))
+        from subdomain_enum import SubdomainEnumerator
+
+        enumerator = SubdomainEnumerator()
+        results = run_async(enumerator.enumerate(
+            domain=domain,
+            sources=sources,
+            brute_force=brute_force
+        ))
+
+        subdomains = []
+        for result in results:
+            subdomains.append({
+                'subdomain': result.subdomain,
+                'ip_addresses': result.ip_addresses,
+                'cname': result.cname,
+                'is_wildcard': result.is_wildcard
+            })
+
+        return {
+            'task_id': self.request.id,
+            'domain': domain,
+            'total_found': len(subdomains),
+            'subdomains': subdomains,
+            'completed_at': datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Subdomain enumeration failed: {e}")
+        raise
+
+
+@app.task(bind=True, name='intelligence.bbot.port_scan')
+def port_scan_task(
+    self,
+    target: str,
+    ports: Optional[List[int]] = None,
+    preset: str = 'common'
+):
+    """
+    Scan ports on a target using BBOT port scanner
+
+    Args:
+        target: Target IP or hostname
+        ports: List of ports to scan
+        preset: Port preset (quick, common, web, database, full)
+
+    Returns:
+        Dictionary with port scan results
+    """
+    logger.info(f"Starting port scan for: {target}")
+
+    try:
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'osint-tools', 'bbot'))
+        from port_scanner import PortScanner
+
+        scanner = PortScanner()
+        results = run_async(scanner.scan(
+            target=target,
+            ports=ports,
+            preset=preset
+        ))
+
+        open_ports = []
+        for result in results:
+            open_ports.append({
+                'port': result.port,
+                'service': result.service,
+                'version': result.version,
+                'banner': result.banner
+            })
+
+        return {
+            'task_id': self.request.id,
+            'target': target,
+            'preset': preset,
+            'total_open': len(open_ports),
+            'open_ports': open_ports,
+            'completed_at': datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Port scan failed: {e}")
+        raise
+
+
+@app.task(bind=True, name='intelligence.bbot.full_recon')
+def full_reconnaissance_task(
+    self,
+    domain: str,
+    preset: str = 'standard'
+):
+    """
+    Perform full BBOT reconnaissance on a domain
+
+    Args:
+        domain: Target domain
+        preset: Scan preset (passive, safe, standard, aggressive)
+
+    Returns:
+        Dictionary with complete reconnaissance results
+    """
+    logger.info(f"Starting full reconnaissance for: {domain}")
+
+    try:
+        import sys
+        import os
+        # Add redteam path for BBOTManager
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'redteam', 'reconnaissance', 'bbot'))
+        from bbot_manager import BBOTManager
+
+        manager = BBOTManager()
+        scan = manager.create_scan(
+            name=f"Celery Full Recon: {domain}",
+            targets=[domain],
+            preset=preset
+        )
+
+        results = run_async(manager.run_scan_async(scan.scan_id))
+        scan_data = scan.to_dict()
+
+        return {
+            'task_id': self.request.id,
+            'scan_id': scan.scan_id,
+            'domain': domain,
+            'preset': preset,
+            'status': scan.status,
+            'statistics': scan.get_statistics(),
+            'results': {
+                'subdomains': results.get('subdomains', []),
+                'ips': results.get('ips', []),
+                'ports': results.get('ports', {}),
+                'technologies': results.get('technologies', {}),
+                'vulnerabilities': results.get('vulnerabilities', [])
+            },
+            'completed_at': datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Full reconnaissance failed: {e}")
+        raise
+
+
+@app.task(bind=True, name='intelligence.bbot.tech_detection')
+def technology_detection_task(
+    self,
+    target: str
+):
+    """
+    Detect technologies on a target
+
+    Args:
+        target: Target domain or URL
+
+    Returns:
+        Dictionary with detected technologies
+    """
+    logger.info(f"Starting technology detection for: {target}")
+
+    try:
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'redteam', 'reconnaissance', 'bbot'))
+        from bbot_manager import BBOTManager
+
+        manager = BBOTManager()
+        scan = manager.create_scan(
+            name=f"Tech Detection: {target}",
+            targets=[target],
+            modules=['wappalyzer', 'httpx']
+        )
+
+        results = run_async(manager.run_scan_async(scan.scan_id))
+
+        technologies = results.get('technologies', {}).get(target, [])
+
+        return {
+            'task_id': self.request.id,
+            'target': target,
+            'total_detected': len(technologies),
+            'technologies': technologies,
+            'completed_at': datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Technology detection failed: {e}")
         raise
 
 

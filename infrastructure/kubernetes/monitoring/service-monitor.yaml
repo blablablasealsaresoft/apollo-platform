@@ -1,0 +1,33 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: apollo-api
+  namespace: apollo-system
+spec:
+  selector:
+    matchLabels:
+      app: apollo-api
+  endpoints:
+    - port: http
+      interval: 30s
+      path: /metrics
+  namespaceSelector:
+    matchNames: [ apollo-system ]
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: apollo-api
+  namespace: apollo-system
+spec:
+  groups:
+    - name: availability.rules
+      rules:
+        - alert: ApolloApiDown
+          expr: up{app="apollo-api"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: Apollo API is unreachable
+            description: No scrape targets responding for apollo-api.

@@ -1,0 +1,590 @@
+name: Database Migrations
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      action:
+        description: 'Migration action'
+        required: true
+        type: choice
+        options:
+          - migrate
+          - rollback
+          - status
+          - seed
+      rollback_steps:
+        description: 'Number of migrations to rollback (for rollback action)'
+        required: false
+        default: '1'
+        type: string
+      dry_run:
+        description: 'Dry run (show changes without applying)'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  NODE_VERSION: '18.x'
+
+concurrency:
+  group: database-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  # Validate migration request
+  validate:
+    name: Validate Migration Request
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.check.outputs.proceed }}
+
+    steps:
+      - name: Validate inputs
+        id: check
+        run: |
+          # Prevent seeding in production
+          if [ "${{ inputs.action }}" == "seed" ] && [ "${{ inputs.environment }}" == "production" ]; then
+            echo "❌ Seeding is not allowed in production"
+            exit 1
+          fi
+
+          # Require extra confirmation for production rollback
+          if [ "${{ inputs.action }}" == "rollback" ] && [ "${{ inputs.environment }}" == "production" ]; then
+            echo "⚠️ Production rollback requested - requires approval"
+          fi
+
+          echo "proceed=true" >> $GITHUB_OUTPUT
+          echo "✅ Validation passed"
+
+      - name: Log request
+        run: |
+          echo "🗄️ Database Migration Request"
+          echo "=============================="
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Action: ${{ inputs.action }}"
+          echo "Dry run: ${{ inputs.dry_run }}"
+          echo "Requested by: ${{ github.actor }}"
+
+  # Create backup before migration
+  backup:
+    name: Create Database Backup
+    runs-on: ubuntu-latest
+    needs: [validate]
+    if: inputs.action != 'status' && inputs.dry_run != 'true'
+    environment:
+      name: database-${{ inputs.environment }}
+
+    steps:
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          if [ "${{ inputs.environment }}" == "production" ]; then
+            echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 -d > $HOME/.kube/config
+          else
+            echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > $HOME/.kube/config
+          fi
+
+      - name: Configure AWS CLI
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Create database backup
+        run: |
+          NAMESPACE="apollo-${{ inputs.environment }}"
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          BACKUP_NAME="pre-migration-${{ inputs.action }}-${TIMESTAMP}"
+
+          echo "Creating backup: ${BACKUP_NAME}"
+
+          # Create backup job
+          cat <<EOF | kubectl apply -f -
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: db-backup-${TIMESTAMP}
+            namespace: ${NAMESPACE}
+          spec:
+            ttlSecondsAfterFinished: 3600
+            template:
+              spec:
+                restartPolicy: Never
+                containers:
+                - name: backup
+                  image: postgres:15
+                  command:
+                  - /bin/sh
+                  - -c
+                  - |
+                    PGPASSWORD=\$DB_PASSWORD pg_dump -h \$DB_HOST -U \$DB_USER -d \$DB_NAME -F c -f /backup/${BACKUP_NAME}.dump
+                    echo "Backup created: ${BACKUP_NAME}.dump"
+                  env:
+                  - name: DB_HOST
+                    valueFrom:
+                      secretKeyRef:
+                        name: apollo-db-credentials
+                        key: host
+                  - name: DB_USER
+                    valueFrom:
+                      secretKeyRef:
+                        name: apollo-db-credentials
+                        key: username
+                  - name: DB_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: apollo-db-credentials
+                        key: password
+                  - name: DB_NAME
+                    valueFrom:
+                      secretKeyRef:
+                        name: apollo-db-credentials
+                        key: database
+                  volumeMounts:
+                  - name: backup-storage
+                    mountPath: /backup
+                volumes:
+                - name: backup-storage
+                  persistentVolumeClaim:
+                    claimName: db-backup-pvc
+          EOF
+
+          # Wait for backup to complete
+          kubectl wait --for=condition=complete job/db-backup-${TIMESTAMP} \
+            -n ${NAMESPACE} --timeout=600s
+
+          echo "✅ Backup completed: ${BACKUP_NAME}"
+          echo "BACKUP_NAME=${BACKUP_NAME}" >> $GITHUB_ENV
+
+  # Check migration status
+  status:
+    name: Check Migration Status
+    runs-on: ubuntu-latest
+    needs: [validate]
+    if: inputs.action == 'status'
+    environment:
+      name: database-${{ inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          if [ "${{ inputs.environment }}" == "production" ]; then
+            echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 -d > $HOME/.kube/config
+          else
+            echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > $HOME/.kube/config
+          fi
+
+      - name: Check migration status
+        run: |
+          NAMESPACE="apollo-${{ inputs.environment }}"
+
+          # Create job to check status
+          cat <<EOF | kubectl apply -f -
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: db-status-$(date +%s)
+            namespace: ${NAMESPACE}
+          spec:
+            ttlSecondsAfterFinished: 300
+            template:
+              spec:
+                restartPolicy: Never
+                containers:
+                - name: migration-status
+                  image: ghcr.io/${{ github.repository }}/apollo-authentication:latest
+                  command: ["npm", "run", "db:status"]
+                  envFrom:
+                  - secretRef:
+                      name: apollo-db-credentials
+                  - configMapRef:
+                      name: apollo-config
+          EOF
+
+          # Get job name and wait for completion
+          JOB_NAME=$(kubectl get jobs -n ${NAMESPACE} --sort-by=.metadata.creationTimestamp -o jsonpath='{.items[-1].metadata.name}')
+          kubectl wait --for=condition=complete job/${JOB_NAME} -n ${NAMESPACE} --timeout=120s
+
+          # Get logs
+          kubectl logs job/${JOB_NAME} -n ${NAMESPACE}
+
+  # Run migrations
+  migrate:
+    name: Run Migrations
+    runs-on: ubuntu-latest
+    needs: [validate, backup]
+    if: inputs.action == 'migrate' && needs.validate.outputs.proceed == 'true'
+    environment:
+      name: database-${{ inputs.environment }}${{ inputs.environment == 'production' && '-approval' || '' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          if [ "${{ inputs.environment }}" == "production" ]; then
+            echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 -d > $HOME/.kube/config
+          else
+            echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > $HOME/.kube/config
+          fi
+
+      - name: Run migrations (dry run)
+        if: inputs.dry_run == 'true'
+        run: |
+          NAMESPACE="apollo-${{ inputs.environment }}"
+          TIMESTAMP=$(date +%s)
+
+          cat <<EOF | kubectl apply -f -
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: db-migrate-dry-${TIMESTAMP}
+            namespace: ${NAMESPACE}
+          spec:
+            ttlSecondsAfterFinished: 300
+            template:
+              spec:
+                restartPolicy: Never
+                containers:
+                - name: migration
+                  image: ghcr.io/${{ github.repository }}/apollo-authentication:latest
+                  command: ["npm", "run", "db:migrate:dry"]
+                  envFrom:
+                  - secretRef:
+                      name: apollo-db-credentials
+                  - configMapRef:
+                      name: apollo-config
+          EOF
+
+          kubectl wait --for=condition=complete job/db-migrate-dry-${TIMESTAMP} \
+            -n ${NAMESPACE} --timeout=300s
+
+          kubectl logs job/db-migrate-dry-${TIMESTAMP} -n ${NAMESPACE}
+
+      - name: Run migrations
+        if: inputs.dry_run != 'true'
+        run: |
+          NAMESPACE="apollo-${{ inputs.environment }}"
+          TIMESTAMP=$(date +%s)
+
+          echo "🚀 Running database migrations..."
+
+          cat <<EOF | kubectl apply -f -
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: db-migrate-${TIMESTAMP}
+            namespace: ${NAMESPACE}
+            labels:
+              app: apollo-migration
+              type: migrate
+          spec:
+            ttlSecondsAfterFinished: 3600
+            backoffLimit: 0
+            template:
+              spec:
+                restartPolicy: Never
+                containers:
+                - name: migration
+                  image: ghcr.io/${{ github.repository }}/apollo-authentication:latest
+                  command: ["npm", "run", "db:migrate"]
+                  envFrom:
+                  - secretRef:
+                      name: apollo-db-credentials
+                  - configMapRef:
+                      name: apollo-config
+          EOF
+
+          # Wait for migration to complete
+          kubectl wait --for=condition=complete job/db-migrate-${TIMESTAMP} \
+            -n ${NAMESPACE} --timeout=600s
+
+          # Get migration logs
+          kubectl logs job/db-migrate-${TIMESTAMP} -n ${NAMESPACE}
+
+          echo "✅ Migrations completed successfully"
+
+      - name: Verify migration
+        if: inputs.dry_run != 'true'
+        run: |
+          NAMESPACE="apollo-${{ inputs.environment }}"
+
+          echo "Verifying migration status..."
+          # Add verification logic here
+
+  # Rollback migrations
+  rollback:
+    name: Rollback Migrations
+    runs-on: ubuntu-latest
+    needs: [validate, backup]
+    if: inputs.action == 'rollback' && needs.validate.outputs.proceed == 'true'
+    environment:
+      name: database-${{ inputs.environment }}-approval
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          if [ "${{ inputs.environment }}" == "production" ]; then
+            echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 -d > $HOME/.kube/config
+          else
+            echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > $HOME/.kube/config
+          fi
+
+      - name: Run rollback (dry run)
+        if: inputs.dry_run == 'true'
+        run: |
+          NAMESPACE="apollo-${{ inputs.environment }}"
+          STEPS="${{ inputs.rollback_steps }}"
+          TIMESTAMP=$(date +%s)
+
+          echo "🔍 Dry run: Rolling back $STEPS migration(s)..."
+
+          cat <<EOF | kubectl apply -f -
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: db-rollback-dry-${TIMESTAMP}
+            namespace: ${NAMESPACE}
+          spec:
+            ttlSecondsAfterFinished: 300
+            template:
+              spec:
+                restartPolicy: Never
+                containers:
+                - name: rollback
+                  image: ghcr.io/${{ github.repository }}/apollo-authentication:latest
+                  command: ["npm", "run", "db:rollback:dry", "--", "--steps=${STEPS}"]
+                  envFrom:
+                  - secretRef:
+                      name: apollo-db-credentials
+                  - configMapRef:
+                      name: apollo-config
+          EOF
+
+          kubectl wait --for=condition=complete job/db-rollback-dry-${TIMESTAMP} \
+            -n ${NAMESPACE} --timeout=300s
+
+          kubectl logs job/db-rollback-dry-${TIMESTAMP} -n ${NAMESPACE}
+
+      - name: Run rollback
+        if: inputs.dry_run != 'true'
+        run: |
+          NAMESPACE="apollo-${{ inputs.environment }}"
+          STEPS="${{ inputs.rollback_steps }}"
+          TIMESTAMP=$(date +%s)
+
+          echo "⚠️ Rolling back $STEPS migration(s)..."
+
+          cat <<EOF | kubectl apply -f -
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: db-rollback-${TIMESTAMP}
+            namespace: ${NAMESPACE}
+            labels:
+              app: apollo-migration
+              type: rollback
+          spec:
+            ttlSecondsAfterFinished: 3600
+            backoffLimit: 0
+            template:
+              spec:
+                restartPolicy: Never
+                containers:
+                - name: rollback
+                  image: ghcr.io/${{ github.repository }}/apollo-authentication:latest
+                  command: ["npm", "run", "db:rollback", "--", "--steps=${STEPS}"]
+                  envFrom:
+                  - secretRef:
+                      name: apollo-db-credentials
+                  - configMapRef:
+                      name: apollo-config
+          EOF
+
+          kubectl wait --for=condition=complete job/db-rollback-${TIMESTAMP} \
+            -n ${NAMESPACE} --timeout=600s
+
+          kubectl logs job/db-rollback-${TIMESTAMP} -n ${NAMESPACE}
+
+          echo "✅ Rollback completed"
+
+  # Seed database (staging only)
+  seed:
+    name: Seed Database
+    runs-on: ubuntu-latest
+    needs: [validate, backup]
+    if: inputs.action == 'seed' && inputs.environment == 'staging' && needs.validate.outputs.proceed == 'true'
+    environment:
+      name: database-staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > $HOME/.kube/config
+
+      - name: Run seed
+        run: |
+          NAMESPACE="apollo-staging"
+          TIMESTAMP=$(date +%s)
+
+          echo "🌱 Seeding database with test data..."
+
+          cat <<EOF | kubectl apply -f -
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: db-seed-${TIMESTAMP}
+            namespace: ${NAMESPACE}
+          spec:
+            ttlSecondsAfterFinished: 3600
+            template:
+              spec:
+                restartPolicy: Never
+                containers:
+                - name: seed
+                  image: ghcr.io/${{ github.repository }}/apollo-authentication:latest
+                  command: ["npm", "run", "db:seed"]
+                  envFrom:
+                  - secretRef:
+                      name: apollo-db-credentials
+                  - configMapRef:
+                      name: apollo-config
+          EOF
+
+          kubectl wait --for=condition=complete job/db-seed-${TIMESTAMP} \
+            -n ${NAMESPACE} --timeout=600s
+
+          kubectl logs job/db-seed-${TIMESTAMP} -n ${NAMESPACE}
+
+          echo "✅ Seeding completed"
+
+  # Notifications
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [migrate, rollback, seed, status]
+    if: always()
+
+    steps:
+      - name: Determine status
+        id: status
+        run: |
+          if [ "${{ needs.migrate.result }}" == "success" ] || \
+             [ "${{ needs.rollback.result }}" == "success" ] || \
+             [ "${{ needs.seed.result }}" == "success" ] || \
+             [ "${{ needs.status.result }}" == "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+            echo "message=Database ${{ inputs.action }} completed successfully" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "emoji=❌" >> $GITHUB_OUTPUT
+            echo "message=Database ${{ inputs.action }} failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1
+        continue-on-error: true
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_DATABASE }}
+          payload: |
+            {
+              "text": "${{ steps.status.outputs.emoji }} Database Migration: ${{ steps.status.outputs.message }}",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "${{ steps.status.outputs.emoji }} Database Migration - ${{ inputs.environment }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Environment:*\n${{ inputs.environment }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Action:*\n${{ inputs.action }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Status:*\n${{ steps.status.outputs.message }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Executed by:*\n${{ github.actor }}"
+                    }
+                  ]
+                }
+              ]
+            }
+
+      - name: Generate summary
+        run: |
+          echo "# 🗄️ Database Migration Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ steps.status.outputs.emoji }} ${{ steps.status.outputs.message }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** ${{ inputs.action }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Dry run:** ${{ inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Executed by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY

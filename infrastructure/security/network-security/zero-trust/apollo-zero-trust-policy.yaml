@@ -1,0 +1,16 @@
+apiVersion: access.apollo/v1
+kind: Policy
+metadata:
+  name: apollo-zero-trust
+spec:
+  description: Require device posture + MFA for every critical service.
+  subjects:
+    - role: investigator
+    - role: analyst
+  resources:
+    - name: apollo-api
+      actions: [ "GET", "POST", "PUT" ]
+      conditions:
+        device_trust: compliant
+        mfa: required
+        network_zones: [ "hq", "trusted-vpn" ]

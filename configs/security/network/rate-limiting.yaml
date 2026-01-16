@@ -1,0 +1,93 @@
+# Rate Limiting Configuration for Apollo Platform
+
+rate_limiting:
+  enabled: true
+  strategy: sliding_window
+
+  # Global Rate Limits
+  global:
+    requests_per_second: 10000
+    burst: 15000
+    action_on_exceed: drop
+
+  # API Endpoints
+  api_endpoints:
+    # Authentication
+    authentication:
+      login: 5/minute
+      register: 3/hour
+      password_reset: 3/hour
+      mfa_verify: 10/minute
+      token_refresh: 20/minute
+
+    # Investigations
+    investigations:
+      create: 10/minute
+      read: 100/minute
+      update: 20/minute
+      delete: 5/minute
+      list: 50/minute
+
+    # Intelligence
+    intelligence:
+      osint: 50/minute
+      geoint: 30/minute
+      sigint: 20/minute
+      surveillance: 100/minute
+
+    # Evidence
+    evidence:
+      upload: 20/minute
+      download: 50/minute
+      view: 100/minute
+      delete: 5/minute
+
+    # Red Team Operations
+    redteam:
+      c2_commands: 100/minute
+      exploit_deploy: 5/hour
+      scan_targets: 10/minute
+
+  # By Role
+  by_role:
+    admin: 10000/hour
+    senior_investigator: 5000/hour
+    investigator: 3000/hour
+    analyst: 2000/hour
+    viewer: 1000/hour
+    guest: 100/hour
+
+  # By IP Address
+  by_ip:
+    trusted_ips: unlimited
+    internal_network: 5000/hour
+    vpn_users: 2000/hour
+    public_internet: 100/hour
+
+  # Actions on Exceed
+  actions_on_exceed:
+    - log_event
+    - return_429_status
+    - temp_ban: 15m
+    - alert_security_team
+    - challenge_captcha
+
+  # Bypass Rules
+  bypass:
+    - ip_ranges: [${OFFICE_IP_RANGE}]
+      comment: "Office network"
+    - api_keys: [${MONITORING_API_KEY}]
+      comment: "Monitoring systems"
+
+  # Rate Limit Headers
+  headers:
+    include_headers: true
+    limit_header: X-RateLimit-Limit
+    remaining_header: X-RateLimit-Remaining
+    reset_header: X-RateLimit-Reset
+
+  # Storage
+  storage:
+    backend: redis
+    key_prefix: "ratelimit:"
+    ttl: 3600

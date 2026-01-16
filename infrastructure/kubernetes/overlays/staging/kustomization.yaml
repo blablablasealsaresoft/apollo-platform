@@ -1,0 +1,10 @@
+resources:
+  - ../../kustomization.yaml
+patches:
+  - target:
+      kind: Deployment
+      name: apollo-authentication
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: ghcr.io/security-threat-intel/apollo-authentication:staging

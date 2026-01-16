@@ -1,0 +1,97 @@
+category: social_media
+total_apis: 14
+priority: high
+apollo_use: "Social intelligence, SOCMINT operations, target monitoring, online activity tracking"
+
+apis:
+  reddit:
+    name: Reddit API
+    url: https://www.reddit.com/api/v1
+    authentication: oauth2
+    free_tier: 60/minute
+    rate_limit: 60/minute
+    apollo_integration:
+      use_case: "Monitor OneCoin subreddits, track discussions, sentiment analysis"
+      priority: high
+      monitor_subreddits: [cryptocurrency, scams, onecoin, crypto_exposed]
+
+  twitter_v2:
+    name: Twitter API v2
+    url: https://api.twitter.com/2
+    authentication: oauth2
+    free_tier: 500000/month
+    rate_limit: 900/15min
+    apollo_integration:
+      use_case: "Track OneCoin mentions, monitor targets, real-time intel"
+      priority: critical
+      keywords: [onecoin, ignatova, cryptoqueen, ruja]
+
+  discord:
+    name: Discord API
+    url: https://discord.com/api/v10
+    authentication: bearer
+    free_tier: true
+    apollo_integration:
+      use_case: "Monitor Discord servers for crypto scam discussions"
+      priority: medium
+
+  telegram_bot:
+    name: Telegram Bot API
+    url: https://api.telegram.org/bot
+    authentication: bot_token
+    free_tier: true
+    rate_limit: 30/second
+    apollo_integration:
+      use_case: "Monitor Telegram channels, track groups, message intelligence"
+      priority: high
+
+  youtube_data:
+    name: YouTube Data API
+    url: https://www.googleapis.com/youtube/v3
+    authentication: apiKey
+    free_tier: 10000/day
+    apollo_integration:
+      use_case: "Monitor video content, track channels about OneCoin"
+      priority: medium
+
+  instagram_basic:
+    name: Instagram Basic Display
+    url: https://graph.instagram.com
+    authentication: oauth2
+    free_tier: 200/hour
+    apollo_integration:
+      use_case: "Track Instagram profiles and posts"
+      priority: high
+
+  linkedin:
+    name: LinkedIn API
+    url: https://api.linkedin.com/v2
+    authentication: oauth2
+    apollo_integration:
+      use_case: "Professional intelligence, track career movements"
+      priority: high
+
+  github:
+    name: GitHub API
+    url: https://api.github.com
+    authentication: token
+    free_tier: 5000/hour
+    apollo_integration:
+      use_case: "Code intelligence, developer tracking, crypto project monitoring"
+      priority: medium
+
+deployment:
+  mode: continuous
+  auto_start: true
+  priority: high
+
+monitoring:
+  keywords: [onecoin, ruja ignatova, cryptoqueen, ponzi, pyramid scheme, mlm crypto]
+  sentiment_analysis: true
+  threat_detection: true
+
+intelligence_fusion:
+  feed_to:
+    - apollo.socmint_intelligence
+    - apollo.sentiment_analysis
+    - apollo.fusion_center

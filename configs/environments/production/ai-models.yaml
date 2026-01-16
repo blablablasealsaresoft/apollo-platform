@@ -1,0 +1,407 @@
+# Apollo Platform - Production AI Models Configuration
+# ===========================================================
+
+environment: production
+
+# AI Model Provider Configuration
+providers:
+  openrouter:
+    enabled: true
+    base_url: https://openrouter.ai/api/v1
+    api_key: ${OPENROUTER_API_KEY}
+    timeout: 90000  # Longer timeout for production
+    max_retries: 5
+
+    models:
+      - id: anthropic/claude-3.5-sonnet
+        name: Claude 3.5 Sonnet
+        cost_per_1k_tokens: 0.015
+        max_tokens: 200000
+        use_cases: [critical_analysis, intelligence, reasoning]
+        priority: 1
+
+      - id: openai/gpt-4-turbo
+        name: GPT-4 Turbo
+        cost_per_1k_tokens: 0.01
+        max_tokens: 128000
+        use_cases: [analysis, generation, coding]
+        priority: 2
+
+  openai:
+    enabled: true
+    base_url: https://api.openai.com/v1
+    api_key: ${OPENAI_API_KEY}
+    organization: ${OPENAI_ORG_ID}
+    timeout: 90000
+    max_retries: 5
+
+    models:
+      - id: gpt-4-turbo-preview
+        name: GPT-4 Turbo
+        cost_per_1k_tokens: 0.01
+        max_tokens: 128000
+        rate_limit: 10000  # requests per day
+
+  anthropic:
+    enabled: true
+    base_url: https://api.anthropic.com/v1
+    api_key: ${ANTHROPIC_API_KEY}
+    timeout: 90000
+    max_retries: 5
+
+    models:
+      - id: claude-3-opus-20240229
+        name: Claude 3 Opus
+        cost_per_1k_tokens: 0.015
+        max_tokens: 200000
+        use_cases: [critical_intelligence, deep_analysis]
+
+      - id: claude-3-sonnet-20240229
+        name: Claude 3 Sonnet
+        cost_per_1k_tokens: 0.003
+        max_tokens: 200000
+        use_cases: [general_analysis, balanced_performance]
+
+  google:
+    enabled: true
+    base_url: https://generativelanguage.googleapis.com/v1beta
+    api_key: ${GOOGLE_AI_API_KEY}
+    timeout: 90000
+    max_retries: 5
+
+    models:
+      - id: gemini-1.5-pro
+        name: Gemini 1.5 Pro
+        cost_per_1k_tokens: 0.007
+        max_tokens: 1000000
+        use_cases: [document_analysis, multimodal, long_context]
+
+  deepseek:
+    enabled: true
+    base_url: https://api.deepseek.com/v1
+    api_key: ${DEEPSEEK_API_KEY}
+    timeout: 60000
+    max_retries: 5
+
+    models:
+      - id: deepseek-chat
+        name: DeepSeek Chat
+        cost_per_1k_tokens: 0.0001
+        max_tokens: 32000
+        use_cases: [cost_effective, high_volume]
+
+# Model routing strategies (production-optimized)
+routing:
+  # Critical intelligence analysis
+  critical_intelligence:
+    strategy: quality_first
+    primary: anthropic/claude-3-opus-20240229
+    fallback:
+      - anthropic/claude-3-sonnet-20240229
+      - openai/gpt-4-turbo-preview
+    cost_limit: 5.00  # Higher limit for critical tasks
+    timeout: 120s
+    retry_on_failure: true
+    cache_responses: true
+    cache_ttl: 3600
+
+  # Standard intelligence analysis
+  intelligence_analysis:
+    strategy: balanced
+    primary: anthropic/claude-3-sonnet-20240229
+    fallback:
+      - openai/gpt-4-turbo-preview
+      - google/gemini-1.5-pro
+    cost_limit: 1.00
+    timeout: 60s
+    retry_on_failure: true
+
+  # High-volume classification
+  classification:
+    strategy: cost_optimized
+    primary: deepseek/deepseek-chat
+    fallback:
+      - groq/llama-3.1-70b-versatile
+      - anthropic/claude-3-haiku-20240307
+    cost_limit: 0.10
+    timeout: 30s
+    batch_size: 10  # Batch requests for efficiency
+
+  # Document analysis
+  document_analysis:
+    strategy: context_optimized
+    primary: google/gemini-1.5-pro
+    fallback:
+      - anthropic/claude-3-sonnet-20240229
+    cost_limit: 2.00
+    timeout: 90s
+
+  # Real-time alerts
+  real_time_processing:
+    strategy: speed_first
+    primary: groq/llama-3.1-70b-versatile
+    fallback:
+      - deepseek/deepseek-chat
+      - google/gemini-1.5-flash
+    cost_limit: 0.20
+    timeout: 15s
+    max_queue_time: 5s
+
+# Production use cases
+use_cases:
+  # Facial recognition AI enhancement
+  facial_recognition_enhancement:
+    enabled: true
+    model: anthropic/claude-3-sonnet-20240229
+    temperature: 0.1
+    max_tokens: 1000
+    priority: high
+    system_prompt: "Analyze facial recognition results for law enforcement purposes. Provide detailed analysis while maintaining accuracy."
+
+  # Financial crime analysis
+  financial_analysis:
+    enabled: true
+    model: anthropic/claude-3-opus-20240229
+    temperature: 0.1
+    max_tokens: 8000
+    priority: critical
+    system_prompt: "Analyze financial transactions for money laundering patterns, shell company usage, and illicit fund flows. Provide detailed findings with confidence scores."
+
+  # Threat assessment
+  threat_assessment:
+    enabled: true
+    model: anthropic/claude-3-opus-20240229
+    temperature: 0.2
+    max_tokens: 4000
+    priority: critical
+    system_prompt: "Assess threat levels based on intelligence data. Provide risk scores, threat vectors, and recommended actions."
+
+  # Predictive analysis
+  predictive_analysis:
+    enabled: true
+    model: anthropic/claude-3-opus-20240229
+    temperature: 0.3
+    max_tokens: 4000
+    priority: high
+    system_prompt: "Predict future behavior and locations based on historical data and patterns. Provide probability scores and reasoning."
+
+  # Relationship mapping
+  relationship_mapping:
+    enabled: true
+    model: anthropic/claude-3-opus-20240229
+    temperature: 0.2
+    max_tokens: 8000
+    priority: high
+    system_prompt: "Map relationships between entities, identify networks, and uncover hidden connections. Provide graph data and analysis."
+
+# Performance settings (production-tuned)
+performance:
+  # Connection pooling
+  pooling:
+    enabled: true
+    max_pool_size: 50  # Higher for production
+    min_pool_size: 10
+    idle_timeout: 30000
+    max_wait_time: 10000
+
+  # Caching (aggressive in production)
+  caching:
+    enabled: true
+    ttl: 3600
+    max_size: 10000  # Cache up to 10k responses
+    strategy: lru
+    compress: true
+
+  # Rate limiting (per provider)
+  rate_limiting:
+    enabled: true
+    strategy: token_bucket
+
+    limits:
+      openrouter:
+        requests_per_minute: 1000
+        tokens_per_minute: 500000
+      openai:
+        requests_per_minute: 500
+        tokens_per_minute: 200000
+      anthropic:
+        requests_per_minute: 500
+        tokens_per_minute: 200000
+      google:
+        requests_per_minute: 1000
+        tokens_per_minute: 1000000
+
+  # Request queuing
+  queuing:
+    enabled: true
+    max_queue_size: 1000
+    max_wait_time: 30s
+    priority_levels: 3
+
+  # Timeouts
+  timeouts:
+    connection: 10000
+    request: 90000
+    total: 120000
+
+# Cost management (strict in production)
+cost_management:
+  enabled: true
+
+  # Budget limits
+  budgets:
+    hourly_limit: 100.00
+    daily_limit: 1000.00
+    monthly_limit: 20000.00
+    alert_threshold: 0.85
+
+  # Alert rules
+  alerts:
+    - condition: hourly_spend > hourly_limit * 0.8
+      action: notify_team
+      channel: slack
+    - condition: hourly_spend > hourly_limit
+      action: throttle_requests
+      throttle_percentage: 50
+    - condition: daily_spend > daily_limit
+      action: pause_non_critical
+    - condition: monthly_spend > monthly_limit * 0.9
+      action: escalate_to_management
+
+  # Tracking
+  tracking:
+    enabled: true
+    log_all_requests: true
+    export_to_database: true
+    export_interval: 5m
+    retention_days: 90
+
+  # Cost optimization
+  optimization:
+    enabled: true
+    auto_route_to_cheaper_models: true
+    batch_similar_requests: true
+    deduplicate_requests: true
+    cache_aggressively: true
+
+# Quality assurance
+quality:
+  enabled: true
+
+  # Response validation
+  validation:
+    enabled: true
+    check_completeness: true
+    check_confidence: true
+    min_confidence: 0.7
+    retry_on_low_confidence: true
+
+  # A/B testing
+  ab_testing:
+    enabled: true
+    experiments:
+      - name: model_comparison
+        traffic_split:
+          claude_opus: 0.5
+          gpt4_turbo: 0.5
+        metrics:
+          - accuracy
+          - latency
+          - cost
+
+# Monitoring
+monitoring:
+  enabled: true
+
+  metrics:
+    - request_count
+    - response_time
+    - token_usage
+    - cost_per_request
+    - error_rate
+    - cache_hit_rate
+    - queue_depth
+    - model_performance
+    - confidence_scores
+
+  alerts:
+    - metric: error_rate
+      threshold: 0.05
+      window: 5m
+      severity: critical
+    - metric: response_time
+      threshold: 10s
+      window: 5m
+      severity: high
+    - metric: queue_depth
+      threshold: 100
+      window: 1m
+      severity: medium
+
+  logging:
+    level: info
+    log_file: /var/log/apollo/ai-models-production.log
+    log_requests: true
+    log_responses: false  # Don't log full responses (PII/sensitive data)
+    log_errors: true
+    log_performance: true
+
+# Security
+security:
+  # API key rotation
+  key_rotation:
+    enabled: true
+    rotation_interval: 90d
+    notify_before: 7d
+
+  # Data sanitization
+  sanitization:
+    enabled: true
+    remove_pii: false  # Keep PII for law enforcement purposes
+    audit_trail: true
+
+  # Access control
+  access_control:
+    enabled: true
+    require_auth: true
+    allowed_services:
+      - intelligence-fusion
+      - operations
+      - surveillance
+      - alert-orchestration
+
+# Disaster recovery
+disaster_recovery:
+  # Fallback to alternative providers
+  provider_failover:
+    enabled: true
+    max_failover_attempts: 3
+    failover_timeout: 30s
+
+  # Graceful degradation
+  degradation:
+    enabled: true
+    fallback_to_cached: true
+    fallback_to_simpler_model: true
+    notify_on_degradation: true
+
+# Compliance
+compliance:
+  # Data retention
+  data_retention:
+    prompts: 90d
+    responses: 90d
+    metadata: 365d
+
+  # Audit logging
+  audit:
+    enabled: true
+    log_all_interactions: true
+    immutable_logs: true
+    encryption: true
+
+  # Privacy
+  privacy:
+    anonymize_logs: false  # Keep full logs for law enforcement
+    encrypt_sensitive_data: true
+    data_classification: restricted

@@ -1,0 +1,160 @@
+# Cryptocurrency Crime Investigation Mission Configuration
+
+mission: cryptocurrency-crime
+priority: high
+authorization_level: warrant
+
+phases:
+  - name: reconnaissance
+    description: Discover complete infrastructure
+    tools:
+      - bbot
+      - subhunterx
+      - cloudrecon
+      - amass
+    depth: comprehensive
+    parallel_execution: true
+    timeout: 3600
+
+  - name: vulnerability_analysis
+    description: Identify security flaws with AI
+    tools:
+      - bugtrace-ai
+    parameters:
+      mode: full
+      ai_model: claude-3-opus
+      accuracy_required: 95
+    depends_on:
+      - reconnaissance
+    timeout: 7200
+
+  - name: subdomain_takeover_check
+    description: Check for subdomain takeover opportunities
+    tools:
+      - dnsreaper
+    parameters:
+      speed: 50_per_second
+      verify_ownership: true
+    depends_on:
+      - reconnaissance
+    timeout: 1800
+
+  - name: exploitation
+    description: Execute authorized exploitation
+    authorization_required: true
+    tools:
+      - custom_exploits
+      - metasploit
+    depends_on:
+      - vulnerability_analysis
+      - subdomain_takeover_check
+    timeout: 10800
+
+  - name: data_extraction
+    description: Extract cryptocurrency intelligence
+    targets:
+      - user_database
+      - transaction_logs
+      - wallet_data
+      - admin_credentials
+    authorization_required: true
+    depends_on:
+      - exploitation
+    timeout: 7200
+
+  - name: transaction_tracing
+    description: Trace cryptocurrency transactions
+    tools:
+      - crypto_trace
+    parameters:
+      depth: 10
+      blockchains:
+        - bitcoin
+        - ethereum
+        - monero
+    depends_on:
+      - data_extraction
+    timeout: 3600
+
+  - name: operator_identification
+    description: Identify real-world operators
+    tools:
+      - osint_social
+      - ip_geolocation
+      - email_investigation
+    depends_on:
+      - data_extraction
+    timeout: 3600
+
+  - name: evidence_preservation
+    description: Preserve all evidence with chain of custody
+    requirements:
+      - chain_of_custody: strict
+      - encryption: aes-256
+      - integrity_verification: sha256
+      - legal_compliance: full
+    depends_on:
+      - data_extraction
+      - transaction_tracing
+      - operator_identification
+    timeout: 1800
+
+  - name: reporting
+    description: Generate prosecution-ready report
+    format: court_ready
+    includes:
+      - executive_summary
+      - detailed_timeline
+      - evidence_catalog
+      - operator_profiles
+      - transaction_analysis
+      - legal_compliance_verification
+    depends_on:
+      - evidence_preservation
+    timeout: 1800
+
+success_criteria:
+  - infrastructure_mapped: true
+  - vulnerabilities_identified: true
+  - access_gained: optional
+  - database_extracted: true
+  - wallets_traced: true
+  - operators_identified: true
+  - evidence_preserved: true
+  - report_generated: true
+
+evidence_requirements:
+  mandatory:
+    - user_database
+    - transaction_logs
+    - wallet_addresses
+
+  optional:
+    - admin_credentials
+    - source_code
+    - server_logs
+
+  chain_of_custody:
+    - initial_collection
+    - transfer_logs
+    - storage_location
+    - access_logs
+    - integrity_verification
+
+opsec:
+  level: high
+  techniques:
+    - traffic_obfuscation
+    - proxy_chaining
+    - randomized_timing
+    - legitimate_traffic_mimicry
+
+  burn_on_detection: true
+  preserve_evidence_before_burn: true
+
+legal_compliance:
+  warrant_required: true
+  scope_verification: true
+  authorized_targets_only: true
+  evidence_handling: strict
+  report_format: prosecution_ready

@@ -1,7 +1,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>/testing'],
+  roots: ['<rootDir>/testing', '<rootDir>/services'],
   testMatch: [
     '**/__tests__/**/*.+(ts|tsx|js)',
     '**/?(*.)+(spec|test).+(ts|tsx|js)'
@@ -45,6 +45,15 @@ module.exports = {
       displayName: 'unit',
       testMatch: ['<rootDir>/testing/unit-tests/**/*.test.{ts,tsx,js}'],
       testEnvironment: 'node',
+    },
+    {
+      displayName: 'services',
+      testMatch: ['<rootDir>/services/**/__tests__/**/*.test.{ts,tsx,js}'],
+      testEnvironment: 'node',
+      moduleNameMapper: {
+        '^@apollo/shared$': '<rootDir>/services/shared/src',
+        '^@apollo/shared/(.*)$': '<rootDir>/services/shared/src/$1',
+      },
     },
     {
       displayName: 'integration',

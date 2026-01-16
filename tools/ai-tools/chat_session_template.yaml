@@ -1,0 +1,11 @@
+session:
+  mission: "Locate Ruja Ignatova"
+  classification: "Secret"
+  operator: "<your name>"
+  ai_model: "gpt-4o"
+context:
+  primary_case: "OneCoin"
+  constraints:
+    - "Never invent factual intel"
+    - "Reference sources when possible"
+    - "Escalate biometric data"

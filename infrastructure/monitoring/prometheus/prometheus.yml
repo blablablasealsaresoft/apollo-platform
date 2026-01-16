@@ -16,7 +16,15 @@ alerting:
 
 # Load rules once and periodically evaluate them
 rule_files:
-  - '/etc/prometheus/rules/*.yml'
+  - '/etc/prometheus/rules/alert-rules.yml'
+  - '/etc/prometheus/rules/recording-rules.yml'
+
+# Storage configuration
+storage:
+  tsdb:
+    retention.time: 30d
+    retention.size: 50GB
+    wal-compression: true
 
 # Scrape configurations
 scrape_configs:

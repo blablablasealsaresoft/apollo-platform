@@ -27,6 +27,17 @@ class Cluster:
     metadata: Dict = field(default_factory=dict)
 
 
+@dataclass
+class WalletCluster:
+    """Simple wallet cluster result for API responses"""
+    cluster_id: str
+    addresses: Set[str]
+    total_balance: float
+    confidence_score: float
+    clustering_method: str
+    metadata: Dict = field(default_factory=dict)
+
+
 class WalletClusteringEngine:
     """
     Main wallet clustering engine
@@ -38,7 +49,7 @@ class WalletClusteringEngine:
     4. Peel Chains: long chains of transactions with specific patterns
     """
 
-    def __init__(self, db_manager, api_manager, graph_client):
+    def __init__(self, db_manager=None, api_manager=None, graph_client=None):
         self.db = db_manager
         self.api = api_manager
         self.graph = graph_client
@@ -53,6 +64,98 @@ class WalletClusteringEngine:
         self.address_to_cluster: Dict[str, str] = {}
 
         logger.info("Wallet Clustering Engine initialized")
+
+    async def build_cluster(
+        self,
+        seed_address: str,
+        transactions: List
+    ) -> Optional[WalletCluster]:
+        """
+        Build a cluster from a seed address and its transactions.
+        Simplified method for API integration that doesn't require full DB setup.
+
+        Args:
+            seed_address: Starting wallet address
+            transactions: List of Transaction objects from the seed address
+
+        Returns:
+            WalletCluster object or None
+        """
+        if not transactions:
+            return None
+
+        # Reset clustering graph for this operation
+        self.clustering_graph.clear()
+
+        # Add seed address as first node
+        self.clustering_graph.add_node(seed_address)
+
+        # Collect all addresses from transactions
+        all_addresses = {seed_address}
+        total_value = 0.0
+
+        for tx in transactions:
+            # Get addresses from transaction
+            from_addrs = getattr(tx, 'from_addresses', [])
+            to_addrs = getattr(tx, 'to_addresses', [])
+
+            for addr in from_addrs + to_addrs:
+                if addr:
+                    all_addresses.add(addr)
+                    self.clustering_graph.add_node(addr)
+
+            # Apply common input ownership heuristic
+            if len(from_addrs) > 1:
+                for i, addr1 in enumerate(from_addrs):
+                    for addr2 in from_addrs[i+1:]:
+                        if addr1 and addr2:
+                            self._add_cluster_edge(addr1, addr2, 1.0, "common_input")
+
+            # Track value for balance estimation
+            amount = float(getattr(tx, 'amount', 0) or 0)
+            total_value += amount
+
+            # Link seed to its transaction partners
+            for addr in to_addrs:
+                if addr and addr != seed_address:
+                    self._add_cluster_edge(seed_address, addr, 0.3, "transaction_partner")
+
+        # Extract connected component containing seed address
+        if seed_address in self.clustering_graph:
+            try:
+                cluster_addresses = nx.node_connected_component(self.clustering_graph, seed_address)
+            except nx.NetworkXError:
+                cluster_addresses = {seed_address}
+        else:
+            cluster_addresses = {seed_address}
+
+        # Calculate confidence based on number of edges
+        subgraph = self.clustering_graph.subgraph(cluster_addresses)
+        num_edges = subgraph.number_of_edges()
+        confidence = min(1.0, num_edges * 0.2) if num_edges > 0 else 0.5
+
+        # Generate cluster ID
+        import hashlib
+        cluster_id = f"cluster_{hashlib.sha256(seed_address.encode()).hexdigest()[:12]}"
+
+        return WalletCluster(
+            cluster_id=cluster_id,
+            addresses=set(cluster_addresses),
+            total_balance=total_value,
+            confidence_score=confidence,
+            clustering_method="common_input_ownership",
+            metadata={
+                "seed_address": seed_address,
+                "transaction_count": len(transactions)
+            }
+        )
+
+    def _add_cluster_edge(self, addr1: str, addr2: str, weight: float, evidence: str):
+        """Helper to add or update an edge in the clustering graph"""
+        if self.clustering_graph.has_edge(addr1, addr2):
+            self.clustering_graph[addr1][addr2]["weight"] += weight
+        else:
+            self.clustering_graph.add_edge(addr1, addr2, weight=weight, evidence=evidence)
 
     async def cluster_addresses(
         self,

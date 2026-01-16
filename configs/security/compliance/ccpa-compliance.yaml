@@ -1,0 +1,52 @@
+# CCPA Compliance Configuration
+# California Consumer Privacy Act (with CPRA amendments)
+
+ccpa_compliance:
+  enabled: true
+  cpra_amendments: true
+  law_enforcement_exemption: true
+
+  # Consumer Rights
+  consumer_rights:
+    right_to_know:
+      enabled: limited
+      categories_of_data: disclosed
+      sources: disclosed
+      business_purpose: disclosed
+
+    right_to_delete:
+      enabled: limited
+      exceptions:
+        - legal_obligation
+        - evidence_preservation
+        - internal_use
+
+    right_to_opt_out:
+      enabled: limited
+      sale_of_data: not_applicable
+
+    right_to_correct:
+      enabled: true
+      verification_required: true
+
+  # Data Categories
+  data_categories:
+    - identifiers
+    - personal_records
+    - biometric_information
+    - internet_activity
+    - geolocation_data
+    - professional_information
+
+  # Compliance Requirements
+  requirements:
+    privacy_policy: published
+    data_practices: transparent
+    verification_procedures: established
+    training: annual
+
+  # Law Enforcement Exception
+  exemptions:
+    criminal_investigation: applies
+    public_safety: applies
+    legal_obligations: applies

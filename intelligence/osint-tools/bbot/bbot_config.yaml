@@ -1,0 +1,268 @@
+# BBOT Reconnaissance System Configuration
+# Complete configuration for domain intelligence gathering
+
+# Global Settings
+timeout: 30  # Global timeout for all operations (seconds)
+max_threads: 100  # Maximum concurrent threads for async operations
+rate_limit: 100  # Requests per second (rate limiting)
+output_dir: ./results  # Directory to save scan results
+
+# Module Activation
+modules:
+  subdomain: true  # Enable subdomain enumeration
+  port: true       # Enable port scanning
+  tech: true       # Enable technology detection
+  vuln: true       # Enable vulnerability scanning
+
+# Subdomain Enumeration Settings
+subdomain:
+  # Passive enumeration sources
+  sources:
+    - crtsh          # Certificate Transparency logs (crt.sh)
+    - virustotal     # VirusTotal API (requires API key)
+    - hackertarget   # HackerTarget API
+    - dnsdumpster    # DNSDumpster (requires scraping)
+
+  # Active enumeration
+  brute_force: true  # Enable DNS brute forcing
+  wordlist_size: medium  # Wordlist size: small, medium, large
+
+  # DNS settings
+  dns_timeout: 5     # DNS query timeout (seconds)
+  dns_retries: 2     # Number of DNS retries
+  wildcard_detection: true  # Detect and handle wildcard DNS
+  zone_transfer: true  # Attempt zone transfer (AXFR)
+  reverse_dns: true   # Perform reverse DNS lookups
+
+  # Performance
+  max_concurrent_dns: 50  # Maximum concurrent DNS queries
+  delay_between_queries: 0  # Delay between queries (seconds)
+
+# Port Scanning Settings
+port:
+  # Scan modes
+  common_ports: true   # Scan common ports only
+  full_scan: false     # Scan all 65535 ports (slow)
+  top_ports: 1000      # Number of top ports to scan (if not common_ports)
+
+  # Port ranges (custom)
+  custom_ports: []     # List of custom ports to scan
+  # Example: [80, 443, 8080, 8443]
+
+  # Service detection
+  service_detection: true  # Perform service version detection
+  banner_grabbing: true    # Grab service banners
+  os_detection: false      # Attempt OS detection (experimental)
+
+  # Performance
+  scan_timeout: 5      # Timeout per port (seconds)
+  max_concurrent: 100  # Maximum concurrent port scans
+
+  # Protocols
+  tcp_scan: true       # Perform TCP scans
+  udp_scan: false      # Perform UDP scans (slow)
+  syn_scan: false      # Perform SYN scans (requires privileges)
+
+# Technology Detection Settings
+tech:
+  # Detection methods
+  deep_scan: true          # Enable deep technology scanning
+  wappalyzer: true         # Use Wappalyzer-style detection
+  header_analysis: true    # Analyze HTTP headers
+  meta_tag_analysis: true  # Analyze HTML meta tags
+  script_analysis: true    # Analyze included scripts
+  cookie_analysis: true    # Analyze cookies
+
+  # Specific technology detection
+  detect_cms: true         # Detect CMS (WordPress, Joomla, Drupal, etc.)
+  detect_frameworks: true  # Detect web frameworks (React, Angular, Django, etc.)
+  detect_servers: true     # Detect web servers (nginx, Apache, IIS)
+  detect_cdn: true         # Detect CDN (Cloudflare, Akamai, Fastly)
+  detect_analytics: true   # Detect analytics (Google Analytics, etc.)
+
+  # HTTP settings
+  follow_redirects: true   # Follow HTTP redirects
+  check_https: true        # Check HTTPS endpoints
+  check_http: true         # Check HTTP endpoints
+  custom_ports: [8080, 8443, 8000, 8888]  # Additional HTTP ports to check
+
+  # User agent
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+# Vulnerability Scanning Settings
+vuln:
+  # Vulnerability checks
+  ssl_check: true          # Check SSL/TLS configuration
+  headers_check: true      # Check security headers
+  cve_matching: true       # Match detected software against CVE database
+  misconfig_check: true    # Check for common misconfigurations
+
+  # SSL/TLS checks
+  ssl:
+    check_certificate: true      # Validate SSL certificate
+    check_expiry: true           # Check certificate expiration
+    check_protocols: true        # Check for weak protocols
+    check_ciphers: true          # Check for weak ciphers
+    check_vulnerabilities: true  # Check for known SSL vulnerabilities (POODLE, BEAST, etc.)
+
+  # Security headers
+  headers:
+    check_hsts: true              # Check for HSTS header
+    check_csp: true               # Check for Content-Security-Policy
+    check_x_frame_options: true   # Check for X-Frame-Options
+    check_x_content_type: true    # Check for X-Content-Type-Options
+    check_referrer_policy: true   # Check for Referrer-Policy
+    check_permissions_policy: true  # Check for Permissions-Policy
+
+  # Misconfiguration checks
+  misconfig:
+    check_directory_listing: true  # Check for directory listing
+    check_sensitive_files: true    # Check for exposed sensitive files
+    check_default_credentials: false  # Check for default credentials (aggressive)
+    check_cors: true               # Check CORS configuration
+
+  # CVE database
+  cve:
+    enabled: true              # Enable CVE matching
+    auto_update: false         # Auto-update CVE database (not implemented)
+    severity_threshold: low    # Minimum severity to report (critical, high, medium, low, info)
+
+# Output Settings
+output:
+  # Output formats
+  json: true       # Save results as JSON
+  txt: true        # Save results as text report
+  html: false      # Save results as HTML report
+  csv: false       # Save results as CSV
+  xml: false       # Save results as XML
+
+  # Report settings
+  include_summary: true       # Include executive summary
+  include_recommendations: true  # Include remediation recommendations
+  include_references: true    # Include CVE/CWE references
+
+  # Verbosity
+  verbose: true    # Verbose output
+  debug: false     # Debug output
+
+# Scan Presets
+presets:
+  # Quick scan - Fast reconnaissance
+  quick:
+    modules: [subdomain, port]
+    subdomain:
+      sources: [crtsh, hackertarget]
+      brute_force: false
+    port:
+      common_ports: true
+      service_detection: false
+
+  # Standard scan - Balanced reconnaissance
+  standard:
+    modules: [subdomain, port, tech]
+    subdomain:
+      sources: [crtsh, hackertarget, virustotal]
+      brute_force: true
+      wordlist_size: small
+    port:
+      common_ports: true
+      service_detection: true
+    tech:
+      deep_scan: false
+
+  # Deep scan - Comprehensive reconnaissance
+  deep:
+    modules: [subdomain, port, tech, vuln]
+    subdomain:
+      sources: [crtsh, hackertarget, virustotal, dnsdumpster]
+      brute_force: true
+      wordlist_size: large
+    port:
+      top_ports: 5000
+      service_detection: true
+      os_detection: true
+    tech:
+      deep_scan: true
+    vuln:
+      ssl_check: true
+      headers_check: true
+      cve_matching: true
+      misconfig_check: true
+
+  # Stealth scan - Low detection profile
+  stealth:
+    modules: [subdomain]
+    rate_limit: 10
+    subdomain:
+      sources: [crtsh]
+      brute_force: false
+    port:
+      common_ports: false
+      custom_ports: [80, 443]
+      scan_timeout: 10
+
+# Target Scope
+scope:
+  # Include/Exclude patterns
+  include_subdomains: true   # Include discovered subdomains in scan
+  exclude_patterns: []       # Patterns to exclude from scanning
+  # Example: ["*.test.example.com", "internal.*"]
+
+  # IP ranges
+  include_private_ips: false  # Include private IP ranges
+  include_cloud_ips: true     # Include cloud provider IPs
+
+  # Depth limits
+  max_subdomains: 1000       # Maximum subdomains to process
+  max_ports_per_host: 1000   # Maximum ports to scan per host
+  max_scan_duration: 3600    # Maximum scan duration (seconds)
+
+# API Keys (Optional)
+api_keys:
+  virustotal: ""       # VirusTotal API key
+  shodan: ""           # Shodan API key
+  censys: ""           # Censys API key
+  securitytrails: ""   # SecurityTrails API key
+  hunter: ""           # Hunter.io API key
+
+# Logging
+logging:
+  level: INFO          # Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  file: ./bbot.log     # Log file path
+  console: true        # Log to console
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Network Settings
+network:
+  # Proxy configuration
+  use_proxy: false
+  http_proxy: ""       # HTTP proxy URL
+  https_proxy: ""      # HTTPS proxy URL
+
+  # DNS configuration
+  dns_servers: []      # Custom DNS servers (empty = system default)
+  # Example: ["8.8.8.8", "1.1.1.1"]
+
+  # Retry settings
+  max_retries: 3       # Maximum retry attempts
+  retry_delay: 1       # Delay between retries (seconds)
+
+  # Timeouts
+  connect_timeout: 10  # Connection timeout (seconds)
+  read_timeout: 30     # Read timeout (seconds)
+
+# Advanced Settings
+advanced:
+  # Performance tuning
+  async_mode: true             # Use asynchronous operations
+  thread_pool_size: 10         # Thread pool size for sync operations
+  connection_pool_size: 100    # HTTP connection pool size
+
+  # Memory management
+  max_memory_mb: 1024          # Maximum memory usage (MB)
+  result_cache_size: 10000     # Maximum cached results
+
+  # Experimental features
+  enable_screenshots: false    # Take screenshots of web pages
+  enable_content_analysis: false  # Analyze page content
+  enable_js_execution: false   # Execute JavaScript (requires headless browser)

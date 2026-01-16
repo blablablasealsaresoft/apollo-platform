@@ -1,0 +1,203 @@
+{{ define "slack.apollo.title" -}}
+[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .GroupLabels.alertname }}
+{{- end }}
+
+{{ define "slack.apollo.text" -}}
+{{ range .Alerts }}
+*Alert:* {{ .Annotations.summary }}
+*Severity:* {{ .Labels.severity }}
+*Service:* {{ .Labels.service }}
+*Description:* {{ .Annotations.description }}
+{{ if .Annotations.runbook_url }}*Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+{{ end }}
+{{- end }}
+
+{{ define "slack.apollo.security" -}}
+:shield: *SECURITY ALERT*
+
+{{ range .Alerts }}
+*Alert:* {{ .Annotations.summary }}
+*Severity:* `{{ .Labels.severity | toUpper }}`
+*Source IP:* {{ .Labels.source_ip }}
+*Description:* {{ .Annotations.description }}
+*Time:* {{ .StartsAt.Format "2006-01-02 15:04:05 MST" }}
+
+{{ if .Annotations.runbook_url }}:book: *Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+---
+{{ end }}
+
+*Actions Required:*
+1. Review the security dashboard: https://grafana.apollo.internal/d/apollo-security
+2. Check ELK logs for related events
+3. Follow the incident response runbook
+{{- end }}
+
+{{ define "slack.apollo.database" -}}
+:floppy_disk: *DATABASE ALERT*
+
+{{ range .Alerts }}
+*Alert:* {{ .Annotations.summary }}
+*Severity:* `{{ .Labels.severity }}`
+*Database:* {{ .Labels.datname }}{{ .Labels.service }}
+*Description:* {{ .Annotations.description }}
+
+{{ if .Annotations.runbook_url }}:book: *Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+---
+{{ end }}
+
+*Quick Links:*
+- Database Dashboard: https://grafana.apollo.internal/d/apollo-database
+{{- end }}
+
+{{ define "slack.apollo.application" -}}
+:bug: *APPLICATION ALERT*
+
+{{ range .Alerts }}
+*Alert:* {{ .Annotations.summary }}
+*Severity:* `{{ .Labels.severity }}`
+*Service:* {{ .Labels.service }}
+*Endpoint:* {{ .Labels.endpoint }}
+*Description:* {{ .Annotations.description }}
+
+{{ if .Annotations.runbook_url }}:book: *Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+---
+{{ end }}
+
+*Quick Links:*
+- Services Dashboard: https://grafana.apollo.internal/d/apollo-services
+- Logs: https://kibana.apollo.internal/app/logs
+{{- end }}
+
+{{ define "slack.apollo.operations" -}}
+:briefcase: *OPERATIONS ALERT*
+
+{{ range .Alerts }}
+*Alert:* {{ .Annotations.summary }}
+*Severity:* `{{ .Labels.severity }}`
+*Description:* {{ .Annotations.description }}
+
+{{ if .Annotations.runbook_url }}:book: *Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+---
+{{ end }}
+
+*Quick Links:*
+- Operations Dashboard: https://grafana.apollo.internal/d/apollo-overview
+{{- end }}
+
+{{ define "slack.apollo.target_match" -}}
+:rotating_light: *TARGET MATCH DETECTED* :rotating_light:
+
+{{ range .Alerts }}
+*ALERT:* {{ .Annotations.summary }}
+*Target ID:* `{{ .Labels.target_id }}`
+*Location:* {{ .Labels.location }}
+*Confidence:* {{ .Labels.confidence }}
+*Detection Source:* {{ .Labels.source }}
+*Time:* {{ .StartsAt.Format "2006-01-02 15:04:05 MST" }}
+
+*Description:* {{ .Annotations.description }}
+---
+{{ end }}
+
+:warning: *IMMEDIATE ACTION REQUIRED*
+
+1. Verify match in facial recognition system
+2. Cross-reference with case files
+3. Notify field operations if confirmed
+4. Update target status in system
+
+*Investigation Dashboard:* https://apollo.internal/investigations
+*Surveillance Dashboard:* https://grafana.apollo.internal/d/apollo-surveillance
+{{- end }}
+
+{{ define "slack.apollo.ai" -}}
+:robot_face: *AI SYSTEM ALERT*
+
+{{ range .Alerts }}
+*Alert:* {{ .Annotations.summary }}
+*Severity:* `{{ .Labels.severity }}`
+*Component:* {{ .Labels.component }}
+*Description:* {{ .Annotations.description }}
+
+{{ if .Annotations.runbook_url }}:book: *Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+---
+{{ end }}
+{{- end }}
+
+{{ define "slack.apollo.blockchain" -}}
+:link: *BLOCKCHAIN ALERT*
+
+{{ range .Alerts }}
+*Alert:* {{ .Annotations.summary }}
+*Severity:* `{{ .Labels.severity }}`
+*Chain:* {{ .Labels.chain }}
+*Description:* {{ .Annotations.description }}
+
+{{ if .Annotations.runbook_url }}:book: *Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+---
+{{ end }}
+
+*Quick Links:*
+- Blockchain Dashboard: https://grafana.apollo.internal/d/apollo-blockchain
+{{- end }}
+
+{{ define "pagerduty.apollo.description" -}}
+{{ .GroupLabels.alertname }}: {{ (index .Alerts 0).Annotations.summary }}
+{{- end }}
+
+{{ define "pagerduty.apollo.firing" -}}
+{{ range .Alerts.Firing }}
+Alert: {{ .Labels.alertname }}
+Service: {{ .Labels.service }}
+Severity: {{ .Labels.severity }}
+Description: {{ .Annotations.description }}
+{{ end }}
+{{- end }}
+
+{{ define "email.apollo.subject" -}}
+[{{ .Status | toUpper }}] {{ .GroupLabels.alertname }} - Apollo Platform
+{{- end }}
+
+{{ define "email.apollo.html" -}}
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .alert { padding: 15px; margin: 10px 0; border-radius: 5px; }
+    .critical { background-color: #ffebee; border-left: 5px solid #f44336; }
+    .warning { background-color: #fff3e0; border-left: 5px solid #ff9800; }
+    .info { background-color: #e3f2fd; border-left: 5px solid #2196f3; }
+    .resolved { background-color: #e8f5e9; border-left: 5px solid #4caf50; }
+    h2 { color: #333; }
+    .meta { color: #666; font-size: 0.9em; }
+    .runbook { margin-top: 10px; }
+    .runbook a { color: #1976d2; }
+  </style>
+</head>
+<body>
+  <h2>Apollo Platform Alert</h2>
+
+  {{ range .Alerts }}
+  <div class="alert {{ .Labels.severity }}">
+    <h3>{{ .Annotations.summary }}</h3>
+    <p><strong>Status:</strong> {{ .Status }}</p>
+    <p><strong>Severity:</strong> {{ .Labels.severity }}</p>
+    <p><strong>Service:</strong> {{ .Labels.service }}</p>
+    <p><strong>Description:</strong> {{ .Annotations.description }}</p>
+    <p class="meta">Started: {{ .StartsAt.Format "2006-01-02 15:04:05 MST" }}</p>
+    {{ if .Annotations.runbook_url }}
+    <p class="runbook"><a href="{{ .Annotations.runbook_url }}">View Runbook</a></p>
+    {{ end }}
+  </div>
+  {{ end }}
+
+  <hr>
+  <p class="meta">
+    This alert was generated by Apollo Platform monitoring.<br>
+    <a href="https://grafana.apollo.internal">Grafana</a> |
+    <a href="https://alertmanager.apollo.internal">Alertmanager</a>
+  </p>
+</body>
+</html>
+{{- end }}

@@ -1,0 +1,10 @@
+resources:
+  - ../../kustomization.yaml
+patches:
+  - target:
+      kind: Deployment
+      name: apollo-authentication
+    patch: |
+      - op: replace
+        path: /spec/replicas
+        value: 1

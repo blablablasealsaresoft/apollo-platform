@@ -3,9 +3,59 @@ import { ApiResponse, ApiError } from '@types/index';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
+// Standardized error codes for frontend
+export const API_ERROR_CODES = {
+  // Network errors
+  NETWORK_ERROR: 'NETWORK_ERROR',
+  TIMEOUT: 'TIMEOUT',
+  CONNECTION_REFUSED: 'CONNECTION_REFUSED',
+
+  // Authentication errors
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  SESSION_EXPIRED: 'SESSION_EXPIRED',
+  INVALID_TOKEN: 'INVALID_TOKEN',
+  TOKEN_REFRESH_FAILED: 'TOKEN_REFRESH_FAILED',
+
+  // Client errors
+  BAD_REQUEST: 'BAD_REQUEST',
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  NOT_FOUND: 'NOT_FOUND',
+  FORBIDDEN: 'FORBIDDEN',
+  CONFLICT: 'CONFLICT',
+  RATE_LIMITED: 'RATE_LIMITED',
+
+  // Server errors
+  SERVER_ERROR: 'SERVER_ERROR',
+  SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
+
+  // Generic
+  UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+} as const;
+
+// User-friendly error messages
+const ERROR_MESSAGES: Record<string, string> = {
+  [API_ERROR_CODES.NETWORK_ERROR]: 'Unable to connect to the server. Please check your internet connection.',
+  [API_ERROR_CODES.TIMEOUT]: 'The request took too long to complete. Please try again.',
+  [API_ERROR_CODES.CONNECTION_REFUSED]: 'The server is not responding. Please try again later.',
+  [API_ERROR_CODES.UNAUTHORIZED]: 'Please log in to continue.',
+  [API_ERROR_CODES.SESSION_EXPIRED]: 'Your session has expired. Please log in again.',
+  [API_ERROR_CODES.INVALID_TOKEN]: 'Authentication failed. Please log in again.',
+  [API_ERROR_CODES.TOKEN_REFRESH_FAILED]: 'Unable to refresh your session. Please log in again.',
+  [API_ERROR_CODES.BAD_REQUEST]: 'The request was invalid. Please check your input.',
+  [API_ERROR_CODES.VALIDATION_ERROR]: 'Please check the form for errors.',
+  [API_ERROR_CODES.NOT_FOUND]: 'The requested resource was not found.',
+  [API_ERROR_CODES.FORBIDDEN]: 'You do not have permission to perform this action.',
+  [API_ERROR_CODES.CONFLICT]: 'This action conflicts with existing data.',
+  [API_ERROR_CODES.RATE_LIMITED]: 'Too many requests. Please wait a moment and try again.',
+  [API_ERROR_CODES.SERVER_ERROR]: 'An unexpected server error occurred. Please try again later.',
+  [API_ERROR_CODES.SERVICE_UNAVAILABLE]: 'The service is temporarily unavailable. Please try again later.',
+  [API_ERROR_CODES.UNKNOWN_ERROR]: 'An unexpected error occurred. Please try again.',
+};
+
 class ApiClient {
   private client: AxiosInstance;
   private refreshTokenPromise: Promise<string> | null = null;
+  private maxRetries = 2;
 
   constructor() {
     this.client = axios.create({
@@ -27,10 +77,13 @@ class ApiClient {
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+        // Add request ID for tracking
+        config.headers['X-Request-ID'] = this.generateRequestId();
         return config;
       },
       (error: AxiosError) => {
-        return Promise.reject(error);
+        console.error('[API] Request setup error:', error.message);
+        return Promise.reject(this.createError(API_ERROR_CODES.UNKNOWN_ERROR, error.message));
       }
     );
 
@@ -40,6 +93,7 @@ class ApiClient {
       async (error: AxiosError) => {
         const originalRequest = error.config as InternalAxiosRequestConfig & {
           _retry?: boolean;
+          _retryCount?: number;
         };
 
         // Handle 401 errors (unauthorized)
@@ -55,13 +109,36 @@ class ApiClient {
           } catch (refreshError) {
             // Refresh failed, logout user
             this.handleAuthenticationError();
-            return Promise.reject(refreshError);
+            return Promise.reject(this.createError(
+              API_ERROR_CODES.TOKEN_REFRESH_FAILED,
+              'Session refresh failed'
+            ));
+          }
+        }
+
+        // Handle rate limiting with automatic retry
+        if (error.response?.status === 429) {
+          const retryAfter = error.response.headers['retry-after'];
+          const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 5000;
+
+          if (!originalRequest._retryCount || originalRequest._retryCount < this.maxRetries) {
+            originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
+            await this.delay(waitTime);
+            return this.client(originalRequest);
           }
         }
 
         return Promise.reject(this.handleError(error));
       }
     );
+  }
+
+  private generateRequestId(): string {
+    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   private async refreshAccessToken(): Promise<string> {
@@ -96,30 +173,84 @@ class ApiClient {
     localStorage.removeItem('apollo_token');
     localStorage.removeItem('apollo_refresh_token');
     localStorage.removeItem('apollo_user');
-    window.location.href = '/login';
+    // Use history API to avoid full page reload when possible
+    if (window.location.pathname !== '/login') {
+      window.location.href = '/login?reason=session_expired';
+    }
+  }
+
+  private createError(code: string, message?: string, details?: any): ApiError {
+    return {
+      code,
+      message: message || ERROR_MESSAGES[code] || ERROR_MESSAGES[API_ERROR_CODES.UNKNOWN_ERROR],
+      details,
+    };
   }
 
   private handleError(error: AxiosError): ApiError {
+    // Log error for debugging (will be stripped in production builds if needed)
+    console.error('[API Error]', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      message: error.message,
+    });
+
     if (error.response) {
       // Server responded with error
+      const status = error.response.status;
       const data: any = error.response.data;
-      return {
-        message: data.message || 'An error occurred',
-        code: data.code || error.response.status.toString(),
-        details: data.details,
-      };
+
+      // Map HTTP status codes to error codes
+      let errorCode: string;
+      switch (status) {
+        case 400:
+          errorCode = data.code?.includes('VALIDATION') ? API_ERROR_CODES.VALIDATION_ERROR : API_ERROR_CODES.BAD_REQUEST;
+          break;
+        case 401:
+          errorCode = API_ERROR_CODES.UNAUTHORIZED;
+          break;
+        case 403:
+          errorCode = API_ERROR_CODES.FORBIDDEN;
+          break;
+        case 404:
+          errorCode = API_ERROR_CODES.NOT_FOUND;
+          break;
+        case 409:
+          errorCode = API_ERROR_CODES.CONFLICT;
+          break;
+        case 429:
+          errorCode = API_ERROR_CODES.RATE_LIMITED;
+          break;
+        case 500:
+          errorCode = API_ERROR_CODES.SERVER_ERROR;
+          break;
+        case 502:
+        case 503:
+        case 504:
+          errorCode = API_ERROR_CODES.SERVICE_UNAVAILABLE;
+          break;
+        default:
+          errorCode = status >= 500 ? API_ERROR_CODES.SERVER_ERROR : API_ERROR_CODES.BAD_REQUEST;
+      }
+
+      return this.createError(
+        data.code || errorCode,
+        data.message || data.error?.message || ERROR_MESSAGES[errorCode],
+        data.details || data.error?.details
+      );
     } else if (error.request) {
       // Request made but no response
-      return {
-        message: 'No response from server. Please check your connection.',
-        code: 'NETWORK_ERROR',
-      };
+      if (error.code === 'ECONNABORTED') {
+        return this.createError(API_ERROR_CODES.TIMEOUT);
+      }
+      if (error.code === 'ERR_NETWORK') {
+        return this.createError(API_ERROR_CODES.CONNECTION_REFUSED);
+      }
+      return this.createError(API_ERROR_CODES.NETWORK_ERROR);
     } else {
       // Error setting up request
-      return {
-        message: error.message || 'An unexpected error occurred',
-        code: 'UNKNOWN_ERROR',
-      };
+      return this.createError(API_ERROR_CODES.UNKNOWN_ERROR, error.message);
     }
   }
 

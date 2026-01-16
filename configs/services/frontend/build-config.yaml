@@ -1,0 +1,192 @@
+build:
+  name: apollo-react-console
+  version: 1.0.0
+  description: Build configuration for Apollo React console
+
+bundler:
+  tool: vite
+  version: 5.x
+
+  config:
+    mode: production
+    base: /
+    outDir: dist
+    assetsDir: assets
+    sourcemap: true
+    minify: esbuild
+    target: es2020
+
+  optimization:
+    splitChunks: true
+    runtimeChunk: single
+    minimize: true
+    concatenateModules: true
+    usedExports: true
+    sideEffects: false
+
+  code_splitting:
+    vendor:
+      test: /[\\/]node_modules[\\/]/
+      name: vendors
+      chunks: all
+      priority: 10
+
+    mui:
+      test: /[\\/]node_modules[\\/]@mui[\\/]/
+      name: mui
+      chunks: all
+      priority: 20
+
+    common:
+      minChunks: 2
+      priority: 5
+      reuseExistingChunk: true
+
+plugins:
+  - name: react
+    enabled: true
+
+  - name: typescript
+    enabled: true
+    config:
+      tsconfig: ./tsconfig.json
+      alwaysStrict: true
+
+  - name: eslint
+    enabled: true
+    config:
+      extends: ./eslintrc.js
+
+  - name: compression
+    enabled: true
+    algorithm: gzip
+
+  - name: bundle-analyzer
+    enabled: false
+    mode: server
+
+  - name: pwa
+    enabled: true
+    config:
+      registerType: autoUpdate
+      workbox:
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+
+environment_variables:
+  development:
+    NODE_ENV: development
+    REACT_APP_API_BASE_URL: http://localhost:4000
+    REACT_APP_WS_URL: ws://localhost:4015
+
+  staging:
+    NODE_ENV: staging
+    REACT_APP_API_BASE_URL: https://api-staging.apollo.local
+    REACT_APP_WS_URL: wss://ws-staging.apollo.local
+
+  production:
+    NODE_ENV: production
+    REACT_APP_API_BASE_URL: https://api.apollo.local
+    REACT_APP_WS_URL: wss://ws.apollo.local
+
+assets:
+  images:
+    formats: [webp, png, jpg, svg]
+    optimization: true
+    quality: 85
+
+  fonts:
+    formats: [woff2, woff]
+    preload: true
+
+  icons:
+    sprite_generation: true
+
+performance:
+  budget:
+    initial_bundle: 500KB
+    total_bundle: 2MB
+    asset_size: 100KB
+
+  prefetch: true
+  preload_critical: true
+
+output:
+  path: dist
+  publicPath: /
+  clean: true
+
+  filenames:
+    js: assets/js/[name].[contenthash:8].js
+    css: assets/css/[name].[contenthash:8].css
+    images: assets/images/[name].[contenthash:8].[ext]
+    fonts: assets/fonts/[name].[contenthash:8].[ext]
+
+cache:
+  type: filesystem
+  buildDependencies:
+    config: [./vite.config.ts, ./tsconfig.json]
+
+  cacheDirectory: node_modules/.cache/vite
+
+devServer:
+  port: 3000
+  host: 0.0.0.0
+  hot: true
+  open: false
+  compress: true
+  historyApiFallback: true
+
+  proxy:
+    /api:
+      target: http://localhost:4000
+      changeOrigin: true
+      secure: false
+
+    /ws:
+      target: ws://localhost:4015
+      ws: true
+
+testing:
+  framework: jest
+  coverage: true
+  coverage_threshold:
+    global:
+      branches: 80
+      functions: 80
+      lines: 80
+      statements: 80
+
+linting:
+  eslint: true
+  stylelint: true
+  prettier: true
+
+  rules:
+    max_complexity: 10
+    max_depth: 4
+    max_lines: 300
+
+ci_cd:
+  build_command: npm run build
+  test_command: npm run test
+  lint_command: npm run lint
+  type_check_command: npm run type-check
+
+  artifacts:
+    - dist/**/*
+    - coverage/**/*
+
+docker:
+  base_image: node:20-alpine
+  working_dir: /app
+  expose: 3000
+
+  build_stages:
+    - name: dependencies
+      command: npm ci
+
+    - name: build
+      command: npm run build
+
+    - name: serve
+      command: npx serve -s dist -l 3000

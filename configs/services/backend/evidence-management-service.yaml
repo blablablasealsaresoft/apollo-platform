@@ -1,0 +1,208 @@
+service:
+  name: evidence-management-service
+  port: 4008
+  version: 1.0.0
+  description: Digital evidence management and chain of custody
+
+runtime:
+  workers: 6
+  max_memory: 8GB
+  timeout: 120s
+  restart_policy: always
+  graceful_shutdown_timeout: 20s
+
+features:
+  file_upload: true
+  chain_of_custody: true
+  digital_signatures: true
+  encryption: true
+  deduplication: true
+  versioning: true
+  metadata_extraction: true
+
+storage:
+  type: multi_tier
+
+  primary:
+    type: s3
+    bucket: ${S3_EVIDENCE_BUCKET}
+    region: ${S3_REGION}
+    encryption: AES256
+    versioning: true
+
+  cache:
+    type: redis
+    connection: ${REDIS_URL}
+    ttl: 1h
+    max_size: 10GB
+
+  metadata:
+    type: postgresql
+    connection: ${DATABASE_URL}
+    pool_size: 25
+
+file_types:
+  documents:
+    - pdf
+    - docx
+    - xlsx
+    - txt
+    - csv
+
+  images:
+    - jpg
+    - jpeg
+    - png
+    - gif
+    - bmp
+    - tiff
+
+  videos:
+    - mp4
+    - avi
+    - mov
+    - mkv
+    - webm
+
+  audio:
+    - mp3
+    - wav
+    - m4a
+    - flac
+
+  archives:
+    - zip
+    - tar
+    - gz
+    - 7z
+    - rar
+
+  forensic:
+    - e01
+    - dd
+    - raw
+    - aff
+
+upload:
+  max_file_size: 10GB
+  max_files_per_upload: 100
+  chunk_size: 5MB
+  resumable_uploads: true
+  virus_scanning: true
+
+virus_scanning:
+  enabled: true
+  engine: clamav
+  quarantine_on_detection: true
+  notify_on_detection: true
+
+metadata_extraction:
+  automatic: true
+  extractors:
+    - exif
+    - pdf_metadata
+    - office_metadata
+    - video_metadata
+    - audio_metadata
+  hash_generation:
+    - md5
+    - sha1
+    - sha256
+
+chain_of_custody:
+  enabled: true
+  tracking:
+    - upload_timestamp
+    - uploader_id
+    - access_history
+    - modification_history
+    - download_history
+  digital_signature: true
+  audit_trail: true
+
+encryption:
+  at_rest: true
+  in_transit: true
+  algorithm: AES-256-GCM
+  key_rotation: 90d
+
+deduplication:
+  enabled: true
+  algorithm: sha256
+  storage_savings: true
+  reference_counting: true
+
+versioning:
+  enabled: true
+  max_versions: 10
+  retention: 365d
+
+access_control:
+  rbac: true
+  investigation_based: true
+  time_limited_access: true
+  download_restrictions: true
+
+database:
+  postgresql:
+    connection: ${DATABASE_URL}
+    pool_size: 30
+
+  redis:
+    connection: ${REDIS_URL}
+    max_connections: 50
+
+  elasticsearch:
+    url: ${ELASTICSEARCH_URL}
+    index_prefix: apollo-evidence
+    full_text_search: true
+
+integration:
+  operations_service: http://operations:4002
+  audit_logging: http://audit-logging:4007
+  notifications: http://notifications:4005
+
+api:
+  version: v1
+  base_path: /api/v1
+  authentication: jwt
+  authorization: rbac
+  rate_limiting: 500/minute
+  multipart_uploads: true
+
+monitoring:
+  metrics: true
+  health_check: /health
+  readiness_check: /ready
+  prometheus_endpoint: /metrics
+  custom_metrics:
+    - files_uploaded_total
+    - storage_used_bytes
+    - upload_duration_seconds
+    - download_duration_seconds
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - stdout
+    - file: /var/log/apollo/evidence-management.log
+  access_logging: true
+
+performance:
+  concurrent_uploads: 50
+  concurrent_downloads: 100
+  streaming_threshold: 100MB
+  compression: true
+
+retention:
+  default_policy: 7y
+  auto_archiving: true
+  legal_hold: supported
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: evidence-management-service
+    health_check_interval: 10s

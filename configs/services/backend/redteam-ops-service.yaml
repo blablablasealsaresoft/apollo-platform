@@ -1,0 +1,144 @@
+service:
+  name: redteam-ops-service
+  port: 4004
+  version: 1.0.0
+  description: Red team operations and security testing coordination
+
+runtime:
+  workers: 6
+  max_memory: 6GB
+  timeout: 300s
+  restart_policy: always
+  graceful_shutdown_timeout: 30s
+
+features:
+  campaign_management: true
+  vulnerability_tracking: true
+  exploit_coordination: true
+  payload_generation: true
+  tool_integration: true
+  reporting: true
+
+capabilities:
+  web_security: true
+  network_security: true
+  social_engineering: false  # Ethical constraints
+  physical_security: false   # Out of scope
+  osint_operations: true
+
+tools:
+  bugtrace_ai:
+    enabled: true
+    endpoint: http://bugtrace-ai:8001
+    capabilities:
+      - vulnerability_discovery
+      - exploit_generation
+      - payload_obfuscation
+
+  cyberspike_villager:
+    enabled: true
+    endpoint: http://cyberspike-villager:37695
+    capabilities:
+      - autonomous_operations
+      - tool_orchestration
+      - mission_execution
+
+  kali_integration:
+    enabled: true
+    tools_available: 600+
+    auto_deployment: true
+
+database:
+  postgresql:
+    connection: ${DATABASE_URL}
+    pool_size: 25
+
+  redis:
+    connection: ${REDIS_URL}
+    max_connections: 50
+
+  mongodb:
+    uri: ${MONGODB_URI}
+    database: apollo_redteam
+    collections:
+      - campaigns
+      - vulnerabilities
+      - payloads
+      - exploits
+
+campaign:
+  max_active: 100
+  status_workflow:
+    - planning
+    - reconnaissance
+    - exploitation
+    - post_exploitation
+    - reporting
+    - closed
+  priority_levels: [low, medium, high, critical]
+
+vulnerability:
+  severity_levels:
+    - info
+    - low
+    - medium
+    - high
+    - critical
+  cvss_scoring: true
+  auto_classification: true
+
+exploit:
+  payload_types:
+    - web_shells
+    - reverse_shells
+    - privilege_escalation
+    - persistence
+    - lateral_movement
+  obfuscation_techniques: 14+
+  encoding_types: 10+
+
+integration:
+  bugtrace_ai: http://bugtrace-ai:8001
+  cyberspike_villager: http://cyberspike-villager:37695
+  operations_service: http://operations:4002
+  evidence_management: http://evidence-management:4008
+
+api:
+  version: v1
+  base_path: /api/v1
+  authentication: jwt
+  authorization: rbac
+  required_roles: [admin, redteam, investigator]
+
+monitoring:
+  metrics: true
+  tracing: true
+  logging_level: info
+  prometheus_endpoint: /metrics
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - stdout
+    - file: /var/log/apollo/redteam-ops.log
+  audit_logging: true
+  sensitive_data_masking: true
+
+security:
+  command_injection_protection: true
+  input_validation: strict
+  output_sanitization: true
+  sandbox_execution: true
+
+rate_limiting:
+  api_calls: 200/minute
+  campaign_creation: 10/hour
+  exploit_generation: 50/hour
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: redteam-ops-service
+    health_check_interval: 10s

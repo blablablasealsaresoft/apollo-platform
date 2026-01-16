@@ -1,0 +1,61 @@
+# Certificate Management for Apollo Platform
+
+certificate_management:
+  # Certificate Authority
+  certificate_authority:
+    internal_ca:
+      enabled: true
+      root_ca:
+        subject: "CN=Apollo Platform Root CA, O=Apollo Platform, C=US"
+        key_size: 4096
+        validity: 20y
+        algorithm: RSA
+
+      intermediate_ca:
+        subject: "CN=Apollo Platform Intermediate CA, O=Apollo Platform, C=US"
+        key_size: 4096
+        validity: 10y
+
+    external_ca:
+      provider: digicert
+      account_id: ${DIGICERT_ACCOUNT_ID}
+      api_key: ${DIGICERT_API_KEY}
+
+  # Certificate Lifecycle
+  lifecycle:
+    generation:
+      default_key_size: 4096
+      default_algorithm: RSA
+      default_validity: 365d
+
+    renewal:
+      auto_renewal: true
+      renewal_threshold: 30d
+      notification_before: [60d, 30d, 7d]
+
+    revocation:
+      crl_distribution_point: ${CRL_URL}
+      ocsp_responder: ${OCSP_URL}
+
+  # Certificate Types
+  types:
+    server_certificates:
+      key_size: 4096
+      validity: 365d
+      san_required: true
+
+    client_certificates:
+      key_size: 2048
+      validity: 365d
+      require_hardware_storage: false
+
+    code_signing:
+      key_size: 4096
+      validity: 365d
+      require_hardware_storage: true
+
+  # Monitoring
+  monitoring:
+    expiry_checks: daily
+    alert_before_expiry: 30d
+    crl_check_interval: 24h

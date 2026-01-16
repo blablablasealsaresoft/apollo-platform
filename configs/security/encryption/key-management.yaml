@@ -1,0 +1,488 @@
+# Key Management Configuration for Apollo Platform
+# Comprehensive key lifecycle management for encryption operations
+
+key_management:
+  # Key Generation
+  generation:
+    # Key generation algorithm
+    algorithm: RSA-4096
+
+    # Symmetric key size
+    symmetric_key_size: 256
+
+    # Asymmetric key size
+    asymmetric_key_size: 4096
+
+    # Random number generator
+    rng:
+      provider: hardware_rng
+      fallback: /dev/urandom
+      entropy_source: secure
+
+    # Key strength requirements
+    minimum_strength:
+      symmetric: 256
+      asymmetric: 2048
+      hash: 256
+
+  # Key Storage
+  storage:
+    # Primary key storage
+    primary:
+      backend: hsm
+      provider: aws_cloudhsm
+      config:
+        cluster_id: ${HSM_CLUSTER_ID}
+        region: ${AWS_REGION}
+
+    # Backup key storage
+    backup:
+      backend: kms
+      provider: aws_kms
+      config:
+        region: ${AWS_REGION}
+        key_id: ${KMS_MASTER_KEY_ID}
+
+    # Key encryption keys (KEK)
+    kek:
+      storage: hsm
+      algorithm: AES-256-GCM
+      rotation_frequency: 90d
+
+    # Data encryption keys (DEK)
+    dek:
+      storage: kms
+      algorithm: AES-256-GCM
+      rotation_frequency: 30d
+      envelope_encryption: true
+
+  # Key Hierarchy
+  hierarchy:
+    # Master keys
+    master_keys:
+      - id: master_encryption_key
+        type: symmetric
+        algorithm: AES-256
+        storage: hsm
+        rotation: annual
+        purpose: encrypt_keks
+
+    # Key encryption keys
+    key_encryption_keys:
+      - id: database_kek
+        type: symmetric
+        algorithm: AES-256
+        storage: hsm
+        rotation: quarterly
+        purpose: encrypt_database_deks
+
+      - id: evidence_kek
+        type: symmetric
+        algorithm: AES-256
+        storage: hsm
+        rotation: quarterly
+        purpose: encrypt_evidence_deks
+
+      - id: intelligence_kek
+        type: symmetric
+        algorithm: AES-256
+        storage: hsm
+        rotation: quarterly
+        purpose: encrypt_intelligence_deks
+
+    # Data encryption keys
+    data_encryption_keys:
+      - id: postgresql_dek
+        type: symmetric
+        algorithm: AES-256-GCM
+        storage: kms
+        rotation: monthly
+        encrypted_by: database_kek
+
+      - id: evidence_file_dek
+        type: symmetric
+        algorithm: AES-256-CBC
+        storage: kms
+        rotation: monthly
+        encrypted_by: evidence_kek
+
+      - id: intelligence_dek
+        type: symmetric
+        algorithm: AES-256-GCM
+        storage: kms
+        rotation: monthly
+        encrypted_by: intelligence_kek
+
+  # Key Rotation
+  rotation:
+    # Enable automatic rotation
+    enabled: true
+
+    # Rotation policies by key type
+    policies:
+      master_keys:
+        frequency: 365d
+        automatic: false
+        require_approval: true
+        approvers:
+          - ciso
+          - security_admin
+
+      key_encryption_keys:
+        frequency: 90d
+        automatic: true
+        notification_required: true
+
+      data_encryption_keys:
+        frequency: 30d
+        automatic: true
+        notification_required: false
+
+      api_keys:
+        frequency: 90d
+        automatic: true
+        notification_required: true
+
+      signing_keys:
+        frequency: 365d
+        automatic: false
+        require_approval: true
+
+    # Re-encryption after rotation
+    reencryption:
+      automatic: true
+      background_process: true
+      priority: low
+      max_concurrent: 4
+
+    # Grace period for old keys
+    grace_period:
+      master_keys: 90d
+      keks: 30d
+      deks: 7d
+
+    # Key deactivation schedule
+    deactivation:
+      after_grace_period: true
+      soft_delete: true
+      hard_delete_after: 7y
+
+  # Key Access Control
+  access_control:
+    # Role-based key access
+    rbac:
+      enabled: true
+
+      permissions:
+        - role: admin
+          keys: all
+          operations: [read, write, delete, rotate]
+
+        - role: security_admin
+          keys: [master_keys, keks]
+          operations: [read, write, rotate]
+
+        - role: developer
+          keys: [deks]
+          operations: [read]
+
+        - role: service_account
+          keys: [assigned_deks]
+          operations: [read, encrypt, decrypt]
+
+    # Key usage policies
+    usage_policies:
+      - key: master_encryption_key
+        allowed_operations: [wrap, unwrap]
+        allowed_principals: [security_admin, hsm_service]
+        mfa_required: true
+
+      - key: database_kek
+        allowed_operations: [wrap, unwrap, encrypt, decrypt]
+        allowed_principals: [database_service, security_admin]
+
+      - key: evidence_kek
+        allowed_operations: [wrap, unwrap]
+        allowed_principals: [evidence_service, security_admin]
+
+  # Key Lifecycle
+  lifecycle:
+    # Key states
+    states:
+      - pre_active
+      - active
+      - deactivated
+      - compromised
+      - destroyed
+
+    # State transitions
+    transitions:
+      pre_active_to_active:
+        require_approval: true
+        validation_required: true
+
+      active_to_deactivated:
+        grace_period: 30d
+        notification_required: true
+
+      active_to_compromised:
+        immediate_action: true
+        automatic_rotation: true
+        incident_response: true
+
+      deactivated_to_destroyed:
+        retention_period: 7y
+        approval_required: true
+
+    # Automatic lifecycle management
+    automatic:
+      enabled: true
+      check_interval: daily
+
+  # Key Backup and Recovery
+  backup:
+    # Enable key backups
+    enabled: true
+
+    # Backup frequency
+    frequency: daily
+
+    # Backup location
+    location:
+      primary: s3://apollo-key-backups-primary
+      secondary: s3://apollo-key-backups-secondary
+
+    # Backup encryption
+    encryption:
+      algorithm: AES-256-GCM
+      key: backup_master_key
+      storage: offline_hsm
+
+    # Backup testing
+    testing:
+      frequency: monthly
+      verify_restoration: true
+
+  # Key Recovery
+  recovery:
+    # Key recovery process
+    process:
+      require_approval: true
+      approvers_required: 2
+      approvers:
+        - ciso
+        - security_admin
+        - infrastructure_admin
+
+    # Key escrow
+    escrow:
+      enabled: true
+      escrow_agents: 3
+      recovery_threshold: 2
+      algorithm: shamir_secret_sharing
+
+    # Recovery testing
+    testing:
+      frequency: quarterly
+      document_results: true
+
+  # Key Destruction
+  destruction:
+    # Secure key destruction
+    method: cryptographic_erase
+
+    # Destruction approval
+    require_approval: true
+    approvers_required: 2
+
+    # Destruction verification
+    verification_required: true
+
+    # Destruction documentation
+    documentation_required: true
+
+    # Destruction retention
+    retention_period: indefinite
+
+  # Key Monitoring
+  monitoring:
+    # Monitor key usage
+    enabled: true
+
+    # Metrics to track
+    metrics:
+      - key_access_count
+      - encryption_operations
+      - decryption_operations
+      - key_rotation_events
+      - key_access_failures
+
+    # Anomaly detection
+    anomaly_detection:
+      enabled: true
+      alerts:
+        - unusual_key_access_pattern
+        - excessive_key_usage
+        - unauthorized_key_access
+        - key_access_from_unusual_location
+        - failed_key_operations
+
+    # Key usage analytics
+    analytics:
+      enabled: true
+      retention: 90d
+
+  # Key Auditing
+  auditing:
+    # Audit all key operations
+    enabled: true
+
+    # Operations to audit
+    audited_operations:
+      - key_generation
+      - key_import
+      - key_export
+      - key_rotation
+      - key_deletion
+      - key_access
+      - encryption
+      - decryption
+      - signing
+      - verification
+
+    # Audit log retention
+    retention: 7y
+
+    # Audit log encryption
+    encrypt_logs: true
+
+    # Audit log integrity
+    integrity_protection: true
+
+  # Key Import/Export
+  import_export:
+    # Allow key import
+    import:
+      enabled: true
+      require_approval: true
+      supported_formats:
+        - pkcs8
+        - pkcs12
+        - jwk
+      validation_required: true
+
+    # Allow key export
+    export:
+      enabled: false  # Generally disabled for security
+      require_approval: true
+      require_mfa: true
+      encryption_required: true
+      audit_required: true
+
+  # Key Sharing
+  sharing:
+    # Allow key sharing (generally not recommended)
+    enabled: false
+
+    # Key sharing policies
+    policies:
+      - purpose: disaster_recovery
+        allowed: true
+        require_approval: true
+        encryption_required: true
+
+      - purpose: key_escrow
+        allowed: true
+        require_approval: true
+        split_knowledge: true
+
+  # Certificate Management
+  certificates:
+    # SSL/TLS certificates
+    tls:
+      key_size: 4096
+      algorithm: RSA
+      validity_period: 365d
+      auto_renewal: true
+      renewal_before_expiry: 30d
+
+    # Code signing certificates
+    code_signing:
+      key_size: 4096
+      algorithm: RSA
+      validity_period: 365d
+      hardware_key_storage: true
+
+    # Client certificates
+    client:
+      key_size: 2048
+      algorithm: RSA
+      validity_period: 365d
+      revocation_check: true
+
+  # Key Derivation
+  derivation:
+    # Key derivation functions
+    kdf:
+      algorithm: HKDF
+      hash_function: SHA256
+      info_string: apollo-platform
+
+    # Password-based key derivation
+    pbkdf:
+      algorithm: PBKDF2
+      iterations: 100000
+      salt_length: 32
+      hash_function: SHA256
+
+  # Key Compromise Response
+  compromise_response:
+    # Automatic actions on compromise
+    automatic_actions:
+      - mark_key_compromised
+      - generate_new_key
+      - reencrypt_data
+      - notify_security_team
+      - create_incident
+
+    # Compromise recovery plan
+    recovery_plan:
+      - assess_scope
+      - rotate_all_affected_keys
+      - reencrypt_affected_data
+      - audit_key_access_logs
+      - identify_root_cause
+      - implement_preventive_measures
+
+  # Compliance
+  compliance:
+    # CJIS key management
+    cjis:
+      compliant: true
+      key_storage: controlled_environment
+      key_access: authorized_personnel_only
+      key_rotation: mandatory
+
+    # FIPS 140-2
+    fips_140_2:
+      compliant: true
+      level: 2
+      validated_modules: true
+
+    # NIST guidelines
+    nist:
+      compliant: true
+      standards:
+        - NIST SP 800-57  # Key Management
+        - NIST SP 800-130 # Key Management Framework
+
+  # Development Settings
+  development:
+    # Use test keys in development
+    use_test_keys: ${DEV_USE_TEST_KEYS:-false}
+
+    # Simplified key management
+    simplified_management: ${DEV_SIMPLIFIED_KEY_MGMT:-false}
+
+    # Debug key operations
+    debug_mode: ${KEY_MGMT_DEBUG:-false}

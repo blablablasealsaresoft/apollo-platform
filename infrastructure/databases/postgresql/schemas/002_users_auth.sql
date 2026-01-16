@@ -7,23 +7,43 @@ CREATE TABLE users (
     email VARCHAR(255) UNIQUE NOT NULL,
     username VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    first_name VARCHAR(100),
-    last_name VARCHAR(100),
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
     role user_role NOT NULL DEFAULT 'viewer',
+    clearance_level clearance_level NOT NULL DEFAULT 'unclassified'
     organization VARCHAR(200),
+    department VARCHAR(200),
     badge_number VARCHAR(50),
-    clearance_level INTEGER DEFAULT 1 CHECK (clearance_level >= 1 AND clearance_level <= 10),
+    avatar_url VARCHAR(1000),
+
+    -- Authentication state
     is_active BOOLEAN DEFAULT true,
     is_verified BOOLEAN DEFAULT false,
-    last_login_at TIMESTAMP,
+    is_mfa_enabled BOOLEAN DEFAULT false,
+    mfa_secret VARCHAR(255),
+    mfa_backup_codes TEXT,
+
+    -- OAuth
+    oauth_provider VARCHAR(50),
+    oauth_id VARCHAR(255),
+
+    -- Password management
+    password_reset_token VARCHAR(255),
+    password_reset_expires TIMESTAMP,
+    password_changed_at TIMESTAMP DEFAULT NOW(),
+    must_change_password BOOLEAN DEFAULT false,
+
+    -- Login tracking
+    last_login TIMESTAMP,
     last_login_ip INET,
     failed_login_attempts INTEGER DEFAULT 0,
     locked_until TIMESTAMP,
-    password_changed_at TIMESTAMP DEFAULT NOW(),
-    must_change_password BOOLEAN DEFAULT false,
+
+    -- Metadata
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     created_by UUID REFERENCES users(id),
+
     CONSTRAINT valid_email CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 );
 
@@ -31,8 +51,11 @@ CREATE TABLE users (
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_role ON users(role);
-CREATE INDEX idx_users_active ON users(is_active);
+CREATE INDEX idx_users_clearance_level ON users(clearance_level);
+CREATE INDEX idx_users_active ON users(is_active) WHERE is_active = true;
 CREATE INDEX idx_users_organization ON users(organization);
+CREATE INDEX idx_users_mfa_enabled ON users(is_mfa_enabled) WHERE is_mfa_enabled = true;
+CREATE INDEX idx_users_created ON users(created_at DESC);
 
 -- User sessions table (for JWT token management)
 CREATE TABLE user_sessions (
@@ -258,7 +281,8 @@ INSERT INTO users (
     role,
     clearance_level,
     is_active,
-    is_verified
+    is_verified,
+    is_mfa_enabled
 ) VALUES (
     'admin@apollo.local',
     'apollo_admin',
@@ -266,9 +290,10 @@ INSERT INTO users (
     'Apollo',
     'Administrator',
     'admin',
-    10,
+    'top_secret',
     true,
-    true
+    true,
+    false
 ) ON CONFLICT (email) DO NOTHING;
 
 COMMENT ON TABLE users IS 'Apollo platform users with role-based access control';

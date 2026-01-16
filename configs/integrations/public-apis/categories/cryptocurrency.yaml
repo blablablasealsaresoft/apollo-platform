@@ -1,0 +1,509 @@
+category: cryptocurrency
+total_apis: 12
+priority: critical
+apollo_use: "Blockchain forensics, OneCoin tracking, wallet monitoring, crypto market intelligence"
+mission_relevance: "Primary data source for tracking Ruja Ignatova's cryptocurrency activities and OneCoin-related tokens"
+
+apis:
+  coingecko:
+    name: CoinGecko
+    url: https://api.coingecko.com/api/v3
+    authentication: none
+    free_tier: true
+    rate_limit: 50/minute
+    description: "Cryptocurrency market data, prices, trading volumes, historical data from 600+ exchanges"
+
+    endpoints:
+      - path: /coins/markets
+        method: GET
+        params:
+          vs_currency: usd
+          ids: bitcoin,ethereum
+        use: "Get comprehensive market data for cryptocurrencies"
+
+      - path: /coins/{id}
+        method: GET
+        use: "Get detailed coin data including market cap, volume, community data"
+
+      - path: /search
+        method: GET
+        params:
+          query: onecoin
+        use: "Search for coins, exchanges, categories - critical for OneCoin tracking"
+
+      - path: /exchanges
+        method: GET
+        use: "List all exchanges - monitor for suspicious activity"
+
+      - path: /coins/{id}/market_chart
+        method: GET
+        params:
+          vs_currency: usd
+          days: 365
+        use: "Historical market data for pattern analysis"
+
+    apollo_integration:
+      use_case: "Monitor OneCoin-related tokens, detect market manipulation, track crypto flows"
+      priority: critical
+      deployment: continuous
+
+      auto_monitor:
+        keywords:
+          - onecoin
+          - ruja
+          - ignatova
+          - cryptoqueen
+          - onecoin ltd
+        alert_threshold: 1000  # Alert on $1K+ activity
+        frequency: real-time
+        correlation: true  # Correlate with other intelligence
+
+      intelligence_feeds:
+        - target: apollo.crypto_intelligence
+          type: market_data
+          format: json
+        - target: apollo.alerts
+          type: suspicious_activity
+          threshold: high
+
+    example_usage: |
+      # Monitor crypto markets for OneCoin-related activity
+      curl "https://api.coingecko.com/api/v3/search?query=onecoin"
+
+      # Get Bitcoin market data
+      curl "https://api.coingecko.com/api/v3/coins/bitcoin?localization=false&tickers=false&community_data=false"
+
+      # Track specific wallet addresses (combine with blockchain APIs)
+      # This provides market context for wallet activity
+
+  blockchain_info:
+    name: Blockchain.info
+    url: https://blockchain.info
+    authentication: none
+    free_tier: true
+    rate_limit: unlimited
+    description: "Bitcoin blockchain explorer - transaction tracking, wallet monitoring, blockchain forensics"
+
+    endpoints:
+      - path: /rawaddr/{address}
+        method: GET
+        use: "Get all transactions and balance for Bitcoin address"
+
+      - path: /rawtx/{tx_hash}
+        method: GET
+        use: "Get transaction details by hash"
+
+      - path: /unspent
+        method: GET
+        params:
+          active: "{addresses}"
+        use: "Get unspent outputs for addresses"
+
+      - path: /balance
+        method: GET
+        params:
+          active: "{addresses}"
+        use: "Get balance for multiple addresses"
+
+      - path: /multiaddr
+        method: GET
+        params:
+          active: "{addresses}"
+        use: "Get data for multiple addresses simultaneously"
+
+    apollo_integration:
+      use_case: "Bitcoin transaction tracing, wallet monitoring, blockchain forensics for OneCoin investigations"
+      priority: critical
+      deployment: continuous
+
+      auto_trace:
+        wallets: onecoin_suspect_wallets  # From Apollo intelligence database
+        depth: 5  # Trace 5 hops from suspect wallets
+        alert_on_movement: true
+        min_amount: 0.1  # BTC minimum to trigger alert
+        frequency: every_block  # Monitor every block
+
+      forensics:
+        clustering: true  # Cluster related addresses
+        flow_analysis: true  # Analyze transaction flows
+        mixing_detection: true  # Detect coin mixing/tumbling
+
+      intelligence_feeds:
+        - target: apollo.blockchain_forensics
+          type: transaction_data
+          format: json
+        - target: apollo.financial_intelligence
+          type: bitcoin_flows
+          threshold: 0.5_btc
+
+    example_usage: |
+      # Get all transactions for an address
+      curl "https://blockchain.info/rawaddr/1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+
+      # Get transaction details
+      curl "https://blockchain.info/rawtx/0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098"
+
+      # Check balance of multiple addresses
+      curl "https://blockchain.info/balance?active=1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa|1dice8EMZmqKvrGE4Qc9bUFf9PX3xaYDp"
+
+  etherscan:
+    name: Etherscan
+    url: https://api.etherscan.io/api
+    authentication: apiKey
+    free_tier: 100000/day
+    rate_limit: 5/second
+    description: "Ethereum blockchain explorer - smart contract analysis, token tracking, ETH forensics"
+
+    endpoints:
+      - path: "/?module=account&action=balance&address={address}&tag=latest"
+        method: GET
+        use: "Get ETH balance for address"
+
+      - path: "/?module=account&action=txlist&address={address}"
+        method: GET
+        use: "Get list of normal transactions by address"
+
+      - path: "/?module=account&action=tokentx&address={address}"
+        method: GET
+        use: "Get ERC-20 token transfer events by address"
+
+      - path: "/?module=contract&action=getabi&address={address}"
+        method: GET
+        use: "Get smart contract ABI"
+
+      - path: "/?module=contract&action=getsourcecode&address={address}"
+        method: GET
+        use: "Get smart contract source code"
+
+      - path: "/?module=transaction&action=gettxreceiptstatus&txhash={txhash}"
+        method: GET
+        use: "Check transaction status"
+
+    apollo_integration:
+      use_case: "Ethereum smart contract analysis, token tracking, DeFi investigation"
+      priority: high
+      deployment: continuous
+
+      auto_analyze:
+        contracts: suspect_contracts  # From Apollo intelligence
+        check_vulnerabilities: true
+        trace_transactions: true
+        monitor_tokens: true
+        alert_on_interaction: true
+
+      smart_contract_intelligence:
+        decompile: true  # Decompile bytecode if no source
+        vulnerability_scan: true
+        interaction_graph: true  # Map contract interactions
+
+      intelligence_feeds:
+        - target: apollo.ethereum_intelligence
+          type: smart_contract_data
+          format: json
+        - target: apollo.defi_tracking
+          type: token_transfers
+          threshold: 1000_usd
+
+    example_usage: |
+      # Get ETH balance
+      curl "https://api.etherscan.io/api?module=account&action=balance&address=0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae&tag=latest&apikey=YourApiKeyToken"
+
+      # Get smart contract ABI
+      curl "https://api.etherscan.io/api?module=contract&action=getabi&address=0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413&apikey=YourApiKeyToken"
+
+      # Track token transfers
+      curl "https://api.etherscan.io/api?module=account&action=tokentx&address=0x4e83362442b8d1bec281594cea3050c8eb01311c&page=1&offset=100&sort=asc&apikey=YourApiKeyToken"
+
+  coincap:
+    name: CoinCap
+    url: https://api.coincap.io/v2
+    authentication: none
+    free_tier: true
+    rate_limit: 200/minute
+    description: "Real-time cryptocurrency market data from multiple sources"
+
+    endpoints:
+      - path: /assets
+        method: GET
+        use: "Get all assets"
+
+      - path: /assets/{id}
+        method: GET
+        use: "Get single asset by ID"
+
+      - path: /assets/{id}/history
+        method: GET
+        params:
+          interval: d1
+        use: "Get historical price data"
+
+      - path: /exchanges
+        method: GET
+        use: "List all exchanges"
+
+      - path: /markets
+        method: GET
+        use: "Get market data"
+
+    apollo_integration:
+      use_case: "Real-time crypto market monitoring, exchange tracking"
+      priority: high
+      auto_monitor: true
+      frequency: real-time
+
+  coinpaprika:
+    name: Coinpaprika
+    url: https://api.coinpaprika.com/v1
+    authentication: none
+    free_tier: 20000/month
+    rate_limit: 20000/month
+    description: "Comprehensive cryptocurrency data, market analysis, historical prices"
+
+    endpoints:
+      - path: /coins
+        method: GET
+        use: "List all coins"
+
+      - path: /coins/{coin_id}
+        method: GET
+        use: "Get coin details"
+
+      - path: /tickers
+        method: GET
+        use: "Get tickers for all active coins"
+
+      - path: /exchanges
+        method: GET
+        use: "List exchanges"
+
+      - path: /search
+        method: GET
+        params:
+          q: query
+        use: "Search for currencies, exchanges, ICOs"
+
+    apollo_integration:
+      use_case: "Comprehensive crypto intelligence, market analysis"
+      priority: high
+      correlation: true
+
+  blockchair:
+    name: Blockchair
+    url: https://api.blockchair.com
+    authentication: none
+    free_tier: 1440/day
+    rate_limit: 1440/day
+    description: "Multi-blockchain search and analytics engine - Bitcoin, Ethereum, and 15+ other blockchains"
+
+    endpoints:
+      - path: /bitcoin/dashboard/address/{address}
+        method: GET
+        use: "Bitcoin address dashboard"
+
+      - path: /ethereum/dashboard/address/{address}
+        method: GET
+        use: "Ethereum address dashboard"
+
+      - path: /{blockchain}/stats
+        method: GET
+        use: "Blockchain statistics"
+
+      - path: /{blockchain}/raw/transaction/{hash}
+        method: GET
+        use: "Get raw transaction data"
+
+    apollo_integration:
+      use_case: "Cross-blockchain investigation, multi-chain forensics"
+      priority: high
+      multi_chain: true
+
+  blockcypher:
+    name: BlockCypher
+    url: https://api.blockcypher.com/v1
+    authentication: optional
+    free_tier: 200/hour
+    rate_limit: 200/hour (3/sec with token)
+    description: "Blockchain web services for Bitcoin, Ethereum, Litecoin, Dogecoin"
+
+    endpoints:
+      - path: /btc/main
+        method: GET
+        use: "Bitcoin blockchain info"
+
+      - path: /btc/main/addrs/{address}
+        method: GET
+        use: "Get address details"
+
+      - path: /btc/main/txs/{txhash}
+        method: GET
+        use: "Get transaction details"
+
+      - path: /eth/main
+        method: GET
+        use: "Ethereum blockchain info"
+
+    apollo_integration:
+      use_case: "Multi-chain transaction tracking"
+      priority: high
+
+  cryptowatch:
+    name: Cryptowatch
+    url: https://api.cryptowat.ch
+    authentication: apiKey
+    free_tier: true
+    rate_limit: 8s/request
+    description: "Real-time cryptocurrency market data from 26+ exchanges"
+
+    endpoints:
+      - path: /markets
+        method: GET
+        use: "List all markets"
+
+      - path: /exchanges
+        method: GET
+        use: "List all exchanges"
+
+      - path: /assets
+        method: GET
+        use: "List all assets"
+
+      - path: /pairs
+        method: GET
+        use: "List all pairs"
+
+    apollo_integration:
+      use_case: "Market monitoring and trading alerts"
+      priority: medium
+
+  messari:
+    name: Messari
+    url: https://data.messari.io/api/v1
+    authentication: apiKey
+    free_tier: 20/minute
+    rate_limit: 20/minute
+    description: "Crypto asset market data, research, and news"
+
+    endpoints:
+      - path: /assets
+        method: GET
+        use: "Get all assets"
+
+      - path: /assets/{asset}/metrics
+        method: GET
+        use: "Get asset metrics"
+
+      - path: /assets/{asset}/profile
+        method: GET
+        use: "Get asset profile"
+
+      - path: /news
+        method: GET
+        use: "Get crypto news"
+
+    apollo_integration:
+      use_case: "Crypto asset intelligence and research"
+      priority: medium
+
+  nomics:
+    name: Nomics
+    url: https://api.nomics.com/v1
+    authentication: apiKey
+    free_tier: true
+    rate_limit: 1/second
+    description: "Cryptocurrency market cap and pricing data"
+
+    endpoints:
+      - path: /currencies/ticker
+        method: GET
+        use: "Get currency ticker data"
+
+      - path: /markets
+        method: GET
+        use: "Get market data"
+
+      - path: /exchange-rates
+        method: GET
+        use: "Get exchange rates"
+
+      - path: /currencies/sparkline
+        method: GET
+        use: "Get sparkline data"
+
+    apollo_integration:
+      use_case: "Crypto market intelligence"
+      priority: medium
+
+  coinlore:
+    name: Coinlore
+    url: https://api.coinlore.net/api
+    authentication: none
+    free_tier: true
+    rate_limit: unlimited
+    description: "Free cryptocurrency data API"
+
+    endpoints:
+      - path: /tickers
+        method: GET
+        use: "Get all tickers"
+
+      - path: /ticker
+        method: GET
+        params:
+          id: "90"
+        use: "Get specific coin data"
+
+      - path: /global
+        method: GET
+        use: "Get global crypto stats"
+
+      - path: /markets
+        method: GET
+        params:
+          id: "90"
+        use: "Get markets for specific coin"
+
+    apollo_integration:
+      use_case: "Alternative free crypto data source"
+      priority: medium
+
+deployment:
+  mode: continuous
+  auto_start: true
+  failover: true
+  redundancy: multi-api
+  priority: critical
+
+monitoring:
+  keywords:
+    - onecoin
+    - ruja ignatova
+    - cryptoqueen
+    - ponzi
+    - pyramid scheme
+    - multi-level marketing crypto
+
+  alert_conditions:
+    - high_volume_movement: ">$10,000"
+    - suspicious_pattern: "mixing/tumbling detected"
+    - new_token_mention: "onecoin related"
+    - wallet_activity: "known suspect wallets"
+    - exchange_listing: "suspicious exchange activity"
+
+  correlation_with:
+    - geolocation_apis
+    - social_media_apis
+    - government_apis
+    - financial_apis
+
+intelligence_fusion:
+  feed_to:
+    - apollo.crypto_intelligence
+    - apollo.blockchain_forensics
+    - apollo.financial_intelligence
+    - apollo.fusion_center
+
+  analysis:
+    - pattern_recognition: true
+    - anomaly_detection: true
+    - network_analysis: true
+    - temporal_analysis: true

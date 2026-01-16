@@ -1,0 +1,45 @@
+# Multi-Chain Transaction Tracing System
+# Python Dependencies
+
+# Core
+networkx>=3.0
+asyncio>=3.4.3
+
+# Data Processing
+pandas>=1.5.0
+numpy>=1.24.0
+
+# Async HTTP Requests
+aiohttp>=3.8.0
+httpx>=0.24.0
+
+# Graph Visualization
+matplotlib>=3.7.0
+plotly>=5.14.0
+
+# Export Formats
+lxml>=4.9.0
+
+# Optional: Advanced Graph Analysis
+python-igraph>=0.10.0
+graph-tool>=2.45.0
+
+# Optional: Web3 for Ethereum
+web3>=6.0.0
+eth-utils>=2.0.0
+eth-account>=0.8.0
+
+# Optional: Bitcoin Libraries
+python-bitcoinlib>=0.11.0
+bitcoin>=1.1.42
+
+# Development
+pytest>=7.3.0
+pytest-asyncio>=0.21.0
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.3.0
+
+# Documentation
+sphinx>=6.0.0
+sphinx-rtd-theme>=1.2.0

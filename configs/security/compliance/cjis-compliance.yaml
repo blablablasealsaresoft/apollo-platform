@@ -1,0 +1,418 @@
+# CJIS Security Policy Compliance Configuration
+# FBI Criminal Justice Information Services Security Policy v5.9.1
+
+cjis_compliance:
+  enabled: true
+  version: "5.9.1"
+  effective_date: "2023-06-01"
+
+  # 5.1 CJIS System Agency Access Control Policy
+  access_control:
+    # 5.1.1 CJIS System User Registration and Authentication
+    user_authentication:
+      # Advanced Authentication required
+      advanced_authentication: required
+
+      # Multi-factor authentication
+      mfa:
+        required: true
+        methods:
+          - time_based_otp
+          - hardware_token
+          - biometric
+          - smart_card
+
+      # Password policy (if passwords used)
+      password_policy:
+        min_length: 16
+        complexity: high
+        expiry: 90d
+        history: 5
+        lockout_threshold: 5
+        lockout_duration: 30m
+
+      # Biometric authentication
+      biometric:
+        liveness_detection: required
+        false_acceptance_rate: 0.001
+        quality_threshold: high
+
+    # 5.1.2 Access Control
+    authorization:
+      principle: least_privilege
+      role_based: true
+      need_to_know: enforced
+      periodic_review: quarterly
+
+    # 5.1.3 Sanctions
+    sanctions:
+      policy_violations: documented
+      enforcement: mandatory
+      review_period: annual
+
+  # 5.2 Awareness and Training
+  awareness_training:
+    # Security awareness training
+    required: annual
+
+    training_topics:
+      - cjis_security_policy
+      - information_security
+      - physical_security
+      - incident_response
+      - privacy_protection
+      - acceptable_use
+
+    # Role-based training
+    role_based_training:
+      admin: quarterly
+      investigator: annual
+      analyst: annual
+
+    # Training tracking
+    tracking:
+      completion_required: true
+      certification_required: true
+      documentation_retention: 3y
+
+  # 5.3 Audit and Accountability
+  audit_accountability:
+    # Audit logging
+    audit_logging:
+      enabled: true
+      comprehensive: true
+
+      # Events to audit
+      audited_events:
+        - login_attempts
+        - privilege_changes
+        - data_access
+        - data_modification
+        - security_events
+        - administrative_actions
+
+      # Audit record content
+      audit_record:
+        - timestamp
+        - user_id
+        - event_type
+        - outcome
+        - source_ip
+        - resource_accessed
+
+    # Audit record retention
+    retention:
+      active_investigations: 7y
+      closed_investigations: 20y
+      security_events: indefinite
+
+    # Audit review
+    review:
+      frequency: weekly
+      responsibility: security_officer
+      documentation: required
+
+  # 5.4 Configuration Management
+  configuration_management:
+    # Baseline configuration
+    baseline:
+      documented: true
+      security_hardening: applied
+      review_period: annual
+
+    # Change management
+    change_management:
+      approval_required: true
+      testing_required: true
+      documentation: mandatory
+      rollback_plan: required
+
+    # Vulnerability management
+    vulnerability_management:
+      scanning_frequency: weekly
+      remediation_timeline:
+        critical: 30d
+        high: 90d
+        medium: 180d
+
+  # 5.5 Identification and Authentication
+  identification_authentication:
+    # Unique identification
+    unique_id:
+      required: true
+      shared_accounts: prohibited
+
+    # Authenticator management
+    authenticator_management:
+      initial_distribution: secure
+      storage: encrypted
+      lifecycle: managed
+
+    # Session management
+    session_management:
+      timeout: 30m
+      lockout: automatic
+      reauth_for_sensitive: required
+
+  # 5.6 Incident Response
+  incident_response:
+    # Incident response capability
+    capability:
+      plan: documented
+      team: designated
+      training: regular
+      testing: annual
+
+    # Incident handling
+    handling:
+      detection: automated
+      analysis: mandatory
+      containment: immediate
+      eradication: documented
+      recovery: tested
+
+    # Incident reporting
+    reporting:
+      internal: immediate
+      cjis_systems_officer: 24h
+      fbi_cjis: per_policy
+
+  # 5.7 Maintenance
+  maintenance:
+    # System maintenance
+    system_maintenance:
+      scheduled: approved
+      emergency: documented
+      security_checks: mandatory
+
+    # Remote maintenance
+    remote_maintenance:
+      encrypted: required
+      authenticated: multi_factor
+      monitored: always
+      logged: comprehensive
+
+  # 5.8 Media Protection
+  media_protection:
+    # Media access
+    access:
+      authorized_personnel: only
+      logging: mandatory
+
+    # Media marking
+    marking:
+      sensitivity_labels: required
+      handling_instructions: visible
+
+    # Media sanitization
+    sanitization:
+      method: cryptographic_erase
+      verification: required
+      documentation: mandatory
+
+    # Media disposal
+    disposal:
+      approved_methods:
+        - cryptographic_erase
+        - physical_destruction
+      documentation: required
+      certificate_of_destruction: required
+
+  # 5.9 Physical Protection
+  physical_protection:
+    # Physical access control
+    access_control:
+      controlled_area: required
+      access_logging: mandatory
+      visitor_escort: required
+
+    # Physical security
+    security_measures:
+      - badge_access
+      - biometric_readers
+      - security_cameras
+      - intrusion_detection
+      - security_guards
+
+    # Environmental controls
+    environmental:
+      fire_suppression: automatic
+      temperature_control: monitored
+      humidity_control: regulated
+      power_backup: redundant
+
+  # 5.10 System and Communications Protection
+  system_communications:
+    # Encryption
+    encryption:
+      in_transit: required
+      at_rest: required
+      algorithm: FIPS_140_2_validated
+      key_management: controlled
+
+    # Network segmentation
+    network_segmentation:
+      cjis_network: isolated
+      dmz: implemented
+      internal_zones: segregated
+
+    # Boundary protection
+    boundary_protection:
+      firewalls: required
+      ids_ips: implemented
+      proxy_servers: deployed
+
+  # 5.11 System and Information Integrity
+  system_information_integrity:
+    # Malware protection
+    malware_protection:
+      antivirus: required
+      anti_malware: deployed
+      updates: automatic
+      scanning: real_time
+
+    # Information integrity
+    integrity:
+      checksums: implemented
+      digital_signatures: used
+      verification: automatic
+
+    # Security alerts
+    alerts:
+      security_advisories: monitored
+      vulnerability_bulletins: tracked
+      patch_releases: applied_timely
+
+  # 5.12 Personnel Security
+  personnel_security:
+    # Background screening
+    background_screening:
+      required: true
+
+      screening_requirements:
+        - criminal_history_check
+        - fingerprint_based_check
+        - employment_verification
+        - education_verification
+
+      # Screening levels
+      levels:
+        high_sensitivity:
+          - fbi_background_check
+          - fingerprinting
+          - credit_check
+          - drug_screening
+
+        moderate_sensitivity:
+          - state_background_check
+          - fingerprinting
+          - employment_verification
+
+    # Security clearances
+    clearances:
+      types:
+        - confidential
+        - secret
+        - top_secret
+
+      investigation_types:
+        - tier_1
+        - tier_3
+        - tier_5
+
+    # Termination procedures
+    termination:
+      access_revocation: immediate
+      credential_return: mandatory
+      exit_interview: required
+      nda_enforcement: permanent
+
+  # 5.13 Risk Assessment
+  risk_assessment:
+    # Risk assessment process
+    process:
+      frequency: annual
+      methodology: nist_800_30
+      documentation: required
+
+    # Risk categories
+    categories:
+      - technical_risks
+      - operational_risks
+      - compliance_risks
+      - privacy_risks
+
+    # Risk treatment
+    treatment:
+      mitigation: prioritized
+      acceptance: documented
+      transfer: when_appropriate
+      avoidance: considered
+
+  # 5.14 Security Assessment and Authorization
+  security_assessment:
+    # Security testing
+    testing:
+      vulnerability_scanning: monthly
+      penetration_testing: annual
+      security_audits: annual
+
+    # Authorization
+    authorization:
+      authority: designated
+      process: documented
+      renewal: triennial
+
+  # 5.15 System and Services Acquisition
+  system_services:
+    # Secure development
+    development:
+      secure_coding: required
+      code_review: mandatory
+      security_testing: comprehensive
+
+    # Third-party services
+    third_party:
+      security_assessment: required
+      contract_requirements: specified
+      monitoring: continuous
+
+  # Compliance Monitoring
+  compliance_monitoring:
+    # Self-assessment
+    self_assessment:
+      frequency: annual
+      documentation: required
+
+    # External audit
+    external_audit:
+      frequency: triennial
+      auditor: cjis_certified
+      certification: required
+
+    # Compliance reporting
+    reporting:
+      cjis_systems_officer: quarterly
+      management: quarterly
+      incidents: immediate
+
+  # Documentation
+  documentation:
+    # Required policies
+    policies:
+      - security_policy
+      - acceptable_use_policy
+      - incident_response_plan
+      - business_continuity_plan
+      - disaster_recovery_plan
+
+    # Documentation retention
+    retention: 7y
+
+  # Certification
+  certification:
+    # CJIS certification
+    certified: true
+    certification_date: ${CJIS_CERT_DATE}
+    expiration_date: ${CJIS_CERT_EXPIRY}
+    next_audit: ${CJIS_NEXT_AUDIT}

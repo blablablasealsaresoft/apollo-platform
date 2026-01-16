@@ -1,0 +1,112 @@
+{
+  "api_keys": {
+    "spokeo_api_key": "your_spokeo_api_key_here",
+    "pipl_api_key": "your_pipl_api_key_here",
+    "hunter_api_key": "your_hunter_io_api_key_here",
+    "numverify_api_key": "your_numverify_api_key_here",
+    "emailrep_api_key": "your_emailrep_api_key_here"
+  },
+
+  "rate_limits": {
+    "spokeo": 1.0,
+    "pipl": 1.0,
+    "truepeoplesearch": 2.0,
+    "generic_scraper": 2.0
+  },
+
+  "cache": {
+    "enable_cache": true,
+    "cache_ttl": 3600,
+    "cache_backend": "memory",
+    "redis_url": "redis://localhost:6379/0"
+  },
+
+  "search_settings": {
+    "enable_deep_search": true,
+    "minimum_confidence": 0.5,
+    "max_results_per_source": 10,
+    "timeout": 30
+  },
+
+  "proxy": {
+    "enabled": false,
+    "http_proxy": "http://proxy.example.com:8080",
+    "https_proxy": "https://proxy.example.com:8080",
+    "rotate_proxies": false,
+    "proxy_list": []
+  },
+
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+
+  "logging": {
+    "level": "INFO",
+    "log_to_file": true,
+    "log_file": "people_search.log",
+    "log_rotation": "1 day",
+    "log_retention": "30 days"
+  },
+
+  "output": {
+    "default_format": "json",
+    "save_reports": true,
+    "reports_directory": "./reports",
+    "include_sources": true,
+    "redact_sensitive": false
+  },
+
+  "state_specific": {
+    "florida": {
+      "voter_api": "florida_specific_api_key",
+      "court_api": "florida_court_api_key"
+    },
+    "california": {
+      "voter_api": "california_specific_api_key"
+    }
+  },
+
+  "background_check": {
+    "include_criminal": true,
+    "include_court_cases": true,
+    "include_property": true,
+    "include_business": true,
+    "include_bankruptcy": true,
+    "include_liens": true,
+    "sex_offender_check": true
+  },
+
+  "social_search": {
+    "platforms": [
+      "twitter",
+      "facebook",
+      "instagram",
+      "linkedin",
+      "github",
+      "reddit",
+      "tiktok",
+      "youtube"
+    ],
+    "check_all_platforms": false,
+    "deep_profile_scraping": false
+  },
+
+  "data_retention": {
+    "retain_reports": 90,
+    "auto_delete": true,
+    "encrypt_storage": true
+  },
+
+  "compliance": {
+    "fcra_compliant": false,
+    "gdpr_compliant": true,
+    "ccpa_compliant": true,
+    "log_all_searches": true,
+    "require_authorization": true
+  },
+
+  "notifications": {
+    "email_alerts": false,
+    "email_address": "alerts@example.com",
+    "slack_webhook": "",
+    "discord_webhook": ""
+  }
+}

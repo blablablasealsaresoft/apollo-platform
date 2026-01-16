@@ -1,0 +1,13 @@
+groups:
+  - name: api-latency
+    rules:
+      - record: apollo:api_request_latency:p95
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{app="apollo-api"}[5m])) by (le))
+      - alert: HighApiLatency
+        expr: apollo:api_request_latency:p95 > 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Apollo API latency above SLO
+          description: 95th percentile latency is {{ $value }} seconds

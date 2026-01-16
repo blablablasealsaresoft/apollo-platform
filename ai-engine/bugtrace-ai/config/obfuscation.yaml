@@ -1,0 +1,161 @@
+# BugTrace-AI Obfuscation Configuration
+# Configure the 14+ obfuscation techniques for WAF bypass
+
+techniques:
+  unicode:
+    enabled: true
+    description: "Unicode character encoding to bypass pattern matching"
+    bypass_targets:
+      - ModSecurity
+      - Generic WAFs
+    effectiveness: 8
+    complexity: low
+
+  html-entity:
+    enabled: true
+    description: "HTML entity encoding for special characters"
+    bypass_targets:
+      - Cloudflare
+      - ModSecurity
+    effectiveness: 7
+    complexity: low
+
+  string-concat:
+    enabled: true
+    description: "String concatenation to break signature patterns"
+    bypass_targets:
+      - AWS WAF
+      - Azure WAF
+    effectiveness: 8
+    complexity: medium
+
+  comment-insertion:
+    enabled: true
+    description: "Comment insertion within payload"
+    bypass_targets:
+      - ModSecurity
+      - Generic WAFs
+    effectiveness: 7
+    complexity: low
+
+  case-variation:
+    enabled: true
+    description: "Mixed case characters to bypass case-sensitive filters"
+    bypass_targets:
+      - Basic filters
+      - Blacklist filters
+    effectiveness: 5
+    complexity: trivial
+
+  hex-encoding:
+    enabled: true
+    description: "Hexadecimal encoding of characters"
+    bypass_targets:
+      - ModSecurity
+      - Custom WAFs
+    effectiveness: 7
+    complexity: low
+
+  octal-encoding:
+    enabled: true
+    description: "Octal encoding of characters"
+    bypass_targets:
+      - ModSecurity
+      - Custom WAFs
+    effectiveness: 6
+    complexity: low
+
+  base64:
+    enabled: true
+    description: "Base64 encoding with dynamic decoding"
+    bypass_targets:
+      - Generic WAFs
+      - Content filters
+    effectiveness: 8
+    complexity: medium
+
+  jsfuck:
+    enabled: true
+    description: "JSFuck encoding using only 6 characters"
+    bypass_targets:
+      - All JavaScript filters
+    effectiveness: 9
+    complexity: high
+
+  double-encoding:
+    enabled: true
+    description: "Double URL encoding to bypass decode-once filters"
+    bypass_targets:
+      - IIS filters
+      - Apache filters
+    effectiveness: 8
+    complexity: low
+
+  null-byte:
+    enabled: true
+    description: "Null byte injection to terminate parsing"
+    bypass_targets:
+      - Legacy filters
+      - PHP filters
+    effectiveness: 7
+    complexity: trivial
+
+  mixed-encoding:
+    enabled: true
+    description: "Multiple encoding techniques combined"
+    bypass_targets:
+      - Advanced WAFs
+      - Multi-layer filters
+    effectiveness: 9
+    complexity: high
+
+  context-specific:
+    enabled: true
+    description: "Context-aware obfuscation based on injection point"
+    bypass_targets:
+      - Context-aware WAFs
+    effectiveness: 8
+    complexity: medium
+
+  protocol-switch:
+    enabled: true
+    description: "Protocol switching to bypass URL filters"
+    bypass_targets:
+      - URL filters
+      - Protocol filters
+    effectiveness: 6
+    complexity: low
+
+# Payload generation settings
+generation:
+  default_variations: 10
+  max_variations: 50
+  multi_layer_combinations: true
+  context_awareness: true
+
+# WAF-specific presets
+waf_presets:
+  modsecurity:
+    recommended_techniques:
+      - unicode
+      - html-entity
+      - comment-insertion
+      - string-concat
+
+  cloudflare:
+    recommended_techniques:
+      - html-entity
+      - base64
+      - mixed-encoding
+
+  aws-waf:
+    recommended_techniques:
+      - string-concat
+      - double-encoding
+      - context-specific
+
+  generic:
+    recommended_techniques:
+      - unicode
+      - case-variation
+      - hex-encoding

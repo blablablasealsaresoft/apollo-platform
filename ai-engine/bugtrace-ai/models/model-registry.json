@@ -1,0 +1,23 @@
+{
+  "default": {
+    "provider": "google",
+    "model": "gemini-1.5-pro",
+    "temperature": 0.2,
+    "maxOutputTokens": 2048,
+    "safety": ["fraud", "malware"]
+  },
+  "fallback": {
+    "provider": "anthropic",
+    "model": "claude-3-sonnet",
+    "temperature": 0.1,
+    "systemPrompt": "You are BugTrace-AI, an authorized offensive security analyst."
+  },
+  "codeReview": {
+    "provider": "openai",
+    "model": "gpt-4.1-mini",
+    "temperature": 0.0,
+    "extra": {
+      "tool_choice": "code_interpreter"
+    }
+  }
+}

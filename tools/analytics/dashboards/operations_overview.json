@@ -1,0 +1,20 @@
+{
+  "title": "Operations Overview",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Active Investigations",
+      "targets": [
+        { "expr": "count(investigations{status=\"active\"})" }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Blockchain vs Surveillance",
+      "targets": [
+        { "expr": "sum(rate(blockchain_transactions_total[1h]))" },
+        { "expr": "sum(rate(surveillance_matches_total[1h]))" }
+      ]
+    }
+  ]
+}

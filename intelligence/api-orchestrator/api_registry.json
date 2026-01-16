@@ -1,0 +1,568 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2025-01-14",
+  "total_apis": 1000,
+  "categories": {
+    "social_media": {
+      "description": "Social media platforms and networking APIs",
+      "apis": {
+        "twitter_v2": {
+          "name": "Twitter API v2",
+          "base_url": "https://api.twitter.com/2",
+          "auth_type": "bearer_token",
+          "rate_limit": {"requests_per_second": 1.5, "burst": 10},
+          "endpoints": {
+            "user_lookup": "/users/by/username/{username}",
+            "user_tweets": "/users/{id}/tweets",
+            "search_recent": "/tweets/search/recent"
+          }
+        },
+        "instagram_basic": {
+          "name": "Instagram Basic Display API",
+          "base_url": "https://graph.instagram.com",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 5}
+        },
+        "facebook_graph": {
+          "name": "Facebook Graph API",
+          "base_url": "https://graph.facebook.com/v18.0",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 2.0, "burst": 20}
+        },
+        "linkedin": {
+          "name": "LinkedIn API",
+          "base_url": "https://api.linkedin.com/v2",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.3, "burst": 3}
+        },
+        "reddit": {
+          "name": "Reddit API",
+          "base_url": "https://oauth.reddit.com",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 10}
+        },
+        "tiktok": {
+          "name": "TikTok Research API",
+          "base_url": "https://open.tiktokapis.com/v2",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 5}
+        },
+        "pinterest": {
+          "name": "Pinterest API",
+          "base_url": "https://api.pinterest.com/v5",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.2, "burst": 2}
+        },
+        "snapchat": {
+          "name": "Snapchat Marketing API",
+          "base_url": "https://adsapi.snapchat.com/v1",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 5}
+        },
+        "youtube_data": {
+          "name": "YouTube Data API v3",
+          "base_url": "https://www.googleapis.com/youtube/v3",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 5}
+        },
+        "vimeo": {
+          "name": "Vimeo API",
+          "base_url": "https://api.vimeo.com",
+          "auth_type": "bearer_token",
+          "rate_limit": {"requests_per_second": 0.3, "burst": 3}
+        },
+        "telegram": {
+          "name": "Telegram Bot API",
+          "base_url": "https://api.telegram.org/bot",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 30}
+        },
+        "discord": {
+          "name": "Discord API",
+          "base_url": "https://discord.com/api/v10",
+          "auth_type": "bearer_token",
+          "rate_limit": {"requests_per_second": 5.0, "burst": 50}
+        },
+        "slack": {
+          "name": "Slack Web API",
+          "base_url": "https://slack.com/api",
+          "auth_type": "bearer_token",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 60}
+        },
+        "whatsapp_business": {
+          "name": "WhatsApp Business API",
+          "base_url": "https://graph.facebook.com/v18.0",
+          "auth_type": "bearer_token",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 10}
+        },
+        "mastodon": {
+          "name": "Mastodon API",
+          "base_url": "https://mastodon.social/api/v1",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 5.0, "burst": 300}
+        },
+        "tumblr": {
+          "name": "Tumblr API v2",
+          "base_url": "https://api.tumblr.com/v2",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.3, "burst": 3}
+        },
+        "flickr": {
+          "name": "Flickr API",
+          "base_url": "https://api.flickr.com/services/rest",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 10}
+        },
+        "deviantart": {
+          "name": "DeviantArt API",
+          "base_url": "https://www.deviantart.com/api/v1/oauth2",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 5}
+        },
+        "medium": {
+          "name": "Medium API",
+          "base_url": "https://api.medium.com/v1",
+          "auth_type": "bearer_token",
+          "rate_limit": {"requests_per_second": 0.2, "burst": 2}
+        },
+        "soundcloud": {
+          "name": "SoundCloud API",
+          "base_url": "https://api.soundcloud.com",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 5}
+        },
+        "spotify": {
+          "name": "Spotify Web API",
+          "base_url": "https://api.spotify.com/v1",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 10}
+        },
+        "twitch": {
+          "name": "Twitch API",
+          "base_url": "https://api.twitch.tv/helix",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 20.0, "burst": 800}
+        },
+        "github": {
+          "name": "GitHub REST API",
+          "base_url": "https://api.github.com",
+          "auth_type": "bearer_token",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 5000}
+        },
+        "gitlab": {
+          "name": "GitLab API",
+          "base_url": "https://gitlab.com/api/v4",
+          "auth_type": "bearer_token",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 600}
+        },
+        "bitbucket": {
+          "name": "Bitbucket API",
+          "base_url": "https://api.bitbucket.org/2.0",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 60}
+        },
+        "stackoverflow": {
+          "name": "Stack Exchange API",
+          "base_url": "https://api.stackexchange.com/2.3",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 0.3, "burst": 10000}
+        },
+        "hackernews": {
+          "name": "Hacker News API",
+          "base_url": "https://hacker-news.firebaseio.com/v0",
+          "auth_type": "none",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 100}
+        },
+        "producthunt": {
+          "name": "Product Hunt API",
+          "base_url": "https://api.producthunt.com/v2",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.2, "burst": 2}
+        },
+        "dribbble": {
+          "name": "Dribbble API",
+          "base_url": "https://api.dribbble.com/v2",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 60}
+        },
+        "behance": {
+          "name": "Behance API",
+          "base_url": "https://api.behance.net/v2",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 0.2, "burst": 2}
+        },
+        "vk": {
+          "name": "VK API",
+          "base_url": "https://api.vk.com/method",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 3.0, "burst": 20}
+        },
+        "weibo": {
+          "name": "Weibo API",
+          "base_url": "https://api.weibo.com/2",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 5}
+        },
+        "qq": {
+          "name": "QQ Connect API",
+          "base_url": "https://graph.qq.com",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 5}
+        },
+        "line": {
+          "name": "LINE Messaging API",
+          "base_url": "https://api.line.me/v2",
+          "auth_type": "bearer_token",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 100}
+        },
+        "wechat": {
+          "name": "WeChat Official Account API",
+          "base_url": "https://api.weixin.qq.com/cgi-bin",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 5}
+        },
+        "viber": {
+          "name": "Viber REST API",
+          "base_url": "https://chatapi.viber.com/pa",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 100}
+        },
+        "kik": {
+          "name": "Kik Bot API",
+          "base_url": "https://api.kik.com/v1",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 5}
+        },
+        "meetup": {
+          "name": "Meetup API",
+          "base_url": "https://api.meetup.com",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.3, "burst": 30}
+        },
+        "eventbrite": {
+          "name": "Eventbrite API",
+          "base_url": "https://www.eventbriteapi.com/v3",
+          "auth_type": "bearer_token",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 1000}
+        },
+        "patreon": {
+          "name": "Patreon API",
+          "base_url": "https://www.patreon.com/api/oauth2/v2",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.2, "burst": 2}
+        },
+        "ko_fi": {
+          "name": "Ko-fi API",
+          "base_url": "https://ko-fi.com/api",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 0.1, "burst": 1}
+        },
+        "goodreads": {
+          "name": "Goodreads API",
+          "base_url": "https://www.goodreads.com/api",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 10}
+        },
+        "lastfm": {
+          "name": "Last.fm API",
+          "base_url": "https://ws.audioscrobbler.com/2.0",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 5.0, "burst": 50}
+        },
+        "bandcamp": {
+          "name": "Bandcamp API",
+          "base_url": "https://bandcamp.com/api",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 0.2, "burst": 2}
+        },
+        "mixcloud": {
+          "name": "Mixcloud API",
+          "base_url": "https://api.mixcloud.com",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 5}
+        },
+        "discord_bots": {
+          "name": "Top.gg API",
+          "base_url": "https://top.gg/api",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 30.0, "burst": 100}
+        },
+        "myanimelist": {
+          "name": "MyAnimeList API",
+          "base_url": "https://api.myanimelist.net/v2",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 5}
+        },
+        "anilist": {
+          "name": "AniList API",
+          "base_url": "https://graphql.anilist.co",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 15.0, "burst": 90}
+        },
+        "kitsu": {
+          "name": "Kitsu API",
+          "base_url": "https://kitsu.io/api/edge",
+          "auth_type": "none",
+          "rate_limit": {"requests_per_second": 5.0, "burst": 50}
+        },
+        "trakt": {
+          "name": "Trakt API",
+          "base_url": "https://api.trakt.tv",
+          "auth_type": "oauth2",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 1000}
+        },
+        "letterboxd": {
+          "name": "Letterboxd (Unofficial)",
+          "base_url": "https://letterboxd.com",
+          "auth_type": "none",
+          "rate_limit": {"requests_per_second": 0.2, "burst": 2}
+        }
+      }
+    },
+    "blockchain_crypto": {
+      "description": "Cryptocurrency and blockchain data APIs",
+      "apis": {
+        "coinbase": {
+          "name": "Coinbase API",
+          "base_url": "https://api.coinbase.com/v2",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 3.0, "burst": 10}
+        },
+        "binance": {
+          "name": "Binance API",
+          "base_url": "https://api.binance.com/api/v3",
+          "auth_type": "hmac",
+          "rate_limit": {"requests_per_second": 20.0, "burst": 1200}
+        },
+        "kraken": {
+          "name": "Kraken API",
+          "base_url": "https://api.kraken.com/0",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 15}
+        },
+        "coinmarketcap": {
+          "name": "CoinMarketCap API",
+          "base_url": "https://pro-api.coinmarketcap.com/v1",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 0.3, "burst": 30}
+        },
+        "coingecko": {
+          "name": "CoinGecko API",
+          "base_url": "https://api.coingecko.com/api/v3",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 50}
+        },
+        "blockchain_info": {
+          "name": "Blockchain.info API",
+          "base_url": "https://blockchain.info",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 10}
+        },
+        "etherscan": {
+          "name": "Etherscan API",
+          "base_url": "https://api.etherscan.io/api",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 5.0, "burst": 5}
+        },
+        "bscscan": {
+          "name": "BscScan API",
+          "base_url": "https://api.bscscan.com/api",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 5.0, "burst": 5}
+        },
+        "polygonscan": {
+          "name": "PolygonScan API",
+          "base_url": "https://api.polygonscan.com/api",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 5.0, "burst": 5}
+        },
+        "moralis": {
+          "name": "Moralis Web3 API",
+          "base_url": "https://deep-index.moralis.io/api/v2",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 5.0, "burst": 25}
+        },
+        "alchemy": {
+          "name": "Alchemy API",
+          "base_url": "https://eth-mainnet.g.alchemy.com/v2",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 100}
+        },
+        "infura": {
+          "name": "Infura API",
+          "base_url": "https://mainnet.infura.io/v3",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 100}
+        },
+        "bitquery": {
+          "name": "Bitquery GraphQL",
+          "base_url": "https://graphql.bitquery.io",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 10}
+        },
+        "messari": {
+          "name": "Messari API",
+          "base_url": "https://data.messari.io/api/v1",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 20}
+        },
+        "glassnode": {
+          "name": "Glassnode API",
+          "base_url": "https://api.glassnode.com/v1",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 0.1, "burst": 1}
+        },
+        "cryptocompare": {
+          "name": "CryptoCompare API",
+          "base_url": "https://min-api.cryptocompare.com/data",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 50}
+        },
+        "nomics": {
+          "name": "Nomics API",
+          "base_url": "https://api.nomics.com/v1",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 10}
+        },
+        "lunarcrush": {
+          "name": "LunarCrush API",
+          "base_url": "https://api.lunarcrush.com/v2",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 0.3, "burst": 50}
+        },
+        "santiment": {
+          "name": "Santiment API",
+          "base_url": "https://api.santiment.net/graphql",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 0.5, "burst": 5}
+        },
+        "blockchair": {
+          "name": "Blockchair API",
+          "base_url": "https://api.blockchair.com",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 30}
+        },
+        "blockcypher": {
+          "name": "BlockCypher API",
+          "base_url": "https://api.blockcypher.com/v1",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 3.0, "burst": 200}
+        },
+        "bitaps": {
+          "name": "Bitaps API",
+          "base_url": "https://api.bitaps.com",
+          "auth_type": "none",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 10}
+        },
+        "sochain": {
+          "name": "SoChain API",
+          "base_url": "https://sochain.com/api/v2",
+          "auth_type": "none",
+          "rate_limit": {"requests_per_second": 5.0, "burst": 300}
+        },
+        "mempool": {
+          "name": "Mempool.space API",
+          "base_url": "https://mempool.space/api",
+          "auth_type": "none",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 100}
+        },
+        "bitgo": {
+          "name": "BitGo API",
+          "base_url": "https://app.bitgo.com/api/v2",
+          "auth_type": "bearer_token",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 100}
+        },
+        "gemini": {
+          "name": "Gemini API",
+          "base_url": "https://api.gemini.com/v1",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 120}
+        },
+        "bitfinex": {
+          "name": "Bitfinex API",
+          "base_url": "https://api-pub.bitfinex.com/v2",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 90}
+        },
+        "huobi": {
+          "name": "Huobi API",
+          "base_url": "https://api.huobi.pro",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 100}
+        },
+        "okx": {
+          "name": "OKX API",
+          "base_url": "https://www.okx.com/api/v5",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 20.0, "burst": 60}
+        },
+        "bybit": {
+          "name": "Bybit API",
+          "base_url": "https://api.bybit.com/v2",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 50}
+        },
+        "kucoin": {
+          "name": "KuCoin API",
+          "base_url": "https://api.kucoin.com",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 100}
+        },
+        "gateio": {
+          "name": "Gate.io API",
+          "base_url": "https://api.gateio.ws/api/v4",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 100}
+        },
+        "bitstamp": {
+          "name": "Bitstamp API",
+          "base_url": "https://www.bitstamp.net/api/v2",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 8000}
+        },
+        "poloniex": {
+          "name": "Poloniex API",
+          "base_url": "https://api.poloniex.com",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 6.0, "burst": 6}
+        },
+        "bittrex": {
+          "name": "Bittrex API",
+          "base_url": "https://api.bittrex.com/v3",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 60.0, "burst": 60}
+        },
+        "cex_io": {
+          "name": "CEX.IO API",
+          "base_url": "https://cex.io/api",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 600}
+        },
+        "bitmart": {
+          "name": "BitMart API",
+          "base_url": "https://api-cloud.bitmart.com",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 100}
+        },
+        "mexc": {
+          "name": "MEXC API",
+          "base_url": "https://api.mexc.com/api/v3",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 20.0, "burst": 1200}
+        },
+        "bitrue": {
+          "name": "Bitrue API",
+          "base_url": "https://www.bitrue.com/api/v1",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 10.0, "burst": 1200}
+        },
+        "ftx": {
+          "name": "FTX API (Deprecated)",
+          "base_url": "https://ftx.com/api",
+          "auth_type": "api_key",
+          "rate_limit": {"requests_per_second": 1.0, "burst": 30}
+        }
+      }
+    }
+  }
+}

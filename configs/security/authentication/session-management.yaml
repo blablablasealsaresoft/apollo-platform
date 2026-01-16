@@ -1,0 +1,409 @@
+# Session Management Configuration for Apollo Platform
+# Secure session handling for law enforcement platform
+
+session_management:
+  # Session Storage Backend
+  storage:
+    # Primary session storage (redis, memcached, database)
+    backend: redis
+
+    # Redis configuration
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      db: 0
+      key_prefix: "apollo:session:"
+      tls: true
+
+    # Fallback to database if Redis unavailable
+    fallback_to_db: true
+
+  # Session Configuration
+  session:
+    # Session ID generation
+    id_generation:
+      # Length of session ID
+      length: 64
+
+      # Character set (hex, base64, alphanumeric)
+      character_set: base64
+
+      # Use cryptographically secure random generator
+      secure_random: true
+
+    # Session timeout (idle timeout)
+    timeout: 12h
+
+    # Absolute session timeout (maximum lifetime)
+    absolute_timeout: 24h
+
+    # Extend session on activity (sliding expiration)
+    sliding_expiration: true
+
+    # Activity threshold for extending session
+    activity_threshold: 5m
+
+    # Warning before session expires
+    expiry_warning: 5m
+
+  # Session Security
+  security:
+    # Regenerate session ID on privilege change
+    regenerate_on_privilege_change: true
+
+    # Regenerate session ID after authentication
+    regenerate_on_auth: true
+
+    # Regenerate session ID periodically
+    periodic_regeneration: true
+
+    # Regeneration interval
+    regeneration_interval: 30m
+
+    # HTTP-only cookies (prevent JavaScript access)
+    http_only: true
+
+    # Secure cookies (HTTPS only)
+    secure: true
+
+    # SameSite cookie attribute
+    same_site: strict
+
+    # Cookie domain
+    domain: ${APOLLO_DOMAIN}
+
+    # Cookie path
+    path: /
+
+    # Bind session to IP address
+    bind_to_ip: true
+
+    # Allow IP change within same subnet
+    allow_subnet_change: true
+
+    # Bind session to User-Agent
+    bind_to_user_agent: true
+
+    # Allow User-Agent minor version changes
+    allow_ua_minor_changes: true
+
+  # Multi-Device Sessions
+  multi_device:
+    # Allow multiple concurrent sessions per user
+    enabled: true
+
+    # Maximum concurrent sessions per user
+    max_sessions: 5
+
+    # Session naming/identification
+    session_naming: true
+
+    # Auto-generated session names
+    auto_name_format: "{device} - {location} - {time}"
+
+    # Allow users to view active sessions
+    allow_session_view: true
+
+    # Allow users to terminate other sessions
+    allow_session_termination: true
+
+    # Notify on new session creation
+    notify_new_session: true
+
+    # Notification methods
+    notification_methods:
+      - email
+      - in_app
+
+  # Session Monitoring
+  monitoring:
+    # Track session activity
+    track_activity: true
+
+    # Activity tracking granularity
+    activity_granularity: detailed
+
+    # Track these events
+    tracked_events:
+      - page_view
+      - api_request
+      - data_access
+      - data_modification
+      - privilege_escalation_attempt
+      - suspicious_activity
+
+    # Session analytics
+    analytics:
+      enabled: true
+      track_duration: true
+      track_pages_visited: true
+      track_actions_performed: true
+      track_data_accessed: true
+
+  # Suspicious Activity Detection
+  suspicious_activity:
+    # Enable anomaly detection
+    enabled: true
+
+    # Anomaly detection rules
+    rules:
+      # Impossible travel (location change too fast)
+      impossible_travel:
+        enabled: true
+        max_speed_kmh: 1000
+        action: require_mfa
+
+      # Session hijacking indicators
+      session_hijacking:
+        enabled: true
+        checks:
+          - ip_change
+          - user_agent_change
+          - geolocation_change
+          - device_fingerprint_change
+        action: terminate_session
+
+      # Unusual activity patterns
+      unusual_activity:
+        enabled: true
+        checks:
+          - unusual_time_access
+          - unusual_data_volume
+          - unusual_action_frequency
+          - access_to_unusual_resources
+        action: require_mfa
+
+      # Concurrent sessions from different locations
+      concurrent_locations:
+        enabled: true
+        max_distance_km: 100
+        action: alert_user
+
+    # Actions on suspicious activity
+    actions:
+      - log_event
+      - alert_user
+      - alert_security_team
+      - require_mfa
+      - terminate_session
+      - lockout_account
+
+  # Session Termination
+  termination:
+    # Terminate session on user logout
+    on_logout: immediate
+
+    # Terminate all sessions on password change
+    on_password_change: all_sessions
+
+    # Terminate all sessions on account lockout
+    on_lockout: all_sessions
+
+    # Terminate session on inactivity
+    on_inactivity: true
+
+    # Grace period before termination
+    grace_period: 5m
+
+    # Notify user of session termination
+    notify_user: true
+
+  # Session Persistence
+  persistence:
+    # Remember me functionality
+    remember_me:
+      enabled: true
+      duration: 30d
+      secure: true
+      http_only: true
+      require_explicit_consent: true
+
+    # Keep user logged in across browser restarts
+    persistent_sessions: true
+
+    # Session data to persist
+    persist_data:
+      - user_preferences
+      - ui_state
+      - recent_searches
+      - pinned_investigations
+
+  # Concurrent Session Handling
+  concurrent_sessions:
+    # Policy for handling concurrent sessions
+    policy: limit  # Options: allow, limit, single
+
+    # Maximum concurrent sessions (if policy = limit)
+    max_concurrent: 5
+
+    # Action when limit exceeded
+    on_limit_exceeded: terminate_oldest
+
+    # Options: terminate_oldest, terminate_newest, require_choice, deny_new
+
+  # Session Handoff
+  handoff:
+    # Allow session handoff between devices
+    enabled: true
+
+    # Handoff methods
+    methods:
+      - qr_code
+      - push_notification
+      - email_link
+
+    # Require MFA for handoff
+    require_mfa: true
+
+    # Handoff token validity
+    token_validity: 5m
+
+    # Terminate original session after handoff
+    terminate_original: false
+
+  # Session Recovery
+  recovery:
+    # Allow session recovery after network interruption
+    enabled: true
+
+    # Recovery window
+    recovery_window: 10m
+
+    # Require reauthentication for recovery
+    require_reauth: false
+
+    # Verify device fingerprint for recovery
+    verify_device: true
+
+  # Session Cleanup
+  cleanup:
+    # Automatically clean up expired sessions
+    enabled: true
+
+    # Cleanup interval
+    interval: 1h
+
+    # Delete expired sessions after this period
+    delete_after: 7d
+
+    # Archive session data before deletion
+    archive_before_delete: true
+
+    # Archive location
+    archive_location: s3://apollo-session-archive
+
+  # Mobile Sessions
+  mobile:
+    # Different timeout for mobile sessions
+    timeout: 24h
+
+    # Allow longer sessions on mobile
+    extended_sessions: true
+
+    # Require device registration
+    require_device_registration: true
+
+    # Device fingerprinting
+    device_fingerprinting:
+      enabled: true
+      factors:
+        - device_model
+        - os_version
+        - app_version
+        - screen_size
+        - timezone
+
+  # API Sessions
+  api:
+    # Separate session management for API access
+    enabled: true
+
+    # Use API keys instead of sessions
+    use_api_keys: true
+
+    # API session timeout
+    timeout: 1h
+
+    # Rate limiting per API session
+    rate_limiting: true
+
+  # Session Sharing
+  sharing:
+    # Allow session sharing (screen sharing, demo mode)
+    enabled: false
+
+    # Require approval for session sharing
+    require_approval: true
+
+    # Limit shared session permissions
+    limited_permissions: true
+
+    # Audit all shared session activity
+    audit_shared_sessions: true
+
+  # Compliance
+  compliance:
+    # CJIS session management requirements
+    cjis_compliant: true
+
+    # Session timeout requirements
+    cjis_timeout: 30m
+
+    # Automatic lockout on inactivity
+    auto_lockout: true
+
+  # Logging and Auditing
+  logging:
+    # Log session creation
+    log_creation: true
+
+    # Log session termination
+    log_termination: true
+
+    # Log session activity
+    log_activity: true
+
+    # Log suspicious session events
+    log_suspicious: true
+
+    # Session log retention
+    log_retention: 90d
+
+    # Include session metadata in logs
+    include_metadata: true
+
+  # Rate Limiting
+  rate_limiting:
+    # Session creation rate limit per user
+    creation_per_user: 10/hour
+
+    # Session creation rate limit per IP
+    creation_per_ip: 20/hour
+
+    # Session activity rate limit
+    activity_per_session: 1000/minute
+
+  # Performance
+  performance:
+    # Session data caching
+    caching:
+      enabled: true
+      ttl: 5m
+
+    # Lazy loading of session data
+    lazy_loading: true
+
+    # Compress session data
+    compression: true
+
+  # Development Settings
+  development:
+    # Extended timeout for development
+    extended_timeout: ${DEV_EXTENDED_TIMEOUT:-false}
+
+    # Disable security checks in development
+    disable_security_checks: ${DEV_DISABLE_SESSION_SECURITY:-false}
+
+    # Debug session information
+    debug_mode: ${SESSION_DEBUG:-false}

@@ -1,0 +1,32 @@
+# Transportation Tracking Module Dependencies
+# Apollo Platform - GEOINT Engine
+
+# Web Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+
+# Async Support
+asyncio>=3.4.3
+httpx>=0.25.0
+
+# Database
+asyncpg>=0.29.0
+psycopg2-binary>=2.9.9
+
+# Data Processing
+numpy>=1.26.0
+pandas>=2.1.0
+
+# Utilities
+python-dateutil>=2.8.2
+
+# WebSocket
+websockets>=12.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+
+# Type hints
+typing-extensions>=4.8.0

@@ -1,0 +1,448 @@
+# Comprehensive Audit Logging Rules for Apollo Platform
+# CJIS-compliant audit trail for all security-relevant events
+
+audit_logging:
+  enabled: true
+  level: comprehensive
+  tamper_protection: true
+  encryption: AES-256-GCM
+
+  # Authentication Events
+  authentication:
+    events:
+      - event: login_success
+        severity: info
+        log_fields: [timestamp, user_id, username, ip_address, user_agent, mfa_method, session_id]
+
+      - event: login_failure
+        severity: warning
+        log_fields: [timestamp, attempted_username, ip_address, failure_reason, attempt_count]
+
+      - event: logout
+        severity: info
+        log_fields: [timestamp, user_id, session_duration, ip_address]
+
+      - event: mfa_setup
+        severity: info
+        log_fields: [timestamp, user_id, mfa_method, setup_method]
+
+      - event: mfa_verification_success
+        severity: info
+        log_fields: [timestamp, user_id, mfa_method]
+
+      - event: mfa_verification_failure
+        severity: warning
+        log_fields: [timestamp, user_id, mfa_method, failure_reason]
+
+      - event: password_change
+        severity: info
+        log_fields: [timestamp, user_id, changed_by, method]
+
+      - event: password_reset_request
+        severity: warning
+        log_fields: [timestamp, user_id, email, ip_address]
+
+      - event: password_reset_complete
+        severity: info
+        log_fields: [timestamp, user_id, reset_method]
+
+      - event: account_lockout
+        severity: warning
+        log_fields: [timestamp, user_id, reason, lockout_duration]
+
+      - event: session_timeout
+        severity: info
+        log_fields: [timestamp, user_id, session_id, idle_time]
+
+  # Authorization Events
+  authorization:
+    events:
+      - event: permission_grant
+        severity: info
+        log_fields: [timestamp, granted_by, granted_to, permission, resource]
+
+      - event: permission_revoke
+        severity: info
+        log_fields: [timestamp, revoked_by, revoked_from, permission, resource]
+
+      - event: role_assignment
+        severity: info
+        log_fields: [timestamp, assigned_by, assigned_to, role, effective_date]
+
+      - event: role_removal
+        severity: info
+        log_fields: [timestamp, removed_by, removed_from, role]
+
+      - event: access_denied
+        severity: warning
+        log_fields: [timestamp, user_id, resource, required_permission, reason]
+
+      - event: privilege_escalation
+        severity: critical
+        log_fields: [timestamp, user_id, from_role, to_role, escalation_method, approved_by]
+
+      - event: access_policy_change
+        severity: info
+        log_fields: [timestamp, changed_by, policy_name, old_value, new_value]
+
+  # Data Access Events
+  data_access:
+    events:
+      - event: investigation_view
+        severity: info
+        log_fields: [timestamp, user_id, investigation_id, classification, access_duration]
+
+      - event: evidence_view
+        severity: info
+        log_fields: [timestamp, user_id, evidence_id, investigation_id, file_hash]
+
+      - event: evidence_download
+        severity: warning
+        log_fields: [timestamp, user_id, evidence_id, file_name, file_size, destination]
+
+      - event: intelligence_access
+        severity: info
+        log_fields: [timestamp, user_id, intelligence_id, classification, source_type]
+
+      - event: surveillance_access
+        severity: info
+        log_fields: [timestamp, user_id, camera_id, feed_type, duration]
+
+      - event: classified_data_access
+        severity: critical
+        log_fields: [timestamp, user_id, resource_id, classification_level, clearance_level, justification]
+
+      - event: bulk_data_access
+        severity: warning
+        log_fields: [timestamp, user_id, record_count, data_type, purpose]
+
+      - event: pii_access
+        severity: warning
+        log_fields: [timestamp, user_id, subject_id, data_fields, justification]
+
+  # Data Modification Events
+  data_modification:
+    events:
+      - event: investigation_create
+        severity: info
+        log_fields: [timestamp, user_id, investigation_id, title, classification]
+
+      - event: investigation_update
+        severity: info
+        log_fields: [timestamp, user_id, investigation_id, fields_changed, old_values, new_values]
+
+      - event: investigation_delete
+        severity: critical
+        log_fields: [timestamp, user_id, investigation_id, approval_by, justification]
+
+      - event: investigation_close
+        severity: info
+        log_fields: [timestamp, user_id, investigation_id, closure_reason, outcome]
+
+      - event: evidence_upload
+        severity: info
+        log_fields: [timestamp, user_id, evidence_id, file_name, file_hash, file_size, investigation_id]
+
+      - event: evidence_modify
+        severity: warning
+        log_fields: [timestamp, user_id, evidence_id, modification_type, old_hash, new_hash]
+
+      - event: evidence_delete
+        severity: critical
+        log_fields: [timestamp, user_id, evidence_id, approval_by, justification, retention_period_met]
+
+      - event: chain_of_custody_transfer
+        severity: info
+        log_fields: [timestamp, from_user, to_user, evidence_id, transfer_reason, digital_signature]
+
+      - event: intelligence_create
+        severity: info
+        log_fields: [timestamp, user_id, intelligence_id, source_type, classification]
+
+      - event: intelligence_update
+        severity: info
+        log_fields: [timestamp, user_id, intelligence_id, fields_changed]
+
+      - event: report_generate
+        severity: info
+        log_fields: [timestamp, user_id, report_type, investigation_id, export_format]
+
+  # System Operations
+  system_operations:
+    events:
+      - event: user_create
+        severity: info
+        log_fields: [timestamp, created_by, user_id, username, role, agency]
+
+      - event: user_update
+        severity: info
+        log_fields: [timestamp, updated_by, user_id, fields_changed]
+
+      - event: user_delete
+        severity: warning
+        log_fields: [timestamp, deleted_by, user_id, approval_by]
+
+      - event: user_disable
+        severity: warning
+        log_fields: [timestamp, disabled_by, user_id, reason]
+
+      - event: configuration_change
+        severity: warning
+        log_fields: [timestamp, changed_by, config_name, old_value, new_value, change_category]
+
+      - event: service_start
+        severity: info
+        log_fields: [timestamp, service_name, started_by, version]
+
+      - event: service_stop
+        severity: warning
+        log_fields: [timestamp, service_name, stopped_by, reason]
+
+      - event: service_restart
+        severity: warning
+        log_fields: [timestamp, service_name, restarted_by, reason]
+
+      - event: backup_initiated
+        severity: info
+        log_fields: [timestamp, backup_type, initiated_by, data_size]
+
+      - event: backup_completed
+        severity: info
+        log_fields: [timestamp, backup_id, duration, data_size, verification_status]
+
+      - event: system_update
+        severity: warning
+        log_fields: [timestamp, updated_by, update_type, from_version, to_version]
+
+  # Security Events
+  security_events:
+    events:
+      - event: unauthorized_access_attempt
+        severity: critical
+        log_fields: [timestamp, user_id, resource, ip_address, user_agent, blocked]
+
+      - event: privilege_escalation_attempt
+        severity: critical
+        log_fields: [timestamp, user_id, attempted_action, denied_reason, ip_address]
+
+      - event: suspicious_activity
+        severity: critical
+        log_fields: [timestamp, user_id, activity_type, risk_score, indicators]
+
+      - event: brute_force_detected
+        severity: critical
+        log_fields: [timestamp, source_ip, target_user, attempt_count, blocked]
+
+      - event: sql_injection_attempt
+        severity: critical
+        log_fields: [timestamp, source_ip, endpoint, query_pattern, blocked]
+
+      - event: xss_attempt
+        severity: critical
+        log_fields: [timestamp, source_ip, endpoint, payload, blocked]
+
+      - event: malware_detected
+        severity: critical
+        log_fields: [timestamp, file_hash, file_name, detection_method, user_id]
+
+      - event: data_exfiltration_attempt
+        severity: critical
+        log_fields: [timestamp, user_id, data_volume, destination, blocked]
+
+      - event: security_policy_violation
+        severity: warning
+        log_fields: [timestamp, user_id, policy_name, violation_type, action_taken]
+
+      - event: firewall_block
+        severity: warning
+        log_fields: [timestamp, source_ip, destination_port, protocol, rule_matched]
+
+      - event: ids_alert
+        severity: critical
+        log_fields: [timestamp, alert_type, source_ip, destination_ip, signature]
+
+  # Red Team Operations
+  redteam_operations:
+    events:
+      - event: c2_session_start
+        severity: info
+        log_fields: [timestamp, operator_id, target, session_id, authorization_id]
+
+      - event: c2_command_executed
+        severity: info
+        log_fields: [timestamp, operator_id, session_id, command, output_hash]
+
+      - event: exploit_deployed
+        severity: warning
+        log_fields: [timestamp, operator_id, exploit_name, target, approval_by, success]
+
+      - event: implant_deployed
+        severity: warning
+        log_fields: [timestamp, operator_id, implant_id, target, persistence_method]
+
+      - event: credential_harvested
+        severity: info
+        log_fields: [timestamp, operator_id, credential_type, target, hashed_value]
+
+  # Administrative Events
+  administrative:
+    events:
+      - event: key_rotation
+        severity: info
+        log_fields: [timestamp, key_id, key_type, rotated_by, old_key_id, new_key_id]
+
+      - event: certificate_issued
+        severity: info
+        log_fields: [timestamp, certificate_cn, issued_by, expiry_date]
+
+      - event: certificate_revoked
+        severity: warning
+        log_fields: [timestamp, certificate_cn, revoked_by, reason]
+
+      - event: audit_log_export
+        severity: warning
+        log_fields: [timestamp, exported_by, date_range, record_count, destination]
+
+      - event: compliance_report_generated
+        severity: info
+        log_fields: [timestamp, generated_by, report_type, date_range]
+
+  # Log Format
+  log_format:
+    format: json
+    timestamp_format: ISO8601
+    timezone: UTC
+    include_hostname: true
+    include_process_id: true
+    include_correlation_id: true
+
+  # Required Fields (every log entry)
+  required_fields:
+    - timestamp
+    - event_type
+    - severity
+    - user_id
+    - source_ip
+    - session_id
+    - correlation_id
+    - result
+
+  # Optional Context Fields
+  context_fields:
+    - user_agent
+    - geo_location
+    - device_id
+    - api_version
+    - request_id
+
+  # Retention Policies
+  retention:
+    active_investigations: 7y
+    closed_investigations: 20y
+    security_events: indefinite
+    system_logs: 1y
+    compliance_logs: 7y
+    audit_trail: 20y
+
+  # Storage Configuration
+  storage:
+    primary:
+      backend: elasticsearch
+      cluster: audit-logs-cluster
+      index_pattern: apollo-audit-%{+YYYY.MM.dd}
+      replicas: 2
+      shards: 3
+
+    archive:
+      backend: s3_glacier
+      bucket: apollo-audit-archive
+      encryption: AES-256-GCM
+      lifecycle_policy: immediate_glacier
+
+    backup:
+      frequency: daily
+      retention: 90d
+      verification: weekly
+
+  # Log Integrity
+  integrity:
+    # Digital signatures
+    signing:
+      enabled: true
+      algorithm: RSA-4096
+      hash: SHA-256
+      sign_interval: hourly
+
+    # Blockchain anchoring
+    blockchain:
+      enabled: true
+      chain: private_ethereum
+      anchor_interval: daily
+
+    # Tamper detection
+    tamper_detection:
+      enabled: true
+      check_interval: hourly
+      alert_on_tampering: immediate
+
+  # Log Analysis
+  analysis:
+    # Real-time analysis
+    real_time:
+      enabled: true
+      correlation_rules: ${CORRELATION_RULES_PATH}
+      ml_anomaly_detection: true
+
+    # Aggregation
+    aggregation:
+      user_activity_summary: daily
+      security_metrics: hourly
+      compliance_metrics: daily
+
+  # Alerting
+  alerting:
+    # Critical events require immediate alert
+    immediate_alerts:
+      - unauthorized_access_attempt
+      - privilege_escalation_attempt
+      - data_exfiltration_attempt
+      - evidence_delete
+      - classified_data_access
+      - malware_detected
+      - ids_alert
+
+    # Alert destinations
+    destinations:
+      - email: ${SECURITY_TEAM_EMAIL}
+      - slack: ${SECURITY_SLACK_CHANNEL}
+      - pagerduty: ${PAGERDUTY_SERVICE}
+      - siem: ${SIEM_ENDPOINT}
+
+  # Compliance Integration
+  compliance:
+    cjis: enabled
+    gdpr: enabled
+    sox: enabled
+    hipaa: enabled
+
+  # Performance
+  performance:
+    # Async logging
+    async_logging: true
+    buffer_size: 10000
+    flush_interval: 5s
+
+    # Batching
+    batch_writes: true
+    batch_size: 100
+
+    # Sampling (for high-volume events)
+    sampling:
+      enabled: false  # Disabled for compliance
+      sample_rate: 1.0
+
+  # Development Settings
+  development:
+    log_to_console: ${DEV_LOG_CONSOLE:-false}
+    verbose_logging: ${DEV_VERBOSE_LOGS:-false}
+    disable_encryption: ${DEV_DISABLE_LOG_ENCRYPTION:-false}

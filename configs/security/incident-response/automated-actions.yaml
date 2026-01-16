@@ -1,0 +1,187 @@
+# Automated Incident Response Actions
+
+automated_actions:
+  # Account Security
+  account_security:
+    multiple_failed_logins:
+      trigger:
+        failed_attempts: 5
+        timeframe: 5m
+      actions:
+        - lockout_account: 30m
+        - alert_user: email
+        - alert_security_team: slack
+        - log_incident: high
+
+    impossible_travel:
+      trigger:
+        location_change: 500km
+        timeframe: 1h
+      actions:
+        - require_mfa: true
+        - alert_user: email_sms
+        - suspend_session: true
+        - alert_security_team: slack
+
+    compromised_credentials:
+      trigger:
+        breach_database_match: true
+      actions:
+        - force_password_change: immediate
+        - revoke_all_sessions: true
+        - alert_user: email_sms
+        - alert_security_team: slack
+
+  # Network Security
+  network_security:
+    port_scan_detected:
+      trigger:
+        ports_scanned: 20
+        timeframe: 1m
+      actions:
+        - block_ip: 24h
+        - alert_security_team: immediate
+        - log_incident: high
+
+    ddos_attack:
+      trigger:
+        requests_per_second: 10000
+        duration: 30s
+      actions:
+        - enable_rate_limiting: aggressive
+        - activate_cdn_protection: true
+        - alert_security_team: immediate
+        - escalate_to_noc: true
+
+    malicious_ip:
+      trigger:
+        threat_intel_match: true
+      actions:
+        - block_ip: permanent
+        - log_incident: high
+        - alert_security_team: immediate
+
+  # Data Protection
+  data_protection:
+    mass_data_download:
+      trigger:
+        files_downloaded: 100
+        timeframe: 10m
+      actions:
+        - rate_limit_user: true
+        - require_mfa: true
+        - alert_security_team: immediate
+        - log_incident: critical
+
+    unauthorized_data_access:
+      trigger:
+        access_denied_count: 10
+        timeframe: 5m
+      actions:
+        - lockout_account: 1h
+        - alert_security_team: immediate
+        - preserve_logs: true
+        - create_incident: true
+
+    evidence_tampering:
+      trigger:
+        evidence_integrity_fail: true
+      actions:
+        - lock_evidence: true
+        - preserve_logs: true
+        - alert_ciso: immediate
+        - create_critical_incident: true
+        - notify_legal: true
+
+  # Malware Detection
+  malware:
+    malware_detected:
+      trigger:
+        antivirus_detection: true
+      actions:
+        - quarantine_file: immediate
+        - isolate_system: true
+        - scan_network: full
+        - alert_security_team: immediate
+        - preserve_forensics: true
+
+    ransomware_behavior:
+      trigger:
+        mass_file_encryption: true
+      actions:
+        - isolate_system: immediate
+        - kill_process: true
+        - preserve_forensics: true
+        - alert_ciso: immediate
+        - activate_backup_restore: true
+
+  # Privilege Escalation
+  privilege_escalation:
+    unauthorized_privilege_use:
+      trigger:
+        privilege_escalation_attempt: true
+      actions:
+        - deny_action: true
+        - terminate_session: immediate
+        - lockout_account: 24h
+        - alert_ciso: immediate
+        - preserve_forensics: true
+        - create_incident: critical
+
+  # System Integrity
+  system_integrity:
+    configuration_change:
+      trigger:
+        unauthorized_config_change: true
+      actions:
+        - revert_change: automatic
+        - alert_security_team: immediate
+        - log_incident: high
+        - require_approval: true
+
+    file_integrity_violation:
+      trigger:
+        system_file_changed: true
+      actions:
+        - restore_from_backup: true
+        - scan_for_malware: full
+        - alert_security_team: immediate
+        - preserve_forensics: true
+
+  # Red Team Operations
+  redteam_anomalies:
+    unauthorized_c2_activity:
+      trigger:
+        c2_session_unauthorized: true
+      actions:
+        - terminate_c2_session: immediate
+        - alert_security_team: critical
+        - lockout_operator: true
+        - preserve_logs: true
+        - create_incident: critical
+
+  # Compliance Violations
+  compliance:
+    policy_violation:
+      trigger:
+        security_policy_violated: true
+      actions:
+        - log_violation: true
+        - alert_user: true
+        - alert_supervisor: true
+        - alert_compliance_officer: true
+
+  # Response Verification
+  verification:
+    verify_actions: true
+    rollback_on_error: true
+    human_review_required:
+      - critical_incidents
+      - account_lockouts
+      - system_isolation
+
+  # Logging
+  logging:
+    log_all_actions: true
+    include_reasoning: true
+    retention: 7y

@@ -1,0 +1,223 @@
+service:
+  name: criminal-behavior-ai
+  version: 1.0.0
+  port: 8002
+  description: Criminal behavior pattern analysis and profiling
+
+ai_models:
+  primary: anthropic/claude-3-opus
+  fallback: google/gemini-flash
+
+  models:
+    claude-opus:
+      provider: anthropic
+      model: claude-3-opus-20240229
+      api_key: ${ANTHROPIC_API_KEY}
+      temperature: 0.5
+      max_tokens: 4000
+
+    gemini-flash:
+      provider: google
+      model: gemini-flash
+      api_key: ${GOOGLE_API_KEY}
+      temperature: 0.5
+      max_tokens: 8000
+
+    gpt-4:
+      provider: openai
+      model: gpt-4-turbo-preview
+      api_key: ${OPENAI_API_KEY}
+      temperature: 0.5
+      max_tokens: 8000
+
+analysis_types:
+  behavioral_profiling:
+    enabled: true
+    techniques:
+      - pattern_recognition
+      - temporal_analysis
+      - social_network_analysis
+      - communication_pattern_analysis
+      - financial_behavior_analysis
+
+  threat_assessment:
+    enabled: true
+    factors:
+      - historical_activity
+      - resource_access
+      - capability_assessment
+      - intent_indicators
+      - opportunity_analysis
+
+  prediction:
+    enabled: true
+    models:
+      - next_action_prediction
+      - location_prediction
+      - associate_prediction
+      - resource_utilization
+
+  modus_operandi:
+    enabled: true
+    analysis:
+      - technique_identification
+      - tool_preference
+      - timing_patterns
+      - target_selection
+      - evasion_tactics
+
+criminal_categories:
+  financial_crimes:
+    - cryptocurrency_fraud
+    - money_laundering
+    - ponzi_schemes
+    - investment_fraud
+    - embezzlement
+
+  cybercrime:
+    - ransomware
+    - data_breaches
+    - identity_theft
+    - phishing
+    - ddos_attacks
+
+  organized_crime:
+    - human_trafficking
+    - drug_trafficking
+    - weapons_trafficking
+    - extortion
+    - racketeering
+
+  fraud:
+    - bank_fraud
+    - insurance_fraud
+    - tax_fraud
+    - wire_fraud
+    - securities_fraud
+
+profiling:
+  personality_traits: true
+  risk_assessment: true
+  capability_scoring: true
+  network_influence: true
+  predictive_modeling: true
+
+pattern_recognition:
+  algorithms:
+    - temporal_pattern_mining
+    - sequential_pattern_analysis
+    - anomaly_detection
+    - clustering
+    - classification
+
+  features:
+    - transaction_patterns
+    - communication_patterns
+    - location_patterns
+    - behavioral_patterns
+    - social_patterns
+
+network_analysis:
+  social_network: true
+  criminal_network: true
+  financial_network: true
+  communication_network: true
+
+  metrics:
+    - centrality
+    - betweenness
+    - closeness
+    - eigenvector_centrality
+    - community_detection
+
+risk_scoring:
+  factors:
+    - historical_activity: 30%
+    - current_behavior: 25%
+    - network_associations: 20%
+    - resource_access: 15%
+    - prediction_confidence: 10%
+
+  score_range: 0-100
+  thresholds:
+    low: 0-30
+    medium: 31-60
+    high: 61-85
+    critical: 86-100
+
+database:
+  postgresql:
+    connection: ${DATABASE_URL}
+    pool_size: 25
+
+  neo4j:
+    uri: ${NEO4J_URI}
+    user: ${NEO4J_USER}
+    password: ${NEO4J_PASSWORD}
+    max_connections: 50
+
+  redis:
+    connection: ${REDIS_URL}
+    cache_ttl: 1h
+
+  elasticsearch:
+    url: ${ELASTICSEARCH_URL}
+    index_prefix: apollo-behavior
+
+machine_learning:
+  models:
+    - name: behavior_classifier
+      type: random_forest
+      features: 50+
+      accuracy: 85%+
+
+    - name: risk_predictor
+      type: gradient_boosting
+      features: 40+
+      accuracy: 80%+
+
+    - name: pattern_detector
+      type: lstm
+      sequence_length: 100
+      accuracy: 75%+
+
+  training:
+    auto_retraining: true
+    retrain_interval: 7d
+    validation_split: 0.2
+
+integration:
+  intelligence_fusion: http://intelligence-fusion:4003
+  operations: http://operations:4002
+  surveillance: http://surveillance:5000
+  blockchain_forensics: http://blockchain-forensics:6000
+
+api:
+  version: v1
+  base_path: /api/v1
+  authentication: jwt
+  rate_limiting: 200/minute
+
+monitoring:
+  metrics: true
+  prometheus_endpoint: /metrics
+  health_check: /health
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - stdout
+    - file: /var/log/apollo/criminal-behavior-ai.log
+
+runtime:
+  workers: 4
+  max_memory: 6GB
+  timeout: 120s
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: criminal-behavior-ai
+    health_check_interval: 10s

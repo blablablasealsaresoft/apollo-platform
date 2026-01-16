@@ -1,0 +1,169 @@
+# Firewall Rules for Apollo Platform
+
+firewall:
+  # Default Policy
+  default_policy: deny
+
+  # Inbound Rules (Priority Order)
+  inbound_rules:
+    - name: allow_https
+      priority: 100
+      port: 443
+      protocol: tcp
+      source: 0.0.0.0/0
+      destination: ${LOAD_BALANCER_IP}
+      action: allow
+      log: true
+
+    - name: allow_http_redirect
+      priority: 101
+      port: 80
+      protocol: tcp
+      source: 0.0.0.0/0
+      destination: ${LOAD_BALANCER_IP}
+      action: allow
+      log: true
+      comment: "HTTP to HTTPS redirect only"
+
+    - name: allow_ssh_internal
+      priority: 200
+      port: 22
+      protocol: tcp
+      source: 10.0.0.0/8
+      destination: ${INTERNAL_SUBNET}
+      action: allow
+      log: true
+
+    - name: allow_ssh_vpn
+      priority: 201
+      port: 22
+      protocol: tcp
+      source: ${VPN_SUBNET}
+      destination: ${INTERNAL_SUBNET}
+      action: allow
+      log: true
+
+    - name: allow_api_internal
+      priority: 300
+      port: 4000
+      protocol: tcp
+      source: 10.0.0.0/8
+      destination: ${API_SUBNET}
+      action: allow
+      log: true
+
+    - name: allow_database_internal
+      priority: 400
+      port: 5432
+      protocol: tcp
+      source: ${APP_SUBNET}
+      destination: ${DB_SUBNET}
+      action: allow
+      log: true
+
+    - name: allow_redis_internal
+      priority: 401
+      port: 6379
+      protocol: tcp
+      source: ${APP_SUBNET}
+      destination: ${REDIS_SUBNET}
+      action: allow
+      log: true
+
+    - name: block_rdp
+      priority: 900
+      port: 3389
+      protocol: tcp
+      source: 0.0.0.0/0
+      action: deny
+      log: true
+      comment: "Block RDP from internet"
+
+    - name: deny_all_inbound
+      priority: 1000
+      source: 0.0.0.0/0
+      action: deny
+      log: true
+
+  # Outbound Rules
+  outbound_rules:
+    - name: allow_all_internal
+      priority: 100
+      destination: 10.0.0.0/8
+      action: allow
+      log: false
+
+    - name: allow_https_external
+      priority: 200
+      port: 443
+      protocol: tcp
+      destination: 0.0.0.0/0
+      action: allow
+      log: false
+      comment: "API calls and updates"
+
+    - name: allow_dns
+      priority: 201
+      port: 53
+      protocol: udp
+      destination: 0.0.0.0/0
+      action: allow
+      log: false
+
+    - name: allow_ntp
+      priority: 202
+      port: 123
+      protocol: udp
+      destination: 0.0.0.0/0
+      action: allow
+      log: false
+
+    - name: deny_all_outbound
+      priority: 1000
+      destination: 0.0.0.0/0
+      action: deny
+      log: true
+
+  # Geo-blocking
+  geo_blocking:
+    enabled: true
+    blocked_countries:
+      - KP  # North Korea
+      - IR  # Iran
+      - SY  # Syria
+      - CU  # Cuba
+    action: deny
+    log: true
+
+  # IP Reputation
+  ip_reputation:
+    enabled: true
+    block_known_bad_ips: true
+    block_tor_exit_nodes: true
+    block_proxy_servers: true
+    threat_intel_feeds:
+      - alienvault_otx
+      - abuse_ch
+      - emerging_threats
+
+  # DDoS Protection
+  ddos_protection:
+    enabled: true
+    syn_flood_protection: true
+    udp_flood_protection: true
+    http_flood_protection: true
+    rate_limit_per_ip: 1000/s
+
+  # Stateful Inspection
+  stateful_inspection:
+    enabled: true
+    track_connections: true
+    timeout: 3600s
+
+  # Logging
+  logging:
+    enabled: true
+    log_allowed: false
+    log_denied: true
+    log_invalid: true
+    syslog_server: ${SYSLOG_SERVER}

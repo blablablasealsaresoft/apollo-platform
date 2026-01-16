@@ -1,0 +1,390 @@
+# Intelligence Fusion Engine Configuration
+# Rules and thresholds for entity resolution, correlation, and risk assessment
+
+# Entity Resolution Rules
+entity_resolution:
+  # Fuzzy matching threshold for name/text comparison (0.0-1.0)
+  fuzzy_threshold: 0.85
+
+  # Require exact match for email addresses
+  email_exact_match: true
+
+  # Normalize phone numbers to E.164 format
+  phone_normalize: true
+
+  # Minimum confidence to consider entities merged
+  merge_confidence_threshold: 0.75
+
+  # Entity matching rules by type
+  matching_rules:
+    email:
+      - type: exact
+        weight: 1.0
+      - type: domain
+        weight: 0.6
+
+    phone:
+      - type: normalized_exact
+        weight: 1.0
+      - type: area_code
+        weight: 0.4
+
+    name:
+      - type: exact
+        weight: 1.0
+      - type: fuzzy
+        weight: 0.8
+      - type: initials
+        weight: 0.5
+
+    wallet:
+      - type: exact
+        weight: 1.0
+      - type: blockchain_family
+        weight: 0.3
+
+# Correlation Configuration
+correlation:
+  # Minimum correlation score to establish relationship (0.0-1.0)
+  min_correlation_score: 0.6
+
+  # Time window for temporal correlation (days)
+  time_window_days: 365
+
+  # Maximum graph traversal depth
+  max_graph_depth: 3
+
+  # Correlation weights by factor
+  weights:
+    exact_match: 1.0
+    fuzzy_match: 0.8
+    temporal_proximity: 0.6
+    attribute_overlap: 0.7
+    shared_source: 0.5
+    network_proximity: 0.75
+
+  # Relationship type rules
+  relationship_rules:
+    owns:
+      conditions:
+        - source_type: email
+          target_type: wallet
+        - source_type: person
+          target_type: domain
+      min_score: 0.7
+
+    alias:
+      conditions:
+        - same_type: true
+        - attribute_overlap: 0.8
+      min_score: 0.85
+
+    associates:
+      conditions:
+        - shared_location: true
+        - or:
+          - shared_organization: true
+          - network_distance: 2
+      min_score: 0.6
+
+    colleague:
+      conditions:
+        - shared_organization: true
+      min_score: 0.7
+
+# Confidence Scoring
+confidence:
+  # Source reliability weights (0.0-1.0)
+  source_weights:
+    blockchain: 0.95      # Cryptographically verified
+    breach: 0.85          # Direct data exposure
+    sherlock: 0.80        # Platform confirmation
+    socmint: 0.75         # Social media analysis
+    osint: 0.70           # Open source intelligence
+    humint: 0.65          # Human intelligence (variable)
+    sigint: 0.90          # Signals intelligence
+    unknown: 0.50         # Default for unknown sources
+
+  # Data freshness decay (exponential)
+  freshness_decay_days: 180
+
+  # Bonus for multi-source corroboration (0.0-1.0)
+  corroboration_bonus: 0.15
+
+  # Penalty for conflicting information (0.0-1.0)
+  conflict_penalty: 0.20
+
+  # Minimum sources for high confidence
+  min_sources_high_confidence: 3
+
+  # Scoring component weights
+  component_weights:
+    source_reliability: 0.30
+    freshness: 0.20
+    corroboration: 0.25
+    completeness: 0.15
+    conflict_penalty: 0.10
+
+# Risk Assessment
+risk:
+  # Risk level thresholds (0-100 scale)
+  critical_threshold: 90
+  high_threshold: 75
+  medium_threshold: 50
+  low_threshold: 25
+
+  # Risk factor weights
+  risk_weights:
+    breach_exposure: 0.20
+    behavioral_patterns: 0.25
+    network_risk: 0.20
+    geographic_risk: 0.10
+    temporal_patterns: 0.15
+    known_indicators: 0.10
+
+  # Behavioral pattern risk scores
+  pattern_risks:
+    multiple_aliases:
+      count_threshold: 3
+      base_risk: 0.15
+      high_risk: 0.30
+
+    repeated_breaches:
+      count_threshold: 3
+      base_risk: 0.25
+      high_risk: 0.40
+
+    multiple_wallets:
+      count_threshold: 3
+      base_risk: 0.10
+      high_risk: 0.20
+
+    geographic_dispersion:
+      count_threshold: 5
+      base_risk: 0.10
+      high_risk: 0.20
+
+    rapid_activity:
+      events_threshold: 10
+      time_window_days: 30
+      risk: 0.25
+
+  # Geographic risk factors
+  high_risk_countries:
+    - russia
+    - iran
+    - north korea
+    - syria
+    - venezuela
+    - crimea
+    - belarus
+    - myanmar
+
+  high_risk_country_score: 0.30
+
+  tax_havens:
+    - cayman islands
+    - panama
+    - bermuda
+    - bahamas
+    - switzerland
+    - malta
+    - luxembourg
+    - monaco
+
+  tax_haven_score: 0.15
+
+  # Network risk thresholds
+  high_connectivity_threshold: 10
+  high_connectivity_risk: 0.40
+
+  # Threat indicators
+  critical_keywords:
+    - ransomware
+    - exploit
+    - malware
+    - botnet
+    - terrorism
+    - trafficking
+
+  high_risk_keywords:
+    - fraud
+    - scam
+    - hack
+    - breach
+    - ransom
+    - darknet
+    - phishing
+    - laundering
+
+  high_risk_domains:
+    - tempmail.com
+    - guerrillamail.com
+    - 10minutemail.com
+    - throwaway.email
+    - mailinator.com
+    - temp-mail.org
+
+  keyword_risk_weight: 0.10
+  critical_multiplier: 1.25
+
+# Timeline Configuration
+timeline:
+  # Maximum gap between events before flagging (days)
+  max_gap_days: 30
+
+  # Minimum events required for pattern analysis
+  min_events: 2
+
+  # Event type severity mapping
+  event_severity:
+    platform_presence: 1
+    social_media: 2
+    osint: 2
+    breach: 3
+    blockchain: 2
+    financial: 3
+    legal: 4
+
+  # Pattern detection thresholds
+  patterns:
+    activity_burst:
+      multiplier: 2.0  # Activity > 2x average
+      min_occurrences: 2
+
+    cyclic_behavior:
+      interval_tolerance: 0.20  # ±20%
+      min_occurrences: 3
+
+    escalation:
+      trend_threshold: 0.70  # 70% increasing
+      min_events: 3
+
+    creation_spree:
+      min_accounts: 3
+      time_window_days: 30
+
+# Graph Analysis
+graph:
+  # Neo4j connection (optional)
+  neo4j_enabled: false
+  neo4j_uri: bolt://localhost:7687
+  neo4j_user: neo4j
+  neo4j_password: password
+
+  # Graph algorithm parameters
+  centrality:
+    eigenvector_iterations: 100
+    eigenvector_tolerance: 0.0001
+
+  community_detection:
+    algorithm: label_propagation
+    max_iterations: 100
+    min_community_size: 2
+
+  link_prediction:
+    method: common_neighbors
+    top_n: 5
+    min_score: 0.3
+
+  # Network metrics thresholds
+  high_influence_threshold: 0.7
+  high_clustering_threshold: 0.6
+
+# Alert Triggers
+alerts:
+  # Automatic alert generation rules
+  critical_alerts:
+    - condition: risk_score >= 90
+      action: immediate_notification
+      priority: critical
+
+    - condition: critical_keyword_present
+      action: security_team_escalation
+      priority: critical
+
+    - condition: breach_count >= 5
+      action: credential_monitoring
+      priority: high
+
+  high_priority_alerts:
+    - condition: risk_score >= 75
+      action: investigation_required
+      priority: high
+
+    - condition: multiple_high_risk_countries
+      action: geographic_analysis
+      priority: high
+
+    - condition: network_centrality >= 0.8
+      action: network_investigation
+      priority: high
+
+  medium_priority_alerts:
+    - condition: risk_score >= 50
+      action: enhanced_monitoring
+      priority: medium
+
+    - condition: confidence_score < 40
+      action: data_enrichment_needed
+      priority: medium
+
+# Data Retention
+retention:
+  # Cache retention periods (days)
+  intelligence_cache: 90
+  entity_profiles: 365
+  correlation_results: 180
+
+  # Auto-refresh thresholds
+  stale_data_days: 30
+  auto_refresh_enabled: true
+
+# Export Settings
+export:
+  default_format: json
+
+  formats:
+    json:
+      indent: 2
+      include_metadata: true
+
+    markdown:
+      include_charts: false
+      max_events: 50
+
+    html:
+      interactive: true
+      include_graphs: true
+
+    csv:
+      delimiter: ","
+      include_headers: true
+
+  # Graph export formats
+  graph_formats:
+    - gexf
+    - graphml
+    - json
+
+# Performance Tuning
+performance:
+  # Parallel processing
+  max_workers: 4
+  batch_size: 100
+
+  # Cache settings
+  enable_caching: true
+  cache_size_mb: 512
+
+  # Query optimization
+  max_query_depth: 5
+  query_timeout_seconds: 30
+
+# Logging
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: fusion_engine.log
+  max_file_size_mb: 50
+  backup_count: 5

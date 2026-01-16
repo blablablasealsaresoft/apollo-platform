@@ -1,0 +1,92 @@
+# Log Retention Policy for Apollo Platform
+
+log_retention:
+  # Default Retention
+  default_retention: 7y
+
+  # By Log Category
+  categories:
+    # Investigation Logs
+    investigations:
+      active: 7y
+      closed: 20y
+      classification_based:
+        classified: indefinite
+        sensitive: 20y
+        internal: 10y
+
+    # Evidence Logs
+    evidence:
+      chain_of_custody: indefinite
+      access_logs: 20y
+      modification_logs: indefinite
+
+    # Authentication Logs
+    authentication:
+      login_events: 2y
+      mfa_events: 2y
+      failed_attempts: 3y
+      lockouts: 5y
+
+    # Authorization Logs
+    authorization:
+      access_grants: 7y
+      access_denials: 10y
+      privilege_escalation: indefinite
+
+    # Security Events
+    security:
+      incidents: indefinite
+      threats: indefinite
+      vulnerabilities: 7y
+      suspicious_activity: 10y
+
+    # Compliance Logs
+    compliance:
+      cjis: 20y
+      gdpr: 7y
+      sox: 7y
+      audit_trails: 20y
+
+    # System Logs
+    system:
+      errors: 1y
+      warnings: 1y
+      info: 90d
+      debug: 30d
+
+  # Storage Tiers
+  storage_tiers:
+    hot:
+      duration: 90d
+      storage: elasticsearch
+      access: immediate
+
+    warm:
+      duration: 1y
+      storage: s3_standard
+      access: minutes
+
+    cold:
+      duration: 7y
+      storage: s3_glacier
+      access: hours
+
+    archive:
+      duration: indefinite
+      storage: s3_deep_archive
+      access: days
+
+  # Legal Hold
+  legal_hold:
+    enabled: true
+    override_retention: true
+    notification_required: true
+    documentation: mandatory
+
+  # Deletion Procedures
+  deletion:
+    method: secure_deletion
+    verification: required
+    certificate: issued
+    audit_trail: maintained

@@ -1,0 +1,28 @@
+{
+  "title": "Apollo Main",
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "API Latency P95",
+      "targets": [
+        {
+          "expr": "apollo:api_request_latency:p95"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "stat",
+      "title": "Active Investigations",
+      "targets": [
+        {
+          "expr": "sum(apollo_active_investigations)"
+        }
+      ],
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
+    }
+  ],
+  "schemaVersion": 39,
+  "version": 1
+}

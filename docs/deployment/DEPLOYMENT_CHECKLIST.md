@@ -201,29 +201,191 @@
 
 ---
 
-## Rollback Checklist
+## Rollback Procedures
 
-### If Issues Detected
-- [ ] Identify the problem
-- [ ] Check if hotfix is possible
-- [ ] Make rollback decision
-- [ ] Notify team of rollback
-- [ ] Execute rollback procedure
+### Quick Reference: Rollback Commands
 
-### Rollback Execution
-- [ ] Rollback Kubernetes deployments
-- [ ] Verify rollback successful
-- [ ] Rollback database migrations (if needed)
-- [ ] Restore from backup (if needed)
-- [ ] Verify system functionality
-- [ ] Update status page
-- [ ] Notify stakeholders
+```bash
+# Kubernetes deployment rollback (all services)
+NAMESPACE="apollo-production"  # or apollo-staging
 
-### Post-Rollback
-- [ ] Document issues encountered
-- [ ] Create tickets for fixes
-- [ ] Update deployment procedures
-- [ ] Schedule post-mortem meeting
+# View rollout history
+kubectl rollout history deployment/apollo-authentication -n $NAMESPACE
+
+# Rollback to previous version
+kubectl rollout undo deployment/apollo-authentication -n $NAMESPACE
+kubectl rollout undo deployment/apollo-intelligence -n $NAMESPACE
+kubectl rollout undo deployment/apollo-operations -n $NAMESPACE
+kubectl rollout undo deployment/apollo-search -n $NAMESPACE
+kubectl rollout undo deployment/apollo-notifications -n $NAMESPACE
+kubectl rollout undo deployment/apollo-analytics -n $NAMESPACE
+kubectl rollout undo deployment/apollo-user-management -n $NAMESPACE
+kubectl rollout undo deployment/apollo-api-gateway -n $NAMESPACE
+
+# Rollback to specific revision
+kubectl rollout undo deployment/apollo-authentication -n $NAMESPACE --to-revision=2
+
+# Check rollback status
+kubectl rollout status deployment/apollo-authentication -n $NAMESPACE
+```
+
+### Rollback Decision Matrix
+
+| Issue Type | Severity | Recommended Action |
+|------------|----------|-------------------|
+| Single service failure | Low | Restart pod, monitor |
+| Single service failure | High | Rollback single service |
+| Multiple service failures | High | Full rollback |
+| Data corruption | Critical | Stop traffic, restore backup |
+| Security breach | Critical | Immediate shutdown, investigate |
+| Performance degradation | Medium | Scale up, then investigate |
+| Database migration failure | High | Rollback migration, then deployment |
+
+### Rollback Checklist
+
+#### Step 1: Assess the Situation
+- [ ] Identify which services are affected
+- [ ] Determine the severity level (Low/Medium/High/Critical)
+- [ ] Check if the issue is deployment-related or external
+- [ ] Review recent deployment changes
+- [ ] Consult error logs and monitoring dashboards
+
+#### Step 2: Decision Point
+- [ ] Can the issue be fixed with a hotfix? (< 15 minutes to deploy)
+- [ ] Is the issue affecting user experience?
+- [ ] Is the issue causing data corruption?
+- [ ] Make Go/No-Go decision for rollback
+- [ ] Notify team lead and stakeholders
+
+#### Step 3: Execute Rollback
+
+**Option A: GitHub Actions Rollback (Recommended)**
+1. Go to GitHub Actions > Deploy to Production workflow
+2. Click "Run workflow"
+3. Select "production" environment
+4. Enter the previous stable version in "rollback_version"
+5. Click "Run workflow"
+
+**Option B: Manual Kubernetes Rollback**
+```bash
+# Set namespace
+NAMESPACE="apollo-production"
+
+# Rollback all services
+for service in authentication intelligence operations search notifications analytics user-management api-gateway; do
+  kubectl rollout undo deployment/apollo-$service -n $NAMESPACE
+done
+
+# Wait for rollback completion
+for service in authentication intelligence operations search notifications analytics user-management api-gateway; do
+  kubectl rollout status deployment/apollo-$service -n $NAMESPACE --timeout=300s
+done
+```
+
+**Option C: Database Migration Rollback**
+1. Go to GitHub Actions > Database Migrations workflow
+2. Select environment and "rollback" action
+3. Specify number of migrations to rollback
+4. Approve the rollback (requires approval for production)
+
+#### Step 4: Verify Rollback Success
+- [ ] All pods are running and healthy
+- [ ] Health check endpoints return 200
+- [ ] User authentication works
+- [ ] Core functionality verified
+- [ ] Error rates returned to normal
+- [ ] No new errors in logs
+
+#### Step 5: Post-Rollback Actions
+- [ ] Update status page with incident details
+- [ ] Send notification to stakeholders
+- [ ] Document the issue in incident log
+- [ ] Create Jira ticket for root cause analysis
+- [ ] Schedule post-mortem meeting within 48 hours
+
+### Database Rollback Procedures
+
+#### Scenario 1: Migration Failed - Data Not Modified
+```bash
+# Use the database-migrations workflow with "rollback" action
+# Or manually:
+kubectl create job db-rollback-$(date +%s) \
+  --from=cronjob/db-migration-template \
+  -n apollo-production \
+  -- npm run db:rollback
+```
+
+#### Scenario 2: Migration Succeeded But Caused Issues
+```bash
+# Run specific number of rollbacks
+kubectl exec -it deployment/apollo-authentication -n apollo-production \
+  -- npm run db:rollback -- --steps=1
+```
+
+#### Scenario 3: Data Corruption - Restore from Backup
+```bash
+# 1. Stop all application traffic
+kubectl scale deployment --all --replicas=0 -n apollo-production
+
+# 2. Identify the backup to restore
+aws s3 ls s3://apollo-backups/production/
+
+# 3. Restore database
+kubectl exec -it deployment/postgres -n apollo-production -- \
+  pg_restore -U postgres -d apollo /backup/backup-file.dump
+
+# 4. Verify data integrity
+kubectl exec -it deployment/postgres -n apollo-production -- \
+  psql -U postgres -d apollo -c "SELECT COUNT(*) FROM users;"
+
+# 5. Restart services
+kubectl scale deployment --all --replicas=3 -n apollo-production
+```
+
+### Rollback Communication Templates
+
+#### Slack Notification
+```
+:rotating_light: *PRODUCTION ROLLBACK INITIATED*
+*Time:* [TIMESTAMP]
+*Triggered by:* [NAME]
+*Reason:* [BRIEF DESCRIPTION]
+*Services affected:* [LIST]
+*Expected duration:* [ESTIMATE]
+*Status:* In Progress
+```
+
+#### Stakeholder Email
+```
+Subject: [URGENT] Apollo Platform - Production Rollback in Progress
+
+Team,
+
+We have initiated a rollback of the Apollo Platform production deployment.
+
+- Time: [TIMESTAMP]
+- Issue: [DESCRIPTION]
+- Impact: [USER IMPACT]
+- ETA for Resolution: [ESTIMATE]
+
+We will send an update once the rollback is complete and the system is stable.
+
+Regards,
+[NAME]
+DevOps Team
+```
+
+### Rollback Verification Checklist
+- [ ] All deployments show "Running" status
+- [ ] Pod restart count is 0 after rollback
+- [ ] `/health` endpoints return 200 for all services
+- [ ] Login functionality works
+- [ ] Dashboard loads correctly
+- [ ] No 5xx errors in last 5 minutes
+- [ ] Database connections are stable
+- [ ] Redis cache is responding
+- [ ] Elasticsearch queries work
+- [ ] Error rate in Grafana < 0.1%
 
 ---
 

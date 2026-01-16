@@ -390,3 +390,336 @@ $$ LANGUAGE plpgsql;
 COMMENT ON TABLE blockchain_transactions IS 'Time-series blockchain transaction data for cryptocurrency tracking';
 COMMENT ON TABLE surveillance_events IS 'Time-series surveillance camera detections and facial recognition matches';
 COMMENT ON TABLE communication_logs IS 'Time-series communication intercepts and logs (calls, messages, emails)';
+
+-- ============================================================================
+-- LOCATION TRACKING EVENTS (Time-Series)
+-- ============================================================================
+
+CREATE TABLE location_tracking_events (
+    time TIMESTAMPTZ NOT NULL,
+
+    -- Event Identity
+    event_id UUID DEFAULT gen_random_uuid(),
+    tracking_source VARCHAR(100) NOT NULL, -- gps, cell_tower, wifi, ip_geolocation, manual, surveillance, financial
+
+    -- Target
+    target_id UUID NOT NULL,
+    investigation_id UUID,
+
+    -- Location
+    location_name VARCHAR(500),
+    address VARCHAR(1000),
+    city VARCHAR(200),
+    country VARCHAR(100),
+    latitude DOUBLE PRECISION NOT NULL,
+    longitude DOUBLE PRECISION NOT NULL,
+    altitude DOUBLE PRECISION,
+    accuracy_meters DOUBLE PRECISION,
+    coords POINT,
+
+    -- Movement
+    speed_kmh DOUBLE PRECISION,
+    heading DOUBLE PRECISION, -- Direction in degrees
+    is_stationary BOOLEAN DEFAULT false,
+
+    -- Source Details
+    source_device_id VARCHAR(255),
+    source_device_type VARCHAR(100), -- phone, vehicle, wearable, beacon
+    source_network VARCHAR(200), -- Carrier or WiFi network name
+
+    -- Verification
+    confidence DECIMAL(5,4) DEFAULT 0.5,
+    is_verified BOOLEAN DEFAULT false,
+    verified_by UUID,
+    verified_at TIMESTAMPTZ,
+
+    -- Related Data
+    evidence_id UUID,
+    surveillance_event_id UUID,
+
+    -- Metadata
+    metadata JSONB DEFAULT '{}'::jsonb,
+    tags TEXT[] DEFAULT ARRAY[]::TEXT[],
+
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create hypertable
+SELECT create_hypertable('location_tracking_events', 'time',
+    chunk_time_interval => INTERVAL '1 day',
+    if_not_exists => TRUE
+);
+
+-- Create indexes
+CREATE INDEX idx_loc_target ON location_tracking_events (target_id, time DESC);
+CREATE INDEX idx_loc_investigation ON location_tracking_events (investigation_id, time DESC);
+CREATE INDEX idx_loc_source ON location_tracking_events (tracking_source, time DESC);
+CREATE INDEX idx_loc_country ON location_tracking_events (country, time DESC);
+CREATE INDEX idx_loc_city ON location_tracking_events (city, time DESC);
+CREATE INDEX idx_loc_coords ON location_tracking_events USING gist(coords);
+CREATE INDEX idx_loc_tags ON location_tracking_events USING gin(tags);
+
+-- Retention policy: Keep location data for 5 years
+SELECT add_retention_policy('location_tracking_events', INTERVAL '5 years');
+
+-- Compression policy
+SELECT add_compression_policy('location_tracking_events', INTERVAL '14 days');
+
+-- ============================================================================
+-- OSINT COLLECTION EVENTS (Time-Series)
+-- ============================================================================
+
+CREATE TABLE osint_collection_events (
+    time TIMESTAMPTZ NOT NULL,
+
+    -- Event Identity
+    event_id UUID DEFAULT gen_random_uuid(),
+    collection_type VARCHAR(100) NOT NULL, -- social_media_post, news_article, forum_post, dark_web, blockchain
+
+    -- Source
+    source_platform VARCHAR(200) NOT NULL, -- twitter, facebook, reddit, news_site, etc.
+    source_url VARCHAR(2000),
+    source_id VARCHAR(500), -- Platform-specific ID
+
+    -- Target Links
+    target_id UUID,
+    investigation_id UUID,
+
+    -- Content
+    title VARCHAR(1000),
+    content_preview TEXT, -- First 500 chars
+    content_hash VARCHAR(64), -- SHA-256 of full content
+    language VARCHAR(50),
+    author_username VARCHAR(500),
+    author_id VARCHAR(500),
+
+    -- Analysis
+    sentiment VARCHAR(50), -- positive, negative, neutral
+    sentiment_score DECIMAL(5,4), -- -1.0000 to 1.0000
+    relevance_score DECIMAL(5,4), -- 0.0000 to 1.0000
+    keywords TEXT[] DEFAULT ARRAY[]::TEXT[],
+    entities_detected JSONB, -- Named entities
+    topics TEXT[] DEFAULT ARRAY[]::TEXT[],
+
+    -- Engagement (for social media)
+    likes_count INTEGER,
+    shares_count INTEGER,
+    comments_count INTEGER,
+    views_count INTEGER,
+
+    -- Location (if available)
+    geo_location VARCHAR(500),
+    geo_coords POINT,
+
+    -- Flags
+    is_relevant BOOLEAN DEFAULT false,
+    is_flagged BOOLEAN DEFAULT false,
+    flag_reason TEXT,
+    is_processed BOOLEAN DEFAULT false,
+    processed_at TIMESTAMPTZ,
+
+    -- Intelligence Report Link
+    intelligence_report_id UUID,
+
+    -- Metadata
+    metadata JSONB DEFAULT '{}'::jsonb,
+    tags TEXT[] DEFAULT ARRAY[]::TEXT[],
+
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create hypertable
+SELECT create_hypertable('osint_collection_events', 'time',
+    chunk_time_interval => INTERVAL '1 week',
+    if_not_exists => TRUE
+);
+
+-- Create indexes
+CREATE INDEX idx_osint_target ON osint_collection_events (target_id, time DESC);
+CREATE INDEX idx_osint_investigation ON osint_collection_events (investigation_id, time DESC);
+CREATE INDEX idx_osint_platform ON osint_collection_events (source_platform, time DESC);
+CREATE INDEX idx_osint_type ON osint_collection_events (collection_type, time DESC);
+CREATE INDEX idx_osint_relevant ON osint_collection_events (is_relevant, time DESC) WHERE is_relevant = true;
+CREATE INDEX idx_osint_flagged ON osint_collection_events (is_flagged, time DESC) WHERE is_flagged = true;
+CREATE INDEX idx_osint_keywords ON osint_collection_events USING gin(keywords);
+CREATE INDEX idx_osint_tags ON osint_collection_events USING gin(tags);
+CREATE INDEX idx_osint_author ON osint_collection_events (author_username);
+
+-- Continuous aggregate for daily OSINT summary
+CREATE MATERIALIZED VIEW osint_daily_summary
+WITH (timescaledb.continuous) AS
+SELECT
+    time_bucket('1 day', time) AS day,
+    source_platform,
+    collection_type,
+    COUNT(*) as event_count,
+    COUNT(DISTINCT target_id) as unique_targets,
+    AVG(relevance_score) as avg_relevance,
+    COUNT(*) FILTER (WHERE is_relevant = true) as relevant_count,
+    COUNT(*) FILTER (WHERE is_flagged = true) as flagged_count,
+    SUM(likes_count) as total_engagement
+FROM osint_collection_events
+GROUP BY day, source_platform, collection_type
+WITH NO DATA;
+
+SELECT add_continuous_aggregate_policy('osint_daily_summary',
+    start_offset => INTERVAL '3 days',
+    end_offset => INTERVAL '1 hour',
+    schedule_interval => INTERVAL '1 hour'
+);
+
+-- Retention policy: Keep OSINT data for 3 years
+SELECT add_retention_policy('osint_collection_events', INTERVAL '3 years');
+
+-- Compression policy
+SELECT add_compression_policy('osint_collection_events', INTERVAL '30 days');
+
+-- ============================================================================
+-- ALERT METRICS (Time-Series for Analytics)
+-- ============================================================================
+
+CREATE TABLE alert_metrics (
+    time TIMESTAMPTZ NOT NULL,
+
+    -- Alert Info
+    alert_id UUID NOT NULL,
+    alert_type VARCHAR(100) NOT NULL,
+    severity VARCHAR(50) NOT NULL,
+
+    -- Investigation/Target
+    investigation_id UUID,
+    target_id UUID,
+
+    -- Source System
+    source_system VARCHAR(200) NOT NULL,
+
+    -- Response Metrics
+    detection_to_alert_ms INTEGER, -- Time from detection to alert generation
+    alert_to_ack_ms INTEGER, -- Time from alert to acknowledgment
+    alert_to_resolution_ms INTEGER, -- Time from alert to resolution
+
+    -- Outcome
+    outcome VARCHAR(50), -- true_positive, false_positive, unknown, pending
+    was_actionable BOOLEAN,
+    action_taken VARCHAR(200),
+
+    -- Confidence
+    initial_confidence DECIMAL(5,4),
+    final_confidence DECIMAL(5,4),
+
+    -- Metadata
+    metadata JSONB DEFAULT '{}'::jsonb,
+
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create hypertable
+SELECT create_hypertable('alert_metrics', 'time',
+    chunk_time_interval => INTERVAL '1 month',
+    if_not_exists => TRUE
+);
+
+-- Create indexes
+CREATE INDEX idx_alert_metrics_type ON alert_metrics (alert_type, time DESC);
+CREATE INDEX idx_alert_metrics_severity ON alert_metrics (severity, time DESC);
+CREATE INDEX idx_alert_metrics_investigation ON alert_metrics (investigation_id, time DESC);
+CREATE INDEX idx_alert_metrics_target ON alert_metrics (target_id, time DESC);
+CREATE INDEX idx_alert_metrics_outcome ON alert_metrics (outcome, time DESC);
+
+-- Continuous aggregate for alert performance metrics
+CREATE MATERIALIZED VIEW alert_performance_daily
+WITH (timescaledb.continuous) AS
+SELECT
+    time_bucket('1 day', time) AS day,
+    alert_type,
+    severity,
+    source_system,
+    COUNT(*) as total_alerts,
+    AVG(alert_to_ack_ms) as avg_ack_time_ms,
+    AVG(alert_to_resolution_ms) as avg_resolution_time_ms,
+    COUNT(*) FILTER (WHERE outcome = 'true_positive') as true_positives,
+    COUNT(*) FILTER (WHERE outcome = 'false_positive') as false_positives,
+    COUNT(*) FILTER (WHERE was_actionable = true) as actionable_count,
+    AVG(initial_confidence) as avg_initial_confidence,
+    AVG(final_confidence) as avg_final_confidence
+FROM alert_metrics
+GROUP BY day, alert_type, severity, source_system
+WITH NO DATA;
+
+SELECT add_continuous_aggregate_policy('alert_performance_daily',
+    start_offset => INTERVAL '7 days',
+    end_offset => INTERVAL '1 hour',
+    schedule_interval => INTERVAL '1 hour'
+);
+
+-- Retention policy: Keep alert metrics for 2 years
+SELECT add_retention_policy('alert_metrics', INTERVAL '2 years');
+
+-- Compression policy
+SELECT add_compression_policy('alert_metrics', INTERVAL '60 days');
+
+-- ============================================================================
+-- ADDITIONAL HELPER FUNCTIONS
+-- ============================================================================
+
+-- Function to get target movement pattern
+CREATE OR REPLACE FUNCTION get_target_movement_pattern(
+    p_target_id UUID,
+    p_days INTEGER DEFAULT 30
+)
+RETURNS TABLE (
+    time_window TIMESTAMPTZ,
+    country VARCHAR,
+    city VARCHAR,
+    event_count BIGINT,
+    unique_locations BIGINT,
+    avg_confidence DECIMAL
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        time_bucket('6 hours', time) as time_window,
+        lte.country,
+        lte.city,
+        COUNT(*) as event_count,
+        COUNT(DISTINCT (lte.latitude, lte.longitude)) as unique_locations,
+        AVG(lte.confidence) as avg_confidence
+    FROM location_tracking_events lte
+    WHERE lte.target_id = p_target_id
+        AND time > NOW() - (p_days || ' days')::INTERVAL
+    GROUP BY time_window, lte.country, lte.city
+    ORDER BY time_window DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to get OSINT activity for a target
+CREATE OR REPLACE FUNCTION get_target_osint_activity(
+    p_target_id UUID,
+    p_days INTEGER DEFAULT 30
+)
+RETURNS TABLE (
+    day DATE,
+    platform VARCHAR,
+    event_count BIGINT,
+    relevant_count BIGINT,
+    avg_sentiment DECIMAL
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        time::DATE as day,
+        oce.source_platform as platform,
+        COUNT(*) as event_count,
+        COUNT(*) FILTER (WHERE oce.is_relevant = true) as relevant_count,
+        AVG(oce.sentiment_score) as avg_sentiment
+    FROM osint_collection_events oce
+    WHERE oce.target_id = p_target_id
+        AND time > NOW() - (p_days || ' days')::INTERVAL
+    GROUP BY day, oce.source_platform
+    ORDER BY day DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON TABLE location_tracking_events IS 'Time-series location tracking data from various sources';
+COMMENT ON TABLE osint_collection_events IS 'Time-series OSINT collection events from social media and other sources';
+COMMENT ON TABLE alert_metrics IS 'Time-series metrics for alert performance analysis';

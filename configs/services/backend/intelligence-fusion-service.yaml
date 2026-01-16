@@ -1,0 +1,181 @@
+service:
+  name: intelligence-fusion-service
+  port: 4003
+  version: 1.0.0
+  description: Multi-source intelligence correlation and fusion engine
+
+runtime:
+  workers: 6
+  max_memory: 8GB
+  timeout: 120s
+  restart_policy: always
+  graceful_shutdown_timeout: 20s
+
+features:
+  multi_source_correlation: true
+  pattern_recognition: true
+  threat_scoring: true
+  graph_analysis: true
+  entity_resolution: true
+  anomaly_detection: true
+  predictive_analytics: true
+
+data_sources:
+  osint: 1686+  # 686 tools + 1000+ APIs
+  geoint: enabled
+  sigint: enabled
+  surveillance: enabled
+  blockchain: enabled
+  humint: enabled
+  finint: enabled
+
+osint_tools:
+  total: 686
+  categories:
+    reconnaissance: 100+
+    social_media: 400+
+    blockchain: 50+
+    dark_web: 30+
+    email_investigation: 20+
+    phone_investigation: 15+
+    domain_investigation: 25+
+    image_investigation: 10+
+    others: 36+
+
+public_apis:
+  total: 1000+
+  categories:
+    cryptocurrency: 10+
+    geolocation: 15+
+    government: 20+
+    social_media: 10+
+    finance: 20+
+    weather: 10+
+    telecommunications: 5+
+    blockchain: 15+
+    open_data: 50+
+    others: 845+
+  ai_orchestration: cyberspike_villager
+  rate_limit_management: true
+  api_key_rotation: true
+
+correlation_engine:
+  algorithm: graph_based
+  confidence_threshold: 0.7
+  max_correlation_depth: 5
+  parallel_processing: true
+  batch_size: 100
+  techniques:
+    - entity_matching
+    - temporal_correlation
+    - spatial_correlation
+    - behavioral_analysis
+    - network_analysis
+
+graph_analysis:
+  algorithms:
+    - shortest_path
+    - community_detection
+    - centrality_analysis
+    - link_prediction
+    - influence_propagation
+  max_nodes: 100000
+  max_edges: 1000000
+
+threat_scoring:
+  factors:
+    - source_reliability
+    - data_freshness
+    - corroboration_count
+    - historical_accuracy
+    - pattern_match_confidence
+  score_range: 0-100
+  threshold_levels:
+    low: 0-30
+    medium: 31-60
+    high: 61-85
+    critical: 86-100
+
+entity_resolution:
+  fuzzy_matching: true
+  similarity_threshold: 0.85
+  deduplication: true
+  merge_strategy: confidence_weighted
+
+database:
+  neo4j:
+    uri: ${NEO4J_URI}
+    user: ${NEO4J_USER}
+    password: ${NEO4J_PASSWORD}
+    max_connections: 100
+    batch_size: 1000
+
+  elasticsearch:
+    url: ${ELASTICSEARCH_URL}
+    index_prefix: apollo-intelligence
+    shards: 5
+    replicas: 2
+
+  redis:
+    connection: ${REDIS_URL}
+    cache_ttl: 30m
+    max_connections: 100
+
+  postgresql:
+    connection: ${DATABASE_URL}
+    pool_size: 40
+
+integration:
+  osint_engine: http://osint-engine:5001
+  surveillance: http://surveillance:5000
+  blockchain_forensics: http://blockchain-forensics:6000
+  geoint_engine: http://geoint-engine:5002
+  cyberspike_villager: http://cyberspike-villager:37695
+  bugtrace_ai: http://bugtrace-ai:8001
+
+api:
+  version: v1
+  base_path: /api/v1
+  authentication: jwt
+  rate_limiting: 500/minute
+  batch_operations: true
+
+monitoring:
+  metrics: true
+  tracing: true
+  logging_level: info
+  prometheus_endpoint: /metrics
+  custom_metrics:
+    - correlation_operations_total
+    - intelligence_sources_active
+    - graph_query_duration
+    - threat_score_distribution
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - stdout
+    - file: /var/log/apollo/intelligence-fusion.log
+  correlation_logging: true
+
+cache:
+  redis_enabled: true
+  ttl:
+    correlation_results: 1h
+    graph_queries: 30m
+    api_responses: 15m
+  cache_warming: true
+
+performance:
+  query_timeout: 60s
+  batch_processing: true
+  parallel_queries: 10
+  result_streaming: true
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: intelligence-fusion-service
+    health_check_interval: 10s

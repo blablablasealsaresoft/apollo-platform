@@ -1,0 +1,277 @@
+# OAuth Provider Configuration for Apollo Platform
+# Supports external authentication providers for law enforcement agencies
+
+oauth:
+  # Enable OAuth authentication
+  enabled: true
+
+  # Default provider for SSO
+  default_provider: saml
+
+  # Provider configurations
+  providers:
+    # SAML Provider for Government/LE Agency SSO
+    saml:
+      enabled: true
+      name: Law Enforcement SAML
+      protocol: saml2
+
+      # SAML Service Provider (SP) Configuration
+      sp:
+        entity_id: ${SAML_SP_ENTITY_ID}
+        assertion_consumer_service_url: ${APOLLO_BASE_URL}/auth/saml/callback
+        single_logout_service_url: ${APOLLO_BASE_URL}/auth/saml/logout
+
+        # Certificate for signing SAML requests
+        private_key: ${SAML_SP_PRIVATE_KEY_PATH}
+        certificate: ${SAML_SP_CERTIFICATE_PATH}
+
+        # Name ID format
+        name_id_format: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
+
+      # SAML Identity Provider (IdP) Configuration
+      idp:
+        entity_id: ${SAML_IDP_ENTITY_ID}
+        sso_url: ${SAML_IDP_SSO_URL}
+        slo_url: ${SAML_IDP_SLO_URL}
+        certificate: ${SAML_IDP_CERTIFICATE_PATH}
+
+      # Attribute mapping
+      attribute_mapping:
+        email: http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress
+        firstName: http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname
+        lastName: http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname
+        agency: http://schemas.apollo.gov/claims/agency
+        badgeNumber: http://schemas.apollo.gov/claims/badgenumber
+        role: http://schemas.apollo.gov/claims/role
+
+      # Security settings
+      security:
+        authn_requests_signed: true
+        logout_requests_signed: true
+        want_assertions_signed: true
+        want_assertions_encrypted: true
+        signature_algorithm: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
+        digest_algorithm: http://www.w3.org/2001/04/xmlenc#sha256
+
+    # OAuth 2.0 Provider for Law Enforcement Agencies
+    oauth2_agency:
+      enabled: true
+      name: Agency OAuth
+      protocol: oauth2
+
+      # OAuth client configuration
+      client:
+        client_id: ${OAUTH2_CLIENT_ID}
+        client_secret: ${OAUTH2_CLIENT_SECRET}
+        redirect_uri: ${APOLLO_BASE_URL}/auth/oauth/callback
+
+      # Authorization server endpoints
+      endpoints:
+        authorize: ${OAUTH2_AUTHORIZE_URL}
+        token: ${OAUTH2_TOKEN_URL}
+        userinfo: ${OAUTH2_USERINFO_URL}
+        revoke: ${OAUTH2_REVOKE_URL}
+        introspect: ${OAUTH2_INTROSPECT_URL}
+
+      # OAuth scopes
+      scopes:
+        - openid
+        - profile
+        - email
+        - agency_id
+        - badge_number
+
+      # Response type
+      response_type: code
+
+      # Grant type
+      grant_type: authorization_code
+
+      # PKCE for additional security
+      pkce:
+        enabled: true
+        code_challenge_method: S256
+
+    # OpenID Connect Provider
+    oidc:
+      enabled: true
+      name: OpenID Connect
+      protocol: oidc
+
+      # OIDC client configuration
+      client:
+        client_id: ${OIDC_CLIENT_ID}
+        client_secret: ${OIDC_CLIENT_SECRET}
+        redirect_uri: ${APOLLO_BASE_URL}/auth/oidc/callback
+
+      # Discovery endpoint
+      discovery_url: ${OIDC_DISCOVERY_URL}
+
+      # Manual endpoint configuration (if discovery disabled)
+      endpoints:
+        authorization: ${OIDC_AUTHORIZE_URL}
+        token: ${OIDC_TOKEN_URL}
+        userinfo: ${OIDC_USERINFO_URL}
+        jwks: ${OIDC_JWKS_URL}
+        end_session: ${OIDC_END_SESSION_URL}
+
+      # OIDC scopes
+      scopes:
+        - openid
+        - profile
+        - email
+        - offline_access
+
+      # Response type
+      response_type: code
+
+      # Response mode
+      response_mode: form_post
+
+      # Token validation
+      validation:
+        verify_signature: true
+        verify_issuer: true
+        verify_audience: true
+        verify_expiration: true
+
+    # Azure AD for Federal Agencies
+    azure_ad:
+      enabled: false
+      name: Azure Active Directory
+      protocol: oidc
+
+      # Azure AD tenant
+      tenant: ${AZURE_AD_TENANT_ID}
+
+      # Azure AD client
+      client:
+        client_id: ${AZURE_AD_CLIENT_ID}
+        client_secret: ${AZURE_AD_CLIENT_SECRET}
+        redirect_uri: ${APOLLO_BASE_URL}/auth/azure/callback
+
+      # Azure AD endpoints (automatically configured)
+      authority: https://login.microsoftonline.com/${AZURE_AD_TENANT_ID}
+
+      # Azure AD scopes
+      scopes:
+        - openid
+        - profile
+        - email
+        - User.Read
+
+    # FBI CJIS Compliant Identity Provider
+    fbi_cjis:
+      enabled: true
+      name: FBI CJIS Identity Provider
+      protocol: saml2
+
+      # CJIS-specific requirements
+      cjis_compliance:
+        advanced_authentication: true
+        encryption: aes-256
+        audit_logging: comprehensive
+
+      # Service provider configuration
+      sp:
+        entity_id: apollo-platform-cjis
+        assertion_consumer_service_url: ${APOLLO_BASE_URL}/auth/cjis/callback
+
+      # Identity provider configuration
+      idp:
+        entity_id: ${FBI_CJIS_IDP_ENTITY_ID}
+        sso_url: ${FBI_CJIS_SSO_URL}
+        certificate: ${FBI_CJIS_CERTIFICATE_PATH}
+
+      # CJIS attribute mapping
+      attribute_mapping:
+        email: cjis_email
+        firstName: cjis_given_name
+        lastName: cjis_surname
+        agency: cjis_agency_ori
+        badgeNumber: cjis_badge_number
+        clearanceLevel: cjis_clearance_level
+
+  # Account Linking
+  account_linking:
+    # Allow linking multiple OAuth providers to one account
+    enabled: true
+
+    # Linking strategy (email, manual, automatic)
+    strategy: email
+
+    # Require email verification before linking
+    require_email_verification: true
+
+  # Just-In-Time (JIT) User Provisioning
+  jit_provisioning:
+    # Automatically create user accounts on first login
+    enabled: true
+
+    # Default role for new users
+    default_role: viewer
+
+    # Require admin approval for new accounts
+    require_approval: true
+
+    # Auto-approve users from trusted domains
+    auto_approve_domains:
+      - fbi.gov
+      - dea.gov
+      - atf.gov
+      - dhs.gov
+      - ice.gov
+
+  # Session Management
+  session:
+    # Session timeout after OAuth login
+    timeout: 12h
+
+    # Extend session on activity
+    sliding_expiration: true
+
+    # Maximum session lifetime
+    max_lifetime: 24h
+
+  # Security Settings
+  security:
+    # Require HTTPS for all OAuth flows
+    require_https: true
+
+    # State parameter for CSRF protection
+    use_state_parameter: true
+
+    # Nonce parameter for replay protection
+    use_nonce_parameter: true
+
+    # Validate redirect URIs strictly
+    strict_redirect_uri_validation: true
+
+    # Allow only whitelisted redirect URIs
+    whitelist_redirect_uris: true
+
+  # Logging and Monitoring
+  logging:
+    # Log all OAuth authentication attempts
+    log_auth_attempts: true
+
+    # Log OAuth token exchanges
+    log_token_exchanges: true
+
+    # Log user provisioning events
+    log_provisioning: true
+
+    # Alert on suspicious OAuth activity
+    alert_on_suspicious_activity: true
+
+  # Rate Limiting
+  rate_limiting:
+    # OAuth login attempts per IP
+    login_attempts: 10/hour
+
+    # OAuth callback requests per session
+    callback_requests: 5/minute
+
+    # Token exchange requests per session
+    token_exchanges: 10/minute

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "telco-ops",
+    "title": "Telecom Operations Audit",
+    "channels": ["phone", "email"],
+    "constraints": ["authorized targets only", "no credentials requested"],
+    "notes": "Used for carrier support desk engagements."
+  },
+  {
+    "id": "legal-hold",
+    "title": "Legal Hold Notice",
+    "channels": ["email"],
+    "constraints": ["requires counsel approval"],
+    "notes": "For credential phishing tests referencing fabricated subpoenas."
+  }
+]

@@ -1,0 +1,100 @@
+name: Apollo CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.value }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compute cache key
+        id: cache-key
+        run: echo "value=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+  lint-test:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        language: [ node, python ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        if: matrix.language == 'node'
+        with:
+          node-version: 20
+      - uses: actions/setup-python@v5
+        if: matrix.language == 'python'
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: |
+          if [ "${{ matrix.language }}" = "node" ]; then
+            npm ci
+          else
+            pip install -r requirements.txt
+          fi
+      - name: Run lint & unit tests
+        run: |
+          if [ "${{ matrix.language }}" = "node" ]; then
+            npm run lint && npm test
+          else
+            pytest
+          fi
+
+  docker-build:
+    needs: lint-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & push
+        run: |
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --tag ghcr.io/${{ github.repository }}/apollo:${{ github.sha }} \
+            --file docker/Dockerfile . \
+            --push
+
+  sec-scan:
+    needs: [docker-build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: ghcr.io/${{ github.repository }}/apollo:${{ github.sha }}
+          format: table
+          exit-code: '1'
+          vuln-type: 'os,library'
+
+  deploy:
+    needs: [sec-scan]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Authenticate to cluster
+        run: echo "${KUBECONFIG_B64}" | base64 -d > kubeconfig
+        env:
+          KUBECONFIG_B64: ${{ secrets.KUBECONFIG_B64 }}
+      - name: Rollout
+        run: |
+          kubectl --kubeconfig kubeconfig apply -k infrastructure/kubernetes
+          kubectl --kubeconfig kubeconfig rollout status deploy/apollo-api -n apollo-system --timeout=180s

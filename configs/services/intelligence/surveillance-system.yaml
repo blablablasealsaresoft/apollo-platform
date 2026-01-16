@@ -1,0 +1,267 @@
+service:
+  name: surveillance-system
+  version: 1.0.0
+  port: 5000
+  description: Advanced surveillance with facial/voice recognition and age progression
+
+runtime:
+  workers: 8
+  gpu_workers: 4
+  max_memory: 32GB
+  gpu_memory: 16GB
+  timeout: 300s
+  restart_policy: always
+
+capabilities:
+  facial_recognition: true
+  voice_recognition: true
+  age_progression: true
+  camera_management: true
+  video_analytics: true
+  alert_generation: true
+
+facial_recognition:
+  engine: face_recognition
+  model: dlib_face_recognition_resnet_model_v1
+  encoding_dimension: 128
+  match_threshold: 0.6
+  workers: 4
+  gpu_acceleration: true
+
+  performance:
+    cpu_frame_time: 200-500ms
+    gpu_frame_time: 50-100ms
+    accuracy: 95%+
+    false_positive_rate: 0.1%
+
+  features:
+    - face_detection
+    - face_encoding
+    - face_matching
+    - face_clustering
+    - face_tracking
+
+  preprocessing:
+    - face_alignment
+    - contrast_normalization
+    - histogram_equalization
+
+voice_recognition:
+  engine: speechbrain
+  model: spkrec-ecapa-voxceleb
+  embedding_dimension: 192
+  match_threshold: 0.75
+
+  performance:
+    voiceprint_extraction_time: 1-3s
+    matching_time: <50ms
+    accuracy: 90%+
+    false_positive_rate: 0.5%
+
+  features:
+    - voice_enrollment
+    - speaker_verification
+    - speaker_identification
+    - voice_activity_detection
+
+  preprocessing:
+    - noise_reduction
+    - normalization
+    - feature_extraction
+
+age_progression:
+  enabled: true
+  variants: [+7, +9, +12]
+  technique: computer_vision
+  model: age_progression_gan
+
+  features:
+    - automatic_aging
+    - facial_feature_preservation
+    - texture_synthesis
+    - wrinkle_generation
+
+camera_management:
+  max_concurrent_feeds: 10000
+  protocols:
+    - rtsp
+    - rtmp
+    - http
+    - hls
+    - webrtc
+
+  features:
+    - stream_recording
+    - snapshot_capture
+    - pan_tilt_zoom
+    - motion_detection
+    - tampering_detection
+
+  reconnect_strategy: exponential_backoff
+  max_reconnect_attempts: 10
+  priority_levels: 1-10
+
+video_analytics:
+  object_detection: true
+  motion_detection: true
+  anomaly_detection: true
+  crowd_analysis: true
+  vehicle_detection: true
+
+  models:
+    - yolov8
+    - faster_rcnn
+    - ssd
+
+database:
+  face_database:
+    type: filesystem
+    path: /data/face_database/
+    backup: true
+    encryption: true
+
+  voice_database:
+    type: filesystem
+    path: /data/voice_database/
+    backup: true
+    encryption: true
+
+  camera_registry:
+    type: json
+    path: /data/config/camera_feeds.json
+    hot_reload: true
+
+  postgresql:
+    connection: ${DATABASE_URL}
+    pool_size: 30
+
+  redis:
+    connection: ${REDIS_URL}
+    pubsub_enabled: true
+    max_connections: 100
+
+  elasticsearch:
+    url: ${ELASTICSEARCH_URL}
+    index_prefix: apollo-surveillance
+
+alerts:
+  redis_pubsub: true
+  channel: apollo_alerts
+
+  priority_levels:
+    low: 1-3
+    medium: 4-6
+    high: 7-8
+    critical: 9-10
+
+  notification_targets:
+    - alert_orchestration
+    - notifications_service
+    - websocket_clients
+
+matching:
+  facial:
+    algorithm: euclidean_distance
+    threshold: 0.6
+    batch_processing: true
+    parallel_processing: true
+
+  voice:
+    algorithm: cosine_similarity
+    threshold: 0.75
+    real_time: true
+
+  deduplication: true
+  confidence_scoring: true
+
+storage:
+  recordings:
+    type: s3
+    bucket: ${S3_SURVEILLANCE_BUCKET}
+    retention_days: 90
+    compression: h264
+
+  snapshots:
+    type: s3
+    bucket: ${S3_SNAPSHOTS_BUCKET}
+    retention_days: 365
+    format: jpg
+
+  encodings:
+    type: filesystem
+    path: /data/encodings/
+    backup_interval: 1d
+
+processing:
+  frame_skip: 3
+  resolution: 720p
+  fps_target: 10
+  batch_size: 32
+  queue_size: 1000
+
+gpu:
+  enabled: true
+  devices: [0, 1, 2, 3]
+  memory_fraction: 0.8
+  allow_growth: true
+
+integration:
+  alert_orchestration: http://alert-orchestration:4006
+  intelligence_fusion: http://intelligence-fusion:4003
+  operations: http://operations:4002
+  geoint_engine: http://geoint-engine:5002
+
+api:
+  version: v1
+  base_path: /api/v1
+  authentication: jwt
+  authorization: rbac
+  rate_limiting: 1000/minute
+
+  endpoints:
+    - /feeds
+    - /matches
+    - /alerts
+    - /enrollments
+    - /recordings
+    - /snapshots
+
+websocket:
+  enabled: true
+  port: 5050
+  channels:
+    - feed_updates
+    - match_alerts
+    - system_events
+
+monitoring:
+  metrics: true
+  prometheus_endpoint: /metrics
+  health_check: /health
+  custom_metrics:
+    - active_feeds_count
+    - matches_found_total
+    - processing_fps
+    - gpu_utilization
+    - queue_depth
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - stdout
+    - file: /var/log/apollo/surveillance.log
+  performance_logging: true
+
+security:
+  feed_encryption: true
+  access_control: rbac
+  audit_logging: true
+  gdpr_compliance: true
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: surveillance-system
+    health_check_interval: 10s

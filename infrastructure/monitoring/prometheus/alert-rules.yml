@@ -1,24 +1,110 @@
 # Prometheus Alert Rules for Apollo Platform
+# Comprehensive alerting for infrastructure, applications, and security
 
 groups:
-  - name: apollo_service_alerts
+  # ============================================================================
+  # INFRASTRUCTURE ALERTS
+  # ============================================================================
+  - name: apollo_infrastructure_alerts
     interval: 30s
     rules:
-      # High Error Rate
-      - alert: HighErrorRate
+      # High CPU Usage - Warning
+      - alert: HighCPUUsageWarning
         expr: |
-          (
-            sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
-            /
-            sum(rate(http_requests_total[5m])) by (service)
-          ) > 0.05
+          sum(rate(container_cpu_usage_seconds_total{namespace="apollo-production"}[5m])) by (pod)
+          /
+          sum(container_spec_cpu_quota{namespace="apollo-production"} / container_spec_cpu_period{namespace="apollo-production"}) by (pod)
+          > 0.7
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          category: infrastructure
+        annotations:
+          summary: "High CPU usage on {{ $labels.pod }}"
+          description: "Pod {{ $labels.pod }} CPU usage is {{ $value | humanizePercentage }} (threshold: 70%)"
+          runbook_url: "https://docs.apollo.internal/runbooks/high-cpu"
+
+      # High CPU Usage - Critical
+      - alert: HighCPUUsageCritical
+        expr: |
+          sum(rate(container_cpu_usage_seconds_total{namespace="apollo-production"}[5m])) by (pod)
+          /
+          sum(container_spec_cpu_quota{namespace="apollo-production"} / container_spec_cpu_period{namespace="apollo-production"}) by (pod)
+          > 0.9
         for: 5m
         labels:
           severity: critical
           team: platform
+          category: infrastructure
         annotations:
-          summary: "High error rate on {{ $labels.service }}"
-          description: "Service {{ $labels.service }} has error rate of {{ $value | humanizePercentage }} (threshold: 5%)"
+          summary: "Critical CPU usage on {{ $labels.pod }}"
+          description: "Pod {{ $labels.pod }} CPU usage is {{ $value | humanizePercentage }} (threshold: 90%)"
+          runbook_url: "https://docs.apollo.internal/runbooks/high-cpu"
+
+      # High Memory Usage - Warning
+      - alert: HighMemoryUsageWarning
+        expr: |
+          (
+            container_memory_working_set_bytes{namespace="apollo-production"}
+            /
+            container_spec_memory_limit_bytes{namespace="apollo-production"}
+          ) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          category: infrastructure
+        annotations:
+          summary: "High memory usage on {{ $labels.pod }}"
+          description: "Pod {{ $labels.pod }} memory usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+          runbook_url: "https://docs.apollo.internal/runbooks/high-memory"
+
+      # High Memory Usage - Critical
+      - alert: HighMemoryUsageCritical
+        expr: |
+          (
+            container_memory_working_set_bytes{namespace="apollo-production"}
+            /
+            container_spec_memory_limit_bytes{namespace="apollo-production"}
+          ) > 0.95
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+          category: infrastructure
+        annotations:
+          summary: "Critical memory usage on {{ $labels.pod }}"
+          description: "Pod {{ $labels.pod }} memory usage is {{ $value | humanizePercentage }} (threshold: 95%)"
+          runbook_url: "https://docs.apollo.internal/runbooks/high-memory"
+
+      # Disk Space Low - Warning
+      - alert: DiskSpaceLowWarning
+        expr: |
+          (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) > 0.75
+        for: 15m
+        labels:
+          severity: warning
+          team: platform
+          category: infrastructure
+        annotations:
+          summary: "Disk space low on {{ $labels.instance }}"
+          description: "Disk usage is {{ $value | humanizePercentage }} on {{ $labels.mountpoint }} (threshold: 75%)"
+          runbook_url: "https://docs.apollo.internal/runbooks/disk-space"
+
+      # Disk Space Low - Critical
+      - alert: DiskSpaceLowCritical
+        expr: |
+          (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+          category: infrastructure
+        annotations:
+          summary: "Critical disk space on {{ $labels.instance }}"
+          description: "Disk usage is {{ $value | humanizePercentage }} on {{ $labels.mountpoint }} (threshold: 90%)"
+          runbook_url: "https://docs.apollo.internal/runbooks/disk-space"
 
       # Service Down
       - alert: ServiceDown
@@ -27,54 +113,11 @@ groups:
         labels:
           severity: critical
           team: platform
+          category: infrastructure
         annotations:
           summary: "Service {{ $labels.job }} is down"
           description: "Service {{ $labels.job }} has been down for more than 2 minutes"
-
-      # High Response Time
-      - alert: HighResponseTime
-        expr: |
-          histogram_quantile(0.95,
-            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)
-          ) > 1
-        for: 10m
-        labels:
-          severity: warning
-          team: platform
-        annotations:
-          summary: "High response time on {{ $labels.service }}"
-          description: "95th percentile response time is {{ $value }}s (threshold: 1s)"
-
-      # High CPU Usage
-      - alert: HighCPUUsage
-        expr: |
-          sum(rate(container_cpu_usage_seconds_total{namespace="apollo-production"}[5m])) by (pod)
-          /
-          sum(container_spec_cpu_quota{namespace="apollo-production"} / container_spec_cpu_period{namespace="apollo-production"}) by (pod)
-          > 0.8
-        for: 15m
-        labels:
-          severity: warning
-          team: platform
-        annotations:
-          summary: "High CPU usage on {{ $labels.pod }}"
-          description: "Pod {{ $labels.pod }} CPU usage is {{ $value | humanizePercentage }}"
-
-      # High Memory Usage
-      - alert: HighMemoryUsage
-        expr: |
-          (
-            container_memory_working_set_bytes{namespace="apollo-production"}
-            /
-            container_spec_memory_limit_bytes{namespace="apollo-production"}
-          ) > 0.9
-        for: 10m
-        labels:
-          severity: warning
-          team: platform
-        annotations:
-          summary: "High memory usage on {{ $labels.pod }}"
-          description: "Pod {{ $labels.pod }} memory usage is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.apollo.internal/runbooks/service-down"
 
       # Pod Restart Loop
       - alert: PodRestartLoop
@@ -83,14 +126,47 @@ groups:
         labels:
           severity: critical
           team: platform
+          category: infrastructure
         annotations:
           summary: "Pod {{ $labels.pod }} is in restart loop"
           description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last 15 minutes"
+          runbook_url: "https://docs.apollo.internal/runbooks/pod-restart"
 
+      # Node Not Ready
+      - alert: NodeNotReady
+        expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+          category: infrastructure
+        annotations:
+          summary: "Kubernetes node {{ $labels.node }} not ready"
+          description: "Node {{ $labels.node }} has been in NotReady state for 5+ minutes"
+          runbook_url: "https://docs.apollo.internal/runbooks/node-not-ready"
+
+      # High Network Errors
+      - alert: HighNetworkErrors
+        expr: |
+          sum(rate(node_network_receive_errs_total[5m])) by (instance)
+          + sum(rate(node_network_transmit_errs_total[5m])) by (instance)
+          > 10
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          category: infrastructure
+        annotations:
+          summary: "High network errors on {{ $labels.instance }}"
+          description: "Network error rate is {{ $value }}/s"
+
+  # ============================================================================
+  # DATABASE ALERTS
+  # ============================================================================
   - name: apollo_database_alerts
     interval: 30s
     rules:
-      # Database Connection Pool Exhaustion
+      # Database Connection Pool Exhausted
       - alert: DatabaseConnectionPoolExhausted
         expr: |
           (
@@ -102,9 +178,29 @@ groups:
         labels:
           severity: critical
           team: database
+          category: database
         annotations:
           summary: "PostgreSQL connection pool near exhaustion"
           description: "Database connection pool is {{ $value | humanizePercentage }} full"
+          runbook_url: "https://docs.apollo.internal/runbooks/database-issues"
+
+      # Database Connection Pool Critical
+      - alert: DatabaseConnectionPoolCritical
+        expr: |
+          (
+            pg_stat_database_numbackends
+            /
+            pg_settings_max_connections
+          ) > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          team: database
+          category: database
+        annotations:
+          summary: "PostgreSQL connection pool critically exhausted"
+          description: "Database connection pool is {{ $value | humanizePercentage }} full - immediate action required"
+          runbook_url: "https://docs.apollo.internal/runbooks/database-issues"
 
       # Slow Queries
       - alert: DatabaseSlowQueries
@@ -113,9 +209,11 @@ groups:
         labels:
           severity: warning
           team: database
+          category: database
         annotations:
           summary: "Slow database queries detected"
           description: "Average query time is {{ $value }}s (threshold: 5s)"
+          runbook_url: "https://docs.apollo.internal/runbooks/database-issues"
 
       # High Database Connections
       - alert: HighDatabaseConnections
@@ -124,11 +222,56 @@ groups:
         labels:
           severity: warning
           team: database
+          category: database
         annotations:
           summary: "High number of database connections"
           description: "Current connections: {{ $value }} (threshold: 100)"
+          runbook_url: "https://docs.apollo.internal/runbooks/database-issues"
 
-      # Redis Memory Usage
+      # Database Replication Lag
+      - alert: DatabaseReplicationLag
+        expr: pg_replication_lag > 30
+        for: 5m
+        labels:
+          severity: warning
+          team: database
+          category: database
+        annotations:
+          summary: "PostgreSQL replication lag detected"
+          description: "Replication lag is {{ $value }}s (threshold: 30s)"
+          runbook_url: "https://docs.apollo.internal/runbooks/database-issues"
+
+      # Database Deadlocks
+      - alert: DatabaseDeadlocks
+        expr: rate(pg_stat_database_deadlocks[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: database
+          category: database
+        annotations:
+          summary: "PostgreSQL deadlocks detected"
+          description: "Deadlock rate: {{ $value }}/s"
+          runbook_url: "https://docs.apollo.internal/runbooks/database-issues"
+
+      # Database Cache Hit Ratio Low
+      - alert: DatabaseCacheHitRatioLow
+        expr: |
+          (
+            sum(pg_stat_database_blks_hit)
+            /
+            (sum(pg_stat_database_blks_hit) + sum(pg_stat_database_blks_read))
+          ) < 0.95
+        for: 15m
+        labels:
+          severity: warning
+          team: database
+          category: database
+        annotations:
+          summary: "PostgreSQL cache hit ratio low"
+          description: "Cache hit ratio is {{ $value | humanizePercentage }} (threshold: 95%)"
+
+      # Redis High Memory Usage
       - alert: RedisHighMemoryUsage
         expr: |
           (
@@ -140,13 +283,214 @@ groups:
         labels:
           severity: warning
           team: cache
+          category: database
         annotations:
           summary: "Redis memory usage is high"
           description: "Redis memory usage is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.apollo.internal/runbooks/database-issues"
 
+      # Redis Down
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: cache
+          category: database
+        annotations:
+          summary: "Redis is down"
+          description: "Redis instance has been down for more than 2 minutes"
+          runbook_url: "https://docs.apollo.internal/runbooks/database-issues"
+
+      # Elasticsearch Cluster Health
+      - alert: ElasticsearchClusterUnhealthy
+        expr: elasticsearch_cluster_health_status{color="red"} == 1
+        for: 5m
+        labels:
+          severity: critical
+          team: search
+          category: database
+        annotations:
+          summary: "Elasticsearch cluster is unhealthy"
+          description: "Elasticsearch cluster health is RED"
+          runbook_url: "https://docs.apollo.internal/runbooks/database-issues"
+
+      # Elasticsearch Cluster Yellow
+      - alert: ElasticsearchClusterYellow
+        expr: elasticsearch_cluster_health_status{color="yellow"} == 1
+        for: 30m
+        labels:
+          severity: warning
+          team: search
+          category: database
+        annotations:
+          summary: "Elasticsearch cluster health is yellow"
+          description: "Elasticsearch cluster health has been YELLOW for 30+ minutes"
+
+  # ============================================================================
+  # APPLICATION ALERTS
+  # ============================================================================
+  - name: apollo_application_alerts
+    interval: 30s
+    rules:
+      # High Error Rate (>1%)
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+            /
+            sum(rate(http_requests_total[5m])) by (service)
+          ) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          category: application
+        annotations:
+          summary: "High error rate on {{ $labels.service }}"
+          description: "Service {{ $labels.service }} has error rate of {{ $value | humanizePercentage }} (threshold: 1%)"
+          runbook_url: "https://docs.apollo.internal/runbooks/high-error-rate"
+
+      # Critical Error Rate (>5%)
+      - alert: CriticalErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+            /
+            sum(rate(http_requests_total[5m])) by (service)
+          ) > 0.05
+        for: 3m
+        labels:
+          severity: critical
+          team: platform
+          category: application
+        annotations:
+          summary: "Critical error rate on {{ $labels.service }}"
+          description: "Service {{ $labels.service }} has error rate of {{ $value | humanizePercentage }} (threshold: 5%)"
+          runbook_url: "https://docs.apollo.internal/runbooks/high-error-rate"
+
+      # Slow Response Time (P95 > 500ms)
+      - alert: SlowResponseTime
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)
+          ) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          category: application
+        annotations:
+          summary: "Slow response time on {{ $labels.service }}"
+          description: "95th percentile response time is {{ $value }}s (threshold: 500ms)"
+          runbook_url: "https://docs.apollo.internal/runbooks/slow-response"
+
+      # Very Slow Response Time (P95 > 2s)
+      - alert: VerySlowResponseTime
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, service)
+          ) > 2
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+          category: application
+        annotations:
+          summary: "Very slow response time on {{ $labels.service }}"
+          description: "95th percentile response time is {{ $value }}s (threshold: 2s)"
+          runbook_url: "https://docs.apollo.internal/runbooks/slow-response"
+
+      # Rate Limit Exceeded
+      - alert: RateLimitExceeded
+        expr: sum(rate(rate_limit_exceeded_total[5m])) by (service, endpoint) > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          category: application
+        annotations:
+          summary: "Rate limit exceeded on {{ $labels.service }}"
+          description: "Rate limit exceeded {{ $value }} times/s on {{ $labels.endpoint }}"
+
+      # Queue Processing Delay
+      - alert: QueueProcessingDelay
+        expr: rabbitmq_queue_messages > 1000
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          category: application
+        annotations:
+          summary: "Queue {{ $labels.queue }} has high backlog"
+          description: "Queue {{ $labels.queue }} has {{ $value }} pending messages"
+
+      # Celery Task Failure Rate
+      - alert: CeleryTaskFailureRate
+        expr: |
+          sum(rate(celery_task_failed_total[5m])) by (task)
+          /
+          sum(rate(celery_task_received_total[5m])) by (task)
+          > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          category: application
+        annotations:
+          summary: "High Celery task failure rate for {{ $labels.task }}"
+          description: "Task {{ $labels.task }} has {{ $value | humanizePercentage }} failure rate"
+
+      # API Gateway Error Rate
+      - alert: APIGatewayHighErrorRate
+        expr: |
+          sum(rate(http_requests_total{job="apollo-api-gateway",status=~"5.."}[5m]))
+          /
+          sum(rate(http_requests_total{job="apollo-api-gateway"}[5m]))
+          > 0.01
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+          category: application
+        annotations:
+          summary: "API Gateway has high error rate"
+          description: "API Gateway error rate is {{ $value | humanizePercentage }}"
+
+  # ============================================================================
+  # SECURITY ALERTS
+  # ============================================================================
   - name: apollo_security_alerts
     interval: 30s
     rules:
+      # Multiple Failed Logins from Single IP
+      - alert: MultipleFailedLogins
+        expr: |
+          sum(rate(authentication_attempts_total{result="failure"}[5m])) by (source_ip) > 5
+        for: 2m
+        labels:
+          severity: warning
+          team: security
+          category: security
+        annotations:
+          summary: "Multiple failed logins from {{ $labels.source_ip }}"
+          description: "{{ $value }} failed login attempts per second from {{ $labels.source_ip }}"
+          runbook_url: "https://docs.apollo.internal/runbooks/security-incident"
+
+      # Brute Force Attack Detected
+      - alert: BruteForceAttackDetected
+        expr: |
+          sum(rate(authentication_attempts_total{result="failure"}[5m])) by (source_ip) > 20
+        for: 1m
+        labels:
+          severity: critical
+          team: security
+          category: security
+        annotations:
+          summary: "Potential brute force attack from {{ $labels.source_ip }}"
+          description: "{{ $value }} failed login attempts per second - possible brute force attack"
+          runbook_url: "https://docs.apollo.internal/runbooks/security-incident"
+
       # High Authentication Failure Rate
       - alert: HighAuthFailureRate
         expr: |
@@ -159,9 +503,53 @@ groups:
         labels:
           severity: warning
           team: security
+          category: security
         annotations:
           summary: "High authentication failure rate"
           description: "Authentication failure rate is {{ $value | humanizePercentage }} (threshold: 30%)"
+          runbook_url: "https://docs.apollo.internal/runbooks/security-incident"
+
+      # API Key Abuse
+      - alert: APIKeyAbuse
+        expr: |
+          sum(rate(api_key_requests_total[5m])) by (api_key_id) > 100
+        for: 5m
+        labels:
+          severity: warning
+          team: security
+          category: security
+        annotations:
+          summary: "Potential API key abuse detected"
+          description: "API key {{ $labels.api_key_id }} making {{ $value }} requests/second"
+          runbook_url: "https://docs.apollo.internal/runbooks/security-incident"
+
+      # New IP Accessing Admin
+      - alert: NewIPAccessingAdmin
+        expr: |
+          admin_access_from_new_ip == 1
+        for: 0m
+        labels:
+          severity: warning
+          team: security
+          category: security
+        annotations:
+          summary: "New IP accessing admin panel"
+          description: "Admin panel accessed from previously unseen IP: {{ $labels.source_ip }}"
+          runbook_url: "https://docs.apollo.internal/runbooks/security-incident"
+
+      # Unusual Access Pattern
+      - alert: UnusualAccessPattern
+        expr: |
+          sum(rate(http_requests_total{status="401"}[5m])) by (source_ip) > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: security
+          category: security
+        annotations:
+          summary: "Unusual access pattern from {{ $labels.source_ip }}"
+          description: "High rate of 401 errors from single IP: {{ $value }} requests/second"
+          runbook_url: "https://docs.apollo.internal/runbooks/security-incident"
 
       # Potential DDoS Attack
       - alert: PotentialDDoSAttack
@@ -171,24 +559,71 @@ groups:
         labels:
           severity: critical
           team: security
+          category: security
         annotations:
           summary: "Potential DDoS attack from {{ $labels.source_ip }}"
           description: "High request rate from single IP: {{ $value }} requests/second"
+          runbook_url: "https://docs.apollo.internal/runbooks/security-incident"
 
-      # Suspicious Access Pattern
-      - alert: SuspiciousAccessPattern
+      # Suspicious User Agent
+      - alert: SuspiciousUserAgent
         expr: |
-          sum(rate(http_requests_total{status="401"}[5m])) by (source_ip) > 10
-        for: 5m
+          sum(rate(http_requests_total{user_agent=~".*(sqlmap|nikto|nmap|masscan|burp|dirbuster).*"}[5m])) > 0
+        for: 1m
         labels:
           severity: warning
           team: security
+          category: security
         annotations:
-          summary: "Suspicious access pattern from {{ $labels.source_ip }}"
-          description: "High rate of 401 errors from single IP: {{ $value }} requests/second"
+          summary: "Suspicious user agent detected"
+          description: "Requests with security scanning user agent detected"
+          runbook_url: "https://docs.apollo.internal/runbooks/security-incident"
 
+      # Privilege Escalation Attempt
+      - alert: PrivilegeEscalationAttempt
+        expr: |
+          sum(rate(authorization_denied_total{attempted_role="admin"}[5m])) by (user_id) > 1
+        for: 5m
+        labels:
+          severity: critical
+          team: security
+          category: security
+        annotations:
+          summary: "Potential privilege escalation attempt"
+          description: "User {{ $labels.user_id }} attempting unauthorized admin access"
+          runbook_url: "https://docs.apollo.internal/runbooks/security-incident"
+
+      # SSL Certificate Expiring
+      - alert: SSLCertificateExpiringSoon
+        expr: |
+          (probe_ssl_earliest_cert_expiry - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: warning
+          team: security
+          category: security
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "Certificate for {{ $labels.instance }} expires in {{ $value }} days"
+
+      # SSL Certificate Expiring Critical
+      - alert: SSLCertificateExpiringCritical
+        expr: |
+          (probe_ssl_earliest_cert_expiry - time()) / 86400 < 7
+        for: 1h
+        labels:
+          severity: critical
+          team: security
+          category: security
+        annotations:
+          summary: "SSL certificate expiring very soon"
+          description: "Certificate for {{ $labels.instance }} expires in {{ $value }} days - urgent renewal required"
+
+  # ============================================================================
+  # BUSINESS/OPERATIONS ALERTS
+  # ============================================================================
   - name: apollo_business_alerts
-    interval: 30s
+    interval: 60s
     rules:
       # Investigation Processing Backlog
       - alert: InvestigationProcessingBacklog
@@ -197,6 +632,7 @@ groups:
         labels:
           severity: warning
           team: operations
+          category: business
         annotations:
           summary: "Investigation processing backlog"
           description: "{{ $value }} investigations in queue (threshold: 100)"
@@ -208,9 +644,26 @@ groups:
         labels:
           severity: critical
           team: ai
+          category: business
         annotations:
           summary: "Facial recognition system is down"
           description: "Facial recognition system has been unavailable for 5+ minutes"
+
+      # Facial Recognition Low Match Rate
+      - alert: FacialRecognitionLowMatchRate
+        expr: |
+          sum(rate(facial_recognition_matches_total[1h]))
+          /
+          sum(rate(facial_recognition_scans_total[1h]))
+          < 0.001
+        for: 1h
+        labels:
+          severity: warning
+          team: ai
+          category: business
+        annotations:
+          summary: "Facial recognition match rate unusually low"
+          description: "Match rate is {{ $value | humanizePercentage }} - may indicate system issue"
 
       # Blockchain Tracker Lag
       - alert: BlockchainTrackerLag
@@ -219,9 +672,35 @@ groups:
         labels:
           severity: warning
           team: blockchain
+          category: business
         annotations:
           summary: "Blockchain tracker is lagging"
           description: "Blockchain tracker is {{ $value }}s behind (threshold: 300s)"
+
+      # Blockchain Tracker Down
+      - alert: BlockchainTrackerDown
+        expr: blockchain_tracker_health == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: blockchain
+          category: business
+        annotations:
+          summary: "Blockchain tracker is down"
+          description: "Blockchain tracker has been unavailable for 5+ minutes"
+
+      # OSINT Collection Rate Low
+      - alert: OSINTCollectionRateLow
+        expr: |
+          sum(rate(osint_records_collected_total[1h])) < 10
+        for: 1h
+        labels:
+          severity: warning
+          team: intelligence
+          category: business
+        annotations:
+          summary: "OSINT collection rate unusually low"
+          description: "Only {{ $value }} records collected per second"
 
       # Alert Processing Delay
       - alert: AlertProcessingDelay
@@ -230,6 +709,33 @@ groups:
         labels:
           severity: critical
           team: operations
+          category: business
         annotations:
           summary: "Alert processing is delayed"
           description: "Alert processing latency is {{ $value }}s (threshold: 5s)"
+
+      # High Priority Alert Not Acknowledged
+      - alert: HighPriorityAlertNotAcknowledged
+        expr: |
+          time() - high_priority_alert_created_timestamp > 300
+          and high_priority_alert_acknowledged == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: operations
+          category: business
+        annotations:
+          summary: "High priority alert not acknowledged"
+          description: "High priority alert has been pending for {{ $value }}s without acknowledgment"
+
+      # Target Match Alert
+      - alert: TargetMatchDetected
+        expr: apollo_target_match_detected == 1
+        for: 0m
+        labels:
+          severity: critical
+          team: operations
+          category: business
+        annotations:
+          summary: "Target match detected"
+          description: "A monitored target has been detected - {{ $labels.target_id }} at {{ $labels.location }}"

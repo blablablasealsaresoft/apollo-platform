@@ -1,0 +1,464 @@
+# Apollo Platform - Development Integrations Configuration
+# ===========================================================
+
+environment: development
+
+# OSINT Tools Integration
+osint:
+  # Shodan - Internet-connected device search
+  shodan:
+    enabled: true
+    api_key: ${SHODAN_API_KEY}
+    base_url: https://api.shodan.io
+    rate_limit: 1  # request per second (free tier)
+    timeout: 30000
+
+    features:
+      host_lookup: true
+      search: true
+      scan: false  # Requires paid plan
+      exploits: true
+
+  # DeHashed - Breach database search
+  dehashed:
+    enabled: true
+    api_key: ${DEHASHED_API_KEY}
+    username: ${DEHASHED_USERNAME}
+    base_url: https://api.dehashed.com/search
+    rate_limit: 10  # requests per minute
+    timeout: 30000
+
+    search_fields:
+      - email
+      - username
+      - ip_address
+      - name
+      - phone
+      - vin
+
+  # Have I Been Pwned - Breach notification
+  haveibeenpwned:
+    enabled: true
+    api_key: ${HIBP_API_KEY}
+    base_url: https://haveibeenpwned.com/api/v3
+    rate_limit: 1500  # requests per day
+    timeout: 10000
+
+    features:
+      breach_check: true
+      paste_check: true
+      password_check: false  # k-Anonymity model
+
+  # Hunter.io - Email finder and verifier
+  hunterio:
+    enabled: true
+    api_key: ${HUNTERIO_API_KEY}
+    base_url: https://api.hunter.io/v2
+    rate_limit: 50  # requests per month (free tier)
+    timeout: 10000
+
+    features:
+      domain_search: true
+      email_finder: true
+      email_verifier: true
+      author_finder: false  # Requires paid plan
+
+  # VirusTotal - File and URL analysis
+  virustotal:
+    enabled: true
+    api_key: ${VIRUSTOTAL_API_KEY}
+    base_url: https://www.virustotal.com/api/v3
+    rate_limit: 4  # requests per minute (free tier)
+    timeout: 30000
+
+    features:
+      file_scan: true
+      url_scan: true
+      domain_report: true
+      ip_report: true
+
+  # Censys - Internet asset search
+  censys:
+    enabled: false
+    api_id: ${CENSYS_API_ID}
+    api_secret: ${CENSYS_API_SECRET}
+    base_url: https://search.censys.io/api/v2
+    rate_limit: 120  # requests per 5 minutes
+    timeout: 30000
+
+  # WhoisXML API - Domain information
+  whoisxml:
+    enabled: false
+    api_key: ${WHOISXML_API_KEY}
+    base_url: https://www.whoisxmlapi.com/whoisserver
+    rate_limit: 100  # requests per day (free tier)
+    timeout: 10000
+
+# Blockchain & Cryptocurrency
+blockchain:
+  # Blockchain.com API
+  blockchain_com:
+    enabled: true
+    api_key: ${BLOCKCHAIN_API_KEY}
+    base_url: https://api.blockchain.info
+    timeout: 30000
+
+    features:
+      address_lookup: true
+      transaction_details: true
+      block_explorer: true
+
+  # Etherscan - Ethereum blockchain explorer
+  etherscan:
+    enabled: true
+    api_key: ${ETHERSCAN_API_KEY}
+    base_url: https://api.etherscan.io/api
+    rate_limit: 5  # requests per second (free tier)
+    timeout: 30000
+
+    networks:
+      - mainnet
+      - goerli  # testnet
+
+    features:
+      account_balance: true
+      transaction_list: true
+      internal_transactions: true
+      token_transfers: true
+      contract_verification: true
+
+  # CoinGecko - Cryptocurrency data
+  coingecko:
+    enabled: true
+    api_key: ${COINGECKO_API_KEY}
+    base_url: https://api.coingecko.com/api/v3
+    rate_limit: 10  # requests per minute (free tier)
+    timeout: 10000
+
+    features:
+      price_data: true
+      market_data: true
+      historical_data: true
+      exchange_data: true
+
+  # BlockCypher - Multi-blockchain API
+  blockcypher:
+    enabled: true
+    token: ${BLOCKCYPHER_TOKEN}
+    base_url: https://api.blockcypher.com/v1
+    rate_limit: 3  # requests per second (free tier)
+    timeout: 30000
+
+    networks:
+      - btc/main  # Bitcoin mainnet
+      - eth/main  # Ethereum mainnet
+
+# Social Media Monitoring
+social_media:
+  # Twitter/X API
+  twitter:
+    enabled: true
+    api_key: ${TWITTER_API_KEY}
+    api_secret: ${TWITTER_API_SECRET}
+    bearer_token: ${TWITTER_BEARER_TOKEN}
+    base_url: https://api.twitter.com/2
+    rate_limit: 100  # requests per 15 minutes
+    timeout: 30000
+
+    features:
+      user_lookup: true
+      tweet_search: true
+      user_timeline: true
+      followers: false  # Requires elevated access
+
+  # LinkedIn (unofficial - web scraping)
+  linkedin:
+    enabled: false  # Use with caution
+    access_token: ${LINKEDIN_ACCESS_TOKEN}
+    timeout: 30000
+
+    features:
+      profile_lookup: false
+      company_lookup: false
+
+  # Reddit API
+  reddit:
+    enabled: false
+    client_id: ${REDDIT_CLIENT_ID}
+    client_secret: ${REDDIT_CLIENT_SECRET}
+    user_agent: Apollo Platform v1.0
+    base_url: https://oauth.reddit.com
+    timeout: 30000
+
+# Communication Services
+communications:
+  # Email (SMTP)
+  smtp:
+    enabled: true
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    secure: true
+    auth:
+      user: ${SMTP_USER}
+      pass: ${SMTP_PASSWORD}
+
+    from:
+      name: Apollo Platform
+      email: ${SMTP_FROM}
+
+    templates:
+      alert: alert_template.html
+      report: report_template.html
+      notification: notification_template.html
+
+  # Twilio - SMS and Voice
+  twilio:
+    enabled: false  # Disabled in dev
+    account_sid: ${TWILIO_ACCOUNT_SID}
+    auth_token: ${TWILIO_AUTH_TOKEN}
+    phone_number: ${TWILIO_PHONE_NUMBER}
+    base_url: https://api.twilio.com/2010-04-01
+    timeout: 10000
+
+    features:
+      sms: true
+      voice: true
+      verify: false
+
+  # Slack - Team messaging
+  slack:
+    enabled: true
+    webhook_url: ${SLACK_WEBHOOK_URL}
+    bot_token: ${SLACK_BOT_TOKEN}
+    timeout: 10000
+
+    channels:
+      alerts: ${SLACK_ALERTS_CHANNEL}
+      intelligence: #apollo-intel
+      operations: #apollo-ops
+
+    formatting:
+      markdown: true
+      link_names: true
+
+  # Discord - Team messaging
+  discord:
+    enabled: true
+    webhook_url: ${DISCORD_WEBHOOK_URL}
+    timeout: 10000
+
+    formatting:
+      embeds: true
+      mentions: true
+
+# Security Tools
+security:
+  # Metasploit RPC
+  metasploit:
+    enabled: false  # Disabled in dev
+    host: ${METASPLOIT_HOST}
+    port: ${METASPLOIT_PORT}
+    user: ${METASPLOIT_USER}
+    password: ${METASPLOIT_PASSWORD}
+    ssl: false
+    timeout: 60000
+
+    features:
+      exploit_search: true
+      module_execution: false  # Requires approval
+      payload_generation: false
+
+  # Nmap - Network scanning
+  nmap:
+    enabled: true
+    binary_path: /usr/bin/nmap
+    timeout: 300000  # 5 minutes
+
+    default_options:
+      - -sV  # Version detection
+      - -O   # OS detection
+      - --script=default  # Default scripts
+
+    safety:
+      require_approval: true
+      allowed_targets: []  # Empty in dev
+
+# Dark Web Monitoring
+darkweb:
+  # Tor Network
+  tor:
+    enabled: false  # Disabled in dev
+    proxy: ${TOR_PROXY}
+    control_port: ${TOR_CONTROL_PORT}
+    password: ${TOR_PASSWORD}
+
+    features:
+      onion_routing: true
+      circuit_management: true
+
+  # I2P Network
+  i2p:
+    enabled: false
+    proxy: socks5://localhost:4447
+    timeout: 60000
+
+# Geolocation Services
+geolocation:
+  # IP Geolocation
+  ipgeolocation:
+    enabled: false
+    api_key: ${IPGEOLOCATION_API_KEY}
+    base_url: https://api.ipgeolocation.io
+    timeout: 10000
+
+  # MaxMind GeoIP2
+  maxmind:
+    enabled: false
+    account_id: ${MAXMIND_ACCOUNT_ID}
+    license_key: ${MAXMIND_LICENSE_KEY}
+    database_path: /data/geoip/GeoLite2-City.mmdb
+
+# Document Analysis
+document_analysis:
+  # Optical Character Recognition (Tesseract)
+  ocr:
+    enabled: true
+    binary_path: /usr/bin/tesseract
+    languages: [eng, deu, fra, spa]
+    timeout: 60000
+
+  # PDF Processing
+  pdf:
+    enabled: true
+    max_file_size: 100mb
+    extract_text: true
+    extract_images: true
+    extract_metadata: true
+
+  # Image Analysis
+  image_analysis:
+    enabled: true
+    max_file_size: 50mb
+    formats: [jpg, png, gif, bmp, tiff]
+    exif_extraction: true
+
+# Storage Services
+storage:
+  # Local File System
+  local:
+    enabled: true
+    base_path: c:/SECURE_THREAT_INTEL/YoureGunnaHAveToShootMeToStopME/apollo/data
+    max_file_size: 500mb
+
+  # AWS S3 (for production backups)
+  s3:
+    enabled: false
+    bucket: apollo-backups-dev
+    region: us-east-1
+    access_key_id: ${AWS_ACCESS_KEY_ID}
+    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+
+  # Azure Blob Storage
+  azure_blob:
+    enabled: false
+    connection_string: ${AZURE_STORAGE_CONNECTION_STRING}
+    container: apollo-data
+
+# Monitoring & Analytics
+monitoring:
+  # Prometheus - Metrics collection
+  prometheus:
+    enabled: true
+    url: ${PROMETHEUS_URL}
+    push_gateway: http://localhost:9091
+    scrape_interval: 15s
+
+  # Grafana - Visualization
+  grafana:
+    enabled: true
+    url: ${GRAFANA_URL}
+    api_key: ${GRAFANA_API_KEY}
+
+    dashboards:
+      - surveillance
+      - intelligence
+      - operations
+      - system_health
+
+  # Sentry - Error tracking
+  sentry:
+    enabled: true
+    dsn: ${SENTRY_DSN}
+    environment: development
+    traces_sample_rate: 1.0
+    profiles_sample_rate: 1.0
+
+    integrations:
+      - express
+      - postgres
+      - redis
+
+# External Databases
+external_databases:
+  # Interpol Red Notices
+  interpol:
+    enabled: false
+    base_url: https://ws-public.interpol.int/notices/v1
+    timeout: 30000
+
+  # FBI Most Wanted
+  fbi_most_wanted:
+    enabled: false
+    base_url: https://api.fbi.gov/wanted/v1
+    timeout: 30000
+
+# Webhooks
+webhooks:
+  enabled: true
+  base_url: http://localhost:4000/webhooks
+
+  endpoints:
+    surveillance_alert: /webhooks/surveillance/alert
+    intelligence_update: /webhooks/intelligence/update
+    case_update: /webhooks/case/update
+    evidence_upload: /webhooks/evidence/upload
+
+  security:
+    verify_signature: false  # Disabled in dev
+    allowed_ips: []
+
+# Integration retry policies
+retry_policies:
+  default:
+    max_attempts: 3
+    initial_delay: 1000  # ms
+    max_delay: 10000
+    backoff_multiplier: 2
+    retry_on:
+      - network_error
+      - timeout
+      - rate_limit
+
+  critical:
+    max_attempts: 5
+    initial_delay: 500
+    max_delay: 30000
+    backoff_multiplier: 2
+
+  background:
+    max_attempts: 10
+    initial_delay: 5000
+    max_delay: 300000
+    backoff_multiplier: 2
+
+# Development features
+development:
+  mock_external_apis: false
+  log_all_requests: true
+  log_all_responses: true
+  cache_responses: false
+
+  # Test data
+  fixtures:
+    enabled: true
+    path: c:/SECURE_THREAT_INTEL/YoureGunnaHAveToShootMeToStopME/apollo/data/fixtures/integrations

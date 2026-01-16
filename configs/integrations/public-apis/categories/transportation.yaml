@@ -1,0 +1,42 @@
+category: transportation
+total_apis: 16
+priority: high
+apollo_use: "Flight tracking, vehicle tracking, maritime intelligence, transportation monitoring"
+
+apis:
+  opensky_network:
+    name: OpenSky Network
+    url: https://opensky-network.org/api
+    authentication: optional
+    free_tier: true
+    rate_limit: 400/day
+    apollo_integration:
+      use_case: "Track private jets, monitor flights, aviation intelligence for HVT tracking"
+      priority: critical
+      track_aircraft: [private_jets, suspicious_routes]
+
+  aviationstack:
+    name: AviationStack
+    url: http://api.aviationstack.com/v1
+    authentication: apiKey
+    free_tier: 500/month
+    apollo_integration:
+      use_case: "Flight intelligence, private jet monitoring"
+      priority: high
+
+  marinetraffic:
+    name: MarineTraffic
+    url: https://services.marinetraffic.com/api
+    authentication: apiKey
+    apollo_integration:
+      use_case: "Yacht tracking, maritime intelligence"
+      priority: high
+
+deployment:
+  mode: continuous
+  priority: high
+
+intelligence_fusion:
+  feed_to:
+    - apollo.transportation_intelligence
+    - apollo.hvt_tracking

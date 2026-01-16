@@ -1,0 +1,36 @@
+name: Build & Deploy Environments
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        required: true
+        default: staging
+        options: [ dev, staging, prod ]
+      version:
+        description: Image tag to deploy
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: kube
+        name: Write kubeconfig
+        env:
+          KUBECONFIGS_JSON: ${{ secrets.KUBECONFIGS_JSON }}
+        run: |
+          echo "$KUBECONFIGS_JSON" | jq -r '.${{ inputs.environment }}' | base64 -d > kubeconfig
+      - name: Render manifests
+        run: |
+          kustomize build infrastructure/kubernetes/overlays/${{ inputs.environment }} > manifest.yaml
+      - name: Apply manifests
+        run: |
+          kubectl --kubeconfig kubeconfig apply -f manifest.yaml
+      - name: Update image tag
+        run: |
+          kubectl --kubeconfig kubeconfig set image deployment/apollo-api apollo-api=ghcr.io/${{ github.repository }}/apollo:${{ inputs.version }}
+          kubectl --kubeconfig kubeconfig rollout status deployment/apollo-api --timeout=300s

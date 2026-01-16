@@ -114,19 +114,29 @@ class BlockchainAPIManager:
         self.session = aiohttp.ClientSession()
 
         # Initialize Bitcoin API clients
+        # Priority order: Free APIs without keys first, then keyed APIs
         from .bitcoin_clients import (
             BlockchainInfoClient,
             BlockchairClient,
             BlockCypherClient,
             BTCComClient,
+            BlockstreamAPIClient,
+            MempoolSpaceAPIClient,
+            CoinGeckoClient,
         )
 
+        # Order by reliability and no-API-key requirement
         self.bitcoin_apis = {
-            "blockchain_info": BlockchainInfoClient(self.session, self.config),
-            "blockchair": BlockchairClient(self.session, self.config),
-            "blockcypher": BlockCypherClient(self.session, self.config),
-            "btc_com": BTCComClient(self.session, self.config),
+            "blockstream": BlockstreamAPIClient(self.session, self.config),  # Free, no key, most reliable
+            "mempool_space": MempoolSpaceAPIClient(self.session, self.config),  # Free, no key, excellent fees
+            "blockchain_info": BlockchainInfoClient(self.session, self.config),  # Free
+            "blockchair": BlockchairClient(self.session, self.config),  # Free tier
+            "blockcypher": BlockCypherClient(self.session, self.config),  # Free tier
+            "btc_com": BTCComClient(self.session, self.config),  # Free
         }
+
+        # Price API client
+        self.price_client = CoinGeckoClient(self.session, self.config)
 
         # Initialize Ethereum API clients
         from .ethereum_clients import (
@@ -296,28 +306,259 @@ class BlockchainAPIManager:
         return 0.0
 
     async def get_current_price(self, blockchain: str = "btc") -> float:
-        """Get current price in USD"""
+        """Get current price in USD using CoinGecko"""
         cache_key = f"price_{blockchain}"
         cached = self.cache.get(cache_key)
         if cached is not None:
             return cached
 
-        # Use first available API
+        # Use CoinGecko for prices (most reliable free source)
+        try:
+            if blockchain.lower() in ["btc", "bitcoin"]:
+                price = await self.price_client.get_bitcoin_price()
+            elif blockchain.lower() in ["eth", "ethereum"]:
+                price = await self.price_client.get_ethereum_price()
+            else:
+                # Try to get from CoinGecko with coin ID
+                coin_map = {
+                    "bsc": "binancecoin",
+                    "polygon": "matic-network",
+                    "avax": "avalanche-2",
+                    "sol": "solana",
+                    "ada": "cardano",
+                }
+                coin_id = coin_map.get(blockchain.lower(), blockchain.lower())
+                prices = await self.price_client.get_prices([coin_id])
+                price = prices.get(coin_id, 0.0)
+
+            if price > 0:
+                self.cache.set(cache_key, price)
+                return price
+
+        except Exception as e:
+            logger.warning(f"CoinGecko price fetch failed: {e}")
+
+        return 0.0
+
+    async def get_address_utxos(
+        self,
+        address: str,
+        blockchain: str = "btc"
+    ) -> List[Dict]:
+        """
+        Get unspent transaction outputs for an address
+
+        Returns list of UTXOs with:
+        - txid: transaction hash
+        - vout: output index
+        - value: amount in satoshis
+        - value_btc: amount in BTC
+        - confirmed: bool
+        """
+        cache_key = f"utxos_{blockchain}_{address}"
+        cached = self.cache.get(cache_key)
+        if cached is not None and self.config.CACHE_ENABLED:
+            return cached
+
         api_clients = self._get_api_clients_for_blockchain(blockchain)
 
         for api_name, client in api_clients.items():
             try:
-                price = await client.get_current_price()
+                # Check if client has UTXO method
+                if hasattr(client, 'get_address_utxos'):
+                    await self.rate_limiters[api_name].acquire()
+                    utxos = await client.get_address_utxos(address)
 
-                # Cache price for 60 seconds
-                self.cache.set(cache_key, price)
+                    if utxos:
+                        if self.config.CACHE_ENABLED:
+                            self.cache.set(cache_key, utxos)
+                        return utxos
 
-                return price
+            except Exception as e:
+                logger.warning(f"UTXO fetch from {api_name} failed: {e}")
+                continue
 
+        return []
+
+    async def get_fee_estimates(self, blockchain: str = "btc") -> Dict[str, int]:
+        """
+        Get recommended fee estimates
+
+        Returns:
+            {
+                'fastest': sat/vB for next block,
+                'halfHour': sat/vB for ~30 min,
+                'hour': sat/vB for ~1 hour,
+                'economy': sat/vB for low priority,
+                'minimum': sat/vB minimum
+            }
+        """
+        cache_key = f"fees_{blockchain}"
+        cached = self.cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        if blockchain.lower() in ["btc", "bitcoin"]:
+            # Use Mempool.space for best fee estimates
+            try:
+                mempool_client = self.bitcoin_apis.get("mempool_space")
+                if mempool_client and hasattr(mempool_client, 'get_recommended_fees'):
+                    fees = await mempool_client.get_recommended_fees()
+
+                    result = {
+                        'fastest': fees.get('fastestFee', 20),
+                        'halfHour': fees.get('halfHourFee', 15),
+                        'hour': fees.get('hourFee', 10),
+                        'economy': fees.get('economyFee', 5),
+                        'minimum': fees.get('minimumFee', 1)
+                    }
+
+                    self.cache.set(cache_key, result)
+                    return result
+
+            except Exception as e:
+                logger.warning(f"Mempool.space fee fetch failed: {e}")
+
+            # Fallback to Blockstream
+            try:
+                blockstream_client = self.bitcoin_apis.get("blockstream")
+                if blockstream_client and hasattr(blockstream_client, 'get_fee_estimates'):
+                    estimates = await blockstream_client.get_fee_estimates()
+
+                    result = {
+                        'fastest': int(estimates.get('1', 20)),
+                        'halfHour': int(estimates.get('3', 15)),
+                        'hour': int(estimates.get('6', 10)),
+                        'economy': int(estimates.get('144', 5)),
+                        'minimum': int(estimates.get('504', 1))
+                    }
+
+                    self.cache.set(cache_key, result)
+                    return result
+
+            except Exception as e:
+                logger.warning(f"Blockstream fee fetch failed: {e}")
+
+        # Default fallback
+        return {
+            'fastest': 20,
+            'halfHour': 15,
+            'hour': 10,
+            'economy': 5,
+            'minimum': 1
+        }
+
+    async def get_mempool_info(self, blockchain: str = "btc") -> Optional[Dict]:
+        """
+        Get current mempool statistics
+
+        Returns:
+            {
+                'count': number of transactions,
+                'vsize': total virtual size,
+                'total_fee': total fees in satoshis
+            }
+        """
+        if blockchain.lower() in ["btc", "bitcoin"]:
+            try:
+                mempool_client = self.bitcoin_apis.get("mempool_space")
+                if mempool_client and hasattr(mempool_client, 'get_mempool_info'):
+                    return await mempool_client.get_mempool_info()
+            except Exception as e:
+                logger.warning(f"Mempool info fetch failed: {e}")
+
+        return None
+
+    async def get_block_height(self, blockchain: str = "btc") -> Optional[int]:
+        """Get current block height for a blockchain"""
+        api_clients = self._get_api_clients_for_blockchain(blockchain)
+
+        for api_name, client in api_clients.items():
+            try:
+                if hasattr(client, 'get_block_height'):
+                    height = await client.get_block_height()
+                    if height:
+                        return height
             except Exception as e:
                 continue
 
-        return 0.0
+        return None
+
+    async def trace_transaction(
+        self,
+        txid: str,
+        blockchain: str = "btc",
+        direction: str = "both",
+        max_depth: int = 3
+    ) -> Dict:
+        """
+        Trace a transaction's inputs and outputs
+
+        Args:
+            txid: Transaction hash
+            blockchain: Blockchain type
+            direction: 'inputs', 'outputs', or 'both'
+            max_depth: Maximum hops to trace
+
+        Returns:
+            Transaction trace with input sources and output destinations
+        """
+        result = {
+            'txid': txid,
+            'blockchain': blockchain,
+            'direction': direction,
+            'inputs': [],
+            'outputs': [],
+            'total_input': 0,
+            'total_output': 0,
+            'fee': 0
+        }
+
+        # Get transaction details
+        tx = await self.get_transaction(txid, blockchain)
+        if not tx:
+            return result
+
+        result['fee'] = tx.get('fee', 0)
+
+        # Trace inputs
+        if direction in ['inputs', 'both']:
+            for inp in tx.get('inputs', []):
+                input_info = {
+                    'address': inp.get('address'),
+                    'amount': inp.get('amount', 0),
+                    'prev_txid': inp.get('prev_txid'),
+                    'prev_vout': inp.get('prev_vout'),
+                    'sources': []
+                }
+                result['total_input'] += input_info['amount']
+
+                # Recursively trace if depth > 1
+                if max_depth > 1 and inp.get('prev_txid'):
+                    source_trace = await self.trace_transaction(
+                        inp['prev_txid'],
+                        blockchain,
+                        'inputs',
+                        max_depth - 1
+                    )
+                    input_info['sources'] = source_trace.get('inputs', [])
+
+                result['inputs'].append(input_info)
+
+        # Trace outputs
+        if direction in ['outputs', 'both']:
+            for out in tx.get('outputs', []):
+                output_info = {
+                    'address': out.get('address'),
+                    'amount': out.get('amount', 0),
+                    'spent': False,
+                    'spending_txid': None,
+                    'destinations': []
+                }
+                result['total_output'] += output_info['amount']
+                result['outputs'].append(output_info)
+
+        return result
 
     def get_api_stats(self) -> Dict:
         """Get statistics about API usage"""

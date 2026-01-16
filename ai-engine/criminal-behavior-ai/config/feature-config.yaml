@@ -1,0 +1,252 @@
+# Criminal Behavior AI - Feature Configuration
+# Apollo Platform v0.1.0
+
+feature_sets:
+  cryptocurrency_criminal:
+    behavioral:
+      - name: transaction_frequency
+        type: numerical
+        importance: high
+        description: Number of transactions per time window
+
+      - name: transaction_amounts
+        type: numerical
+        importance: high
+        description: Statistical distribution of transaction amounts
+
+      - name: wallet_diversity
+        type: numerical
+        importance: medium
+        description: Number of unique wallets interacted with
+
+      - name: mixing_service_usage
+        type: binary
+        importance: critical
+        description: Use of cryptocurrency mixing/tumbling services
+
+      - name: exchange_patterns
+        type: categorical
+        importance: high
+        description: Exchange usage patterns and preferences
+
+      - name: withdrawal_timing
+        type: temporal
+        importance: high
+        description: Patterns in withdrawal timing and coordination
+
+      - name: geographic_dispersion
+        type: numerical
+        importance: medium
+        description: Geographic spread of activities
+
+      - name: counterparty_risk
+        type: numerical
+        importance: critical
+        description: Risk scores of transaction counterparties
+
+  predator_grooming:
+    communication:
+      - name: message_frequency
+        type: numerical
+        importance: high
+        description: Frequency of messages over time
+
+      - name: message_content_analysis
+        type: embedding
+        importance: critical
+        description: NLP analysis of message content
+
+      - name: progressive_intimacy
+        type: numerical
+        importance: critical
+        description: Progressive increase in intimacy/personal questions
+
+      - name: gift_giving_patterns
+        type: binary
+        importance: high
+        description: Offers of gifts, money, or other items
+
+      - name: isolation_attempts
+        type: numerical
+        importance: critical
+        description: Attempts to isolate victim from support network
+
+      - name: secrecy_requests
+        type: numerical
+        importance: critical
+        description: Requests to keep relationship secret
+
+      - name: age_gap
+        type: numerical
+        importance: high
+        description: Age difference between parties
+
+      - name: time_of_day_patterns
+        type: temporal
+        importance: medium
+        description: Unusual communication timing patterns
+
+      - name: platform_behavior
+        type: categorical
+        importance: medium
+        description: Platform-specific behavioral indicators
+
+      - name: social_engineering_indicators
+        type: numerical
+        importance: high
+        description: Social engineering and manipulation tactics
+
+  trafficking_network:
+    network:
+      - name: degree_centrality
+        type: numerical
+        importance: high
+        description: Number of direct connections in network
+
+      - name: betweenness_centrality
+        type: numerical
+        importance: critical
+        description: Node importance in network paths
+
+      - name: clustering_coefficient
+        type: numerical
+        importance: medium
+        description: Degree of clustering around node
+
+      - name: community_membership
+        type: categorical
+        importance: high
+        description: Network community/cluster membership
+
+      - name: role_indicators
+        type: categorical
+        importance: critical
+        description: Indicators of role in trafficking operation
+
+      - name: communication_frequency
+        type: numerical
+        importance: high
+        description: Frequency of inter-node communication
+
+      - name: transaction_patterns
+        type: numerical
+        importance: high
+        description: Financial transaction patterns
+
+      - name: geographic_patterns
+        type: categorical
+        importance: high
+        description: Geographic movement and location patterns
+
+  financial_crime:
+    transactions:
+      - name: structuring_indicators
+        type: numerical
+        importance: critical
+        description: Evidence of transaction structuring
+
+      - name: layering_complexity
+        type: numerical
+        importance: high
+        description: Complexity of transaction layering
+
+      - name: integration_methods
+        type: categorical
+        importance: high
+        description: Methods used for fund integration
+
+      - name: velocity_of_funds
+        type: numerical
+        importance: high
+        description: Speed of fund movement
+
+      - name: shell_company_usage
+        type: binary
+        importance: critical
+        description: Use of shell companies
+
+      - name: jurisdictional_arbitrage
+        type: numerical
+        importance: high
+        description: Exploitation of jurisdictional differences
+
+      - name: smurfing_patterns
+        type: numerical
+        importance: critical
+        description: Evidence of smurfing/structuring
+
+      - name: round_tripping
+        type: binary
+        importance: high
+        description: Round-trip transaction patterns
+
+feature_extraction:
+  nlp_features:
+    model: sentence-transformers/all-mpnet-base-v2
+    embedding_dim: 768
+    max_length: 512
+
+    text_analysis:
+      - sentiment_analysis
+      - toxicity_detection
+      - age_inappropriate_content
+      - manipulation_indicators
+      - grooming_language_patterns
+
+  temporal_features:
+    time_windows:
+      - 1_hour
+      - 6_hours
+      - 24_hours
+      - 7_days
+      - 30_days
+
+    aggregations:
+      - count
+      - mean
+      - std
+      - min
+      - max
+      - trend
+
+  network_features:
+    algorithms:
+      - pagerank
+      - eigenvector_centrality
+      - community_detection
+      - shortest_paths
+      - network_flow
+
+  transaction_features:
+    statistical_measures:
+      - mean_amount
+      - median_amount
+      - std_amount
+      - coefficient_of_variation
+      - benford_law_compliance
+      - unusual_round_numbers
+
+feature_importance:
+  calculation_method: shap
+  update_frequency: weekly
+  threshold_for_inclusion: 0.01
+
+feature_validation:
+  null_threshold: 0.1
+  correlation_threshold: 0.95
+  variance_threshold: 0.01
+
+  quality_checks:
+    - null_percentage
+    - unique_value_count
+    - distribution_analysis
+    - outlier_detection
+    - correlation_analysis
+
+feature_store:
+  backend: redis
+  caching:
+    enabled: true
+    ttl_seconds: 3600
+  versioning: true
+  lineage_tracking: true

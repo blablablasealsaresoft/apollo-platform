@@ -1,0 +1,201 @@
+# Predator Hunting Mission Configuration
+
+mission: predator-hunting
+priority: critical
+authorization_level: warrant
+speed: maximum
+emergency_mode: true
+
+phases:
+  - name: platform_analysis
+    description: Analyze target platform security
+    tools:
+      - bugtrace-ai
+      - nuclei
+    parameters:
+      mode: deep
+      ai_model: claude-3-opus
+      speed: maximum
+    timeout: 1800
+
+  - name: access_planning
+    description: Plan access to messaging system
+    ai_planning: true
+    considerations:
+      - message_database
+      - file_storage
+      - user_profiles
+      - perpetrator_communications
+    depends_on:
+      - platform_analysis
+    timeout: 900
+
+  - name: exploitation
+    description: Execute authorized platform access
+    authorization_required: true
+    priority: critical
+    tools:
+      - custom_exploits
+      - web_exploits
+    depends_on:
+      - access_planning
+    timeout: 3600
+
+  - name: victim_identification
+    description: Identify victims in immediate danger
+    priority: critical
+    ai_analysis: true
+    targets:
+      - message_content
+      - file_metadata
+      - user_profiles
+      - communication_patterns
+    depends_on:
+      - exploitation
+    timeout: 1800
+
+  - name: perpetrator_mapping
+    description: Map criminal network
+    tools:
+      - network_analyzer
+      - osint_social
+    targets:
+      - perpetrator_identities
+      - communication_networks
+      - associated_accounts
+    depends_on:
+      - exploitation
+    timeout: 1800
+
+  - name: evidence_collection
+    description: Collect all evidence
+    priority: critical
+    targets:
+      - victim_communications
+      - perpetrator_messages
+      - file_attachments
+      - user_data
+    evidence_types:
+      - messages
+      - files
+      - images
+      - videos
+      - metadata
+    depends_on:
+      - victim_identification
+      - perpetrator_mapping
+    timeout: 3600
+
+  - name: rescue_coordination
+    description: Coordinate victim rescue operations
+    priority: critical
+    requires_immediate_action: true
+    coordinates_with:
+      - local_law_enforcement
+      - fbi
+      - victim_services
+    depends_on:
+      - victim_identification
+    timeout: 900
+
+  - name: evidence_preservation
+    description: Preserve evidence with strict chain of custody
+    requirements:
+      - chain_of_custody: strict
+      - encryption: aes-256
+      - integrity_verification: sha256
+      - victim_privacy: protected
+    depends_on:
+      - evidence_collection
+    timeout: 1800
+
+  - name: reporting
+    description: Generate reports for prosecution and victim services
+    formats:
+      - prosecution_report
+      - victim_identification_report
+      - perpetrator_profile_report
+      - rescue_coordination_report
+    depends_on:
+      - evidence_preservation
+      - rescue_coordination
+    timeout: 1800
+
+success_criteria:
+  - platform_access_gained: true
+  - victims_identified: true
+  - perpetrators_mapped: true
+  - evidence_collected: true
+  - rescue_coordinated: conditional
+  - evidence_preserved: true
+  - reports_generated: true
+
+urgent_actions:
+  # Actions requiring immediate execution
+  victim_in_immediate_danger:
+    priority: critical
+    notify:
+      - operation_supervisor
+      - local_law_enforcement
+      - fbi
+    coordinate_rescue: true
+    expedite_evidence: true
+
+  multiple_victims_identified:
+    priority: critical
+    notify:
+      - operation_supervisor
+      - fbi
+      - victim_services
+    expand_operation: true
+
+evidence_requirements:
+  mandatory:
+    - victim_identification
+    - perpetrator_communications
+    - platform_access_logs
+
+  high_priority:
+    - message_content
+    - file_attachments
+    - perpetrator_network_map
+
+  optional:
+    - platform_vulnerabilities
+    - admin_credentials
+
+  victim_privacy:
+    protect_identity: true
+    redact_personal_info: conditional
+    coordinate_with_victim_services: true
+
+opsec:
+  level: maximum
+  speed: critical
+  techniques:
+    - traffic_obfuscation
+    - proxy_chaining
+    - randomized_timing
+
+  # Speed vs stealth trade-off
+  prioritize_speed_over_stealth: true
+
+  burn_on_detection: true
+  preserve_evidence_before_burn: true
+
+legal_compliance:
+  warrant_required: true
+  emergency_provisions: available
+  scope_verification: true
+  victim_protection: mandatory
+  evidence_handling: strict
+  report_format: prosecution_ready
+
+victim_services_integration:
+  coordinate_rescue: true
+  provide_victim_support: true
+  protect_victim_identity: true
+  coordinate_with:
+    - local_victim_services
+    - ncmec
+    - fbi_victim_services

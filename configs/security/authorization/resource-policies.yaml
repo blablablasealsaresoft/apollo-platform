@@ -1,0 +1,471 @@
+# Resource-Based Access Policies for Apollo Platform
+# Fine-grained access control policies for specific resources
+
+resource_policies:
+  # Investigation Resource Policies
+  investigations:
+    # Default policy for investigations
+    default:
+      # Owner has full access
+      owner:
+        permissions:
+          - read
+          - write
+          - delete
+          - share
+          - assign
+        conditions: []
+
+      # Team members have read/write access
+      team_member:
+        permissions:
+          - read
+          - write
+          - comment
+        conditions:
+          - resource.team_id IN user.teams
+
+      # Assigned users have read/write access
+      assigned_user:
+        permissions:
+          - read
+          - write
+          - comment
+        conditions:
+          - user.id IN resource.assigned_users
+
+      # Supervisor has oversight access
+      supervisor:
+        permissions:
+          - read
+          - write
+          - approve
+          - close
+        conditions:
+          - user.role = supervisor
+          - resource.team_id IN user.supervised_teams
+
+    # Classified investigation policy
+    classified:
+      allowed_roles:
+        - admin
+        - senior_investigator
+        - intelligence_analyst
+
+      conditions:
+        - user.clearance_level >= resource.classification_level
+        - user.need_to_know = true
+        - user.background_check_current = true
+
+      additional_requirements:
+        - mfa_verification
+        - audit_logging
+        - session_timeout: 2h
+
+    # Closed investigation policy
+    closed:
+      allowed_actions:
+        - read
+        - export
+
+      denied_actions:
+        - write
+        - delete
+        - reopen
+
+      reopen_conditions:
+        - user.role IN [admin, senior_investigator, supervisor]
+        - approval_required: true
+        - justification_required: true
+
+  # Evidence Resource Policies
+  evidence:
+    # Default evidence policy
+    default:
+      # Uploader has read/write access
+      uploader:
+        permissions:
+          - read
+          - write
+          - update_metadata
+        conditions: []
+
+      # Investigation team has read access
+      investigation_team:
+        permissions:
+          - read
+          - download
+        conditions:
+          - user.investigation_ids CONTAINS evidence.investigation_id
+
+      # Forensic specialists have analysis access
+      forensic_specialist:
+        permissions:
+          - read
+          - write:analysis
+          - download
+        conditions:
+          - user.role = forensic_specialist
+          - evidence.investigation_id IN user.assigned_investigations
+
+    # Chain of custody policy
+    chain_of_custody:
+      transfer_conditions:
+        - user.has_permission: manage:chain_of_custody
+        - mfa_verification_required: true
+        - justification_required: true
+        - digital_signature_required: true
+
+      access_logging:
+        log_all_access: true
+        log_downloads: true
+        log_views: true
+        log_modifications: true
+
+    # Sensitive evidence policy
+    sensitive:
+      allowed_roles:
+        - admin
+        - senior_investigator
+        - forensic_specialist
+
+      access_conditions:
+        - user.clearance_level >= high
+        - mfa_verification_required: true
+        - justification_required: true
+
+      download_restrictions:
+        - approval_required: true
+        - watermark_required: true
+        - drm_protection: true
+        - expiry_time: 24h
+
+  # Intelligence Resource Policies
+  intelligence:
+    # OSINT policy (lower sensitivity)
+    osint:
+      allowed_roles:
+        - admin
+        - senior_investigator
+        - investigator
+        - intelligence_analyst
+        - analyst
+
+      access_conditions: []
+
+      sharing:
+        internal: allowed
+        external: requires_approval
+
+    # SIGINT policy (high sensitivity)
+    sigint:
+      allowed_roles:
+        - admin
+        - senior_investigator
+        - intelligence_analyst
+
+      access_conditions:
+        - user.clearance_level >= top_secret
+        - user.sigint_certified = true
+        - mfa_verification_required: true
+
+      sharing:
+        internal: restricted
+        external: denied
+
+    # HUMINT policy (highest sensitivity)
+    humint:
+      allowed_roles:
+        - admin
+        - senior_investigator
+
+      access_conditions:
+        - user.clearance_level >= top_secret
+        - user.humint_authorized = true
+        - approval_required: true
+
+      protection:
+        source_protection: mandatory
+        sanitization_required: true
+        compartmentalized: true
+
+  # Surveillance Resource Policies
+  surveillance:
+    # Camera feeds policy
+    camera_feeds:
+      allowed_roles:
+        - admin
+        - senior_investigator
+        - investigator
+
+      access_conditions:
+        - user.has_permission: access:camera_feeds
+        - surveillance_warrant_exists: true
+
+      recording_policy:
+        auto_record: true
+        retention: 90d
+        audit_all_access: true
+
+    # Facial recognition policy
+    facial_recognition:
+      allowed_roles:
+        - admin
+        - senior_investigator
+
+      usage_conditions:
+        - legal_authority_exists: true
+        - privacy_impact_assessment_complete: true
+        - mfa_verification_required: true
+
+      limitations:
+        - purpose_limitation: criminal_investigation_only
+        - retention_limit: investigation_duration
+        - notification_required: post_investigation
+
+    # Live feeds policy
+    live_feeds:
+      allowed_roles:
+        - admin
+        - senior_investigator
+        - investigator
+
+      access_conditions:
+        - active_surveillance_operation: true
+        - warrant_valid: true
+
+      restrictions:
+        - session_timeout: 4h
+        - max_concurrent_viewers: 5
+        - recording_mandatory: true
+
+  # Red Team Resource Policies
+  redteam:
+    # C2 sessions policy
+    c2_sessions:
+      allowed_roles:
+        - admin
+        - senior_investigator
+        - redteam_operator
+
+      creation_conditions:
+        - legal_authorization: true
+        - approval_from: senior_investigator
+        - target_approved: true
+
+      monitoring:
+        log_all_commands: true
+        log_all_output: true
+        session_recording: true
+        alert_on_suspicious: true
+
+    # Exploit deployment policy
+    exploit_deployment:
+      allowed_roles:
+        - admin
+        - senior_investigator
+        - redteam_operator
+
+      deployment_conditions:
+        - legal_authorization: true
+        - approval_from: [admin, senior_investigator]
+        - target_validated: true
+        - risk_assessment_complete: true
+
+      restrictions:
+        - approved_targets_only: true
+        - collateral_damage_prevention: mandatory
+        - rollback_plan_required: true
+
+    # Offensive tools policy
+    offensive_tools:
+      allowed_roles:
+        - admin
+        - redteam_operator
+
+      access_conditions:
+        - user.offensive_tools_trained = true
+        - mfa_verification_required: true
+        - justification_required: true
+
+      audit:
+        log_all_usage: true
+        notify_security_team: true
+
+  # User Data Policies
+  user_data:
+    # PII access policy
+    pii:
+      allowed_roles:
+        - admin
+        - compliance_officer
+
+      access_conditions:
+        - legitimate_business_need: true
+        - data_protection_training_current: true
+
+      protection:
+        encryption: mandatory
+        masking: partial
+        audit_all_access: true
+
+    # User credentials policy
+    credentials:
+      allowed_roles:
+        - admin
+
+      access_conditions:
+        - emergency_access_only: true
+        - approval_from: ciso
+        - mfa_verification_required: true
+
+      restrictions:
+        - read_only: true
+        - no_export: true
+        - time_limited: 1h
+
+  # Audit Log Policies
+  audit_logs:
+    # Read access policy
+    read:
+      allowed_roles:
+        - admin
+        - compliance_officer
+        - supervisor
+
+      access_conditions:
+        - audit_log_access_trained: true
+        - justification_required: true
+
+      restrictions:
+        - no_modification: true
+        - no_deletion: true
+        - export_limited: true
+
+    # Retention policy
+    retention:
+      active_investigations: 7_years
+      closed_investigations: 20_years
+      security_events: indefinite
+      system_logs: 1_year
+
+      archive_policy:
+        archive_after: 90d
+        archive_location: cold_storage
+        encryption: mandatory
+
+# Policy Enforcement
+enforcement:
+  # Strict enforcement mode
+  mode: strict
+
+  # Default deny policy
+  default: deny
+
+  # Policy evaluation order
+  evaluation_order:
+    - explicit_deny
+    - resource_policy
+    - role_policy
+    - default_deny
+
+  # Policy caching
+  cache:
+    enabled: true
+    ttl: 5m
+    invalidate_on_change: true
+
+  # Conflict resolution
+  conflict_resolution: most_restrictive
+
+# Dynamic Policies
+dynamic_policies:
+  # Time-based access
+  time_based:
+    enabled: true
+    business_hours_only:
+      resources:
+        - classified_intelligence
+        - sensitive_evidence
+      hours: "08:00-18:00"
+      days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+      timezone: America/New_York
+
+  # Location-based access
+  location_based:
+    enabled: true
+    restricted_resources:
+      - classified_intelligence
+      - c2_sessions
+      - offensive_tools
+    allowed_locations:
+      - office_network
+      - vpn
+    denied_locations:
+      - foreign_country
+      - high_risk_location
+
+  # Context-based access
+  context_based:
+    enabled: true
+    factors:
+      - device_trust_level
+      - network_security_level
+      - user_behavior_score
+      - threat_intelligence_feed
+
+# Policy Exceptions
+exceptions:
+  # Emergency access
+  emergency_access:
+    enabled: true
+    requires_approval: true
+    auto_expire: 4h
+    audit_required: mandatory
+    notification_required: immediate
+
+  # Break-glass access
+  break_glass:
+    enabled: true
+    allowed_for_roles:
+      - admin
+    conditions:
+      - critical_incident: true
+      - multiple_approvals: 2
+      - time_limited: 1h
+    post_action:
+      - audit_review_required: true
+      - justification_required: true
+
+# Monitoring and Alerts
+monitoring:
+  # Policy violation alerts
+  alert_on_violations: true
+
+  # Unusual access patterns
+  alert_on_unusual_access: true
+
+  # High-risk actions
+  alert_on_high_risk:
+    - classified_data_access
+    - mass_data_export
+    - evidence_deletion
+    - exploit_deployment
+
+# Compliance Integration
+compliance:
+  # CJIS compliance
+  cjis:
+    enforce_policies: true
+    audit_all_access: true
+
+  # GDPR compliance
+  gdpr:
+    enforce_data_minimization: true
+    enforce_purpose_limitation: true
+    enforce_retention_limits: true
+
+  # SOC 2 compliance
+  soc2:
+    enforce_access_controls: true
+    enforce_audit_logging: true

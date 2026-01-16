@@ -1,0 +1,104 @@
+# AI Models Configuration
+# Configuration for all supported AI models
+
+models:
+  deepseek_v3:
+    api_url: https://api.deepseek.com/v1
+    api_key_env: DEEPSEEK_API_KEY
+    model: deepseek-v3
+    temperature: 0.7
+    max_tokens: 8000
+    timeout: 60
+    retry_attempts: 3
+    cost_per_1k_tokens: 0.001
+
+  claude_opus:
+    api_url: https://api.anthropic.com/v1/messages
+    api_key_env: ANTHROPIC_API_KEY
+    model: claude-3-opus-20240229
+    temperature: 0.7
+    max_tokens: 8000
+    timeout: 120
+    retry_attempts: 3
+    cost_per_1k_tokens: 0.015
+
+  claude_sonnet:
+    api_url: https://api.anthropic.com/v1/messages
+    api_key_env: ANTHROPIC_API_KEY
+    model: claude-3-5-sonnet-20241022
+    temperature: 0.7
+    max_tokens: 8000
+    timeout: 60
+    retry_attempts: 3
+    cost_per_1k_tokens: 0.003
+
+  gemini_flash:
+    api_url: https://generativelanguage.googleapis.com/v1
+    api_key_env: GOOGLE_API_KEY
+    model: gemini-pro
+    temperature: 0.7
+    max_tokens: 8000
+    timeout: 30
+    retry_attempts: 3
+    cost_per_1k_tokens: 0.0005
+
+  gpt4_turbo:
+    api_url: https://api.openai.com/v1/chat/completions
+    api_key_env: OPENAI_API_KEY
+    model: gpt-4-turbo-preview
+    temperature: 0.7
+    max_tokens: 8000
+    timeout: 90
+    retry_attempts: 3
+    cost_per_1k_tokens: 0.01
+
+routing:
+  # Automatic model selection based on task
+  simple_tasks:
+    model: gemini_flash
+    criteria:
+      - reconnaissance
+      - simple_queries
+      - formatting
+
+  medium_tasks:
+    model: deepseek_v3
+    criteria:
+      - vulnerability_analysis
+      - tool_selection
+      - basic_planning
+
+  complex_tasks:
+    model: claude_opus
+    criteria:
+      - operation_planning
+      - adaptive_reasoning
+      - complex_analysis
+
+  critical_tasks:
+    model: gpt4_turbo
+    criteria:
+      - mission_critical
+      - high_stakes
+      - maximum_reliability
+
+fallback:
+  # Fallback order if primary model unavailable
+  order:
+    - claude_sonnet
+    - deepseek_v3
+    - gemini_flash
+    - gpt4_turbo
+
+performance:
+  cache_responses: true
+  cache_ttl: 3600  # seconds
+  max_concurrent_requests: 10
+  rate_limit_per_minute: 60
+
+monitoring:
+  track_usage: true
+  track_costs: true
+  track_latency: true
+  alert_on_errors: true
+  alert_on_high_costs: true

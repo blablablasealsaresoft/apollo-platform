@@ -1,0 +1,33 @@
+version: '3.9'
+services:
+  api:
+    build:
+      context: ../../..
+      dockerfile: docker/Dockerfile.dev
+    command: npm run dev --workspace backend
+    volumes:
+      - ../../..:/workspace:cached
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgres://apollo_admin:password@postgres:5432/apollo
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: apollo
+      POSTGRES_USER: apollo_admin
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/data
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+volumes:
+  pgdata-dev:

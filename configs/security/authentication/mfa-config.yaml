@@ -1,0 +1,380 @@
+# Multi-Factor Authentication Configuration for Apollo Platform
+# Implements CJIS-compliant advanced authentication requirements
+
+mfa:
+  # MFA globally required for platform access
+  required: true
+
+  # Roles requiring MFA (empty = all roles)
+  required_for_roles:
+    - admin
+    - investigator
+    - analyst
+    - redteam_operator
+
+  # Grace period for new users to set up MFA
+  grace_period: 24h
+
+  # Allow MFA bypass (emergency access only)
+  allow_bypass: false
+
+  # Require MFA for sensitive operations even if already authenticated
+  require_for_sensitive_operations: true
+
+  # Time-based One-Time Password (TOTP)
+  totp:
+    # Enable TOTP authentication
+    enabled: true
+
+    # TOTP issuer name shown in authenticator apps
+    issuer: Apollo Platform
+
+    # Account name format
+    account_name_format: "{email} - {agency}"
+
+    # HMAC algorithm (SHA1, SHA256, SHA512)
+    algorithm: SHA1
+
+    # Number of digits in OTP
+    digits: 6
+
+    # Time step in seconds
+    period: 30
+
+    # Time window for validation (periods before/after current)
+    window: 1
+
+    # QR code size for setup
+    qr_code_size: 300
+
+    # Supported authenticator apps
+    recommended_apps:
+      - Google Authenticator
+      - Microsoft Authenticator
+      - Authy
+      - Duo Mobile
+
+  # SMS-based OTP
+  sms_otp:
+    # Enable SMS OTP (use as fallback only)
+    enabled: true
+
+    # SMS provider (twilio, aws_sns, custom)
+    provider: twilio
+
+    # Provider configuration
+    config:
+      account_sid: ${TWILIO_ACCOUNT_SID}
+      auth_token: ${TWILIO_AUTH_TOKEN}
+      from_number: ${TWILIO_PHONE_NUMBER}
+
+    # OTP length
+    otp_length: 6
+
+    # OTP validity period
+    validity: 5m
+
+    # Maximum SMS sends per day per user
+    max_sends_per_day: 10
+
+    # Rate limiting
+    rate_limit: 3/hour
+
+  # Email-based OTP
+  email_otp:
+    # Enable email OTP (use as fallback only)
+    enabled: true
+
+    # Email service configuration
+    from_email: noreply@apollo-platform.gov
+    from_name: Apollo Platform Security
+
+    # OTP length
+    otp_length: 8
+
+    # OTP validity period
+    validity: 10m
+
+    # Maximum emails per day per user
+    max_sends_per_day: 15
+
+    # Email template
+    template: mfa_otp_email
+
+  # Hardware Security Keys (FIDO2/WebAuthn)
+  hardware_keys:
+    # Enable hardware security keys
+    enabled: true
+
+    # Relying party name
+    rp_name: Apollo Platform
+
+    # Relying party ID (domain)
+    rp_id: ${APOLLO_DOMAIN}
+
+    # Attestation preference (none, indirect, direct)
+    attestation: direct
+
+    # Authenticator attachment (platform, cross-platform)
+    authenticator_attachment: cross-platform
+
+    # User verification requirement
+    user_verification: required
+
+    # Timeout for credential creation
+    timeout: 60000
+
+    # Supported credential types
+    supported_credentials:
+      - public-key
+
+    # Allowed authenticators
+    allowed_authenticators:
+      - YubiKey
+      - Titan Security Key
+      - SoloKeys
+
+  # Push Notifications (Duo/Okta)
+  push_notifications:
+    # Enable push notification MFA
+    enabled: false
+
+    # Push provider (duo, okta)
+    provider: duo
+
+    # Provider configuration
+    config:
+      integration_key: ${DUO_INTEGRATION_KEY}
+      secret_key: ${DUO_SECRET_KEY}
+      api_hostname: ${DUO_API_HOSTNAME}
+
+    # Push timeout
+    timeout: 60s
+
+    # Allow user to deny push
+    allow_deny: true
+
+  # Backup Recovery Codes
+  backup_codes:
+    # Enable backup recovery codes
+    enabled: true
+
+    # Number of backup codes to generate
+    count: 10
+
+    # Length of each code
+    length: 8
+
+    # Code format (alphanumeric, numeric)
+    format: alphanumeric
+
+    # Code expiry (never, or duration)
+    expiry: never
+
+    # Single use only
+    single_use: true
+
+    # Regenerate codes after use threshold
+    regenerate_threshold: 3
+
+    # Require strong authentication to view codes
+    require_auth_to_view: true
+
+  # Biometric Authentication
+  biometric:
+    # Enable biometric authentication
+    enabled: true
+
+    # Supported biometric types
+    supported_types:
+      - fingerprint
+      - face_recognition
+      - iris_scan
+
+    # Liveness detection required
+    liveness_detection: true
+
+    # Fallback to other MFA if biometric fails
+    fallback_enabled: true
+
+  # Adaptive MFA
+  adaptive:
+    # Enable adaptive/risk-based MFA
+    enabled: true
+
+    # Risk factors to consider
+    risk_factors:
+      - new_device
+      - new_location
+      - impossible_travel
+      - unusual_time
+      - suspicious_ip
+      - tor_exit_node
+      - datacenter_ip
+
+    # Risk levels and required MFA methods
+    risk_levels:
+      low:
+        require_mfa: false
+        allowed_methods:
+          - totp
+          - sms
+          - email
+
+      medium:
+        require_mfa: true
+        allowed_methods:
+          - totp
+          - hardware_key
+          - push
+
+      high:
+        require_mfa: true
+        allowed_methods:
+          - hardware_key
+          - biometric
+
+      critical:
+        require_mfa: true
+        require_multiple_factors: true
+        allowed_methods:
+          - hardware_key
+          - biometric
+        notify_security_team: true
+
+  # Remember Device
+  remember_device:
+    # Allow users to remember trusted devices
+    enabled: true
+
+    # Remember device duration
+    duration: 30d
+
+    # Maximum remembered devices per user
+    max_devices: 5
+
+    # Require MFA again after this period even on trusted device
+    revalidate_after: 7d
+
+    # Device fingerprinting method
+    fingerprinting:
+      - user_agent
+      - screen_resolution
+      - timezone
+      - language
+      - plugins
+
+  # Recovery Options
+  recovery:
+    # Enable email recovery
+    email_recovery: true
+
+    # Enable admin override
+    admin_override: true
+
+    # Admin override requires approval from
+    admin_override_approvers: 2
+
+    # Enable security questions (not recommended)
+    security_questions: false
+
+    # Account recovery link validity
+    recovery_link_validity: 1h
+
+    # Maximum recovery attempts before lockout
+    max_recovery_attempts: 3
+
+  # MFA Enrollment
+  enrollment:
+    # Force MFA enrollment on first login
+    force_on_first_login: true
+
+    # Allow users to enroll multiple MFA methods
+    allow_multiple_methods: true
+
+    # Recommended number of MFA methods
+    recommended_methods: 2
+
+    # Minimum number of MFA methods required
+    minimum_methods: 1
+
+    # Enrollment deadline after grace period
+    enforcement_deadline: strict
+
+  # MFA Session Management
+  session:
+    # MFA validity period (how long before re-prompting)
+    validity_period: 12h
+
+    # Require MFA for sensitive operations
+    require_for_operations:
+      - password_change
+      - mfa_settings_change
+      - api_key_generation
+      - evidence_download
+      - investigation_deletion
+      - user_management
+      - role_assignment
+
+    # Step-up authentication timeout
+    step_up_timeout: 5m
+
+  # Logging and Monitoring
+  logging:
+    # Log all MFA events
+    log_all_events: true
+
+    # Log successful MFA verifications
+    log_success: true
+
+    # Log failed MFA attempts
+    log_failures: true
+
+    # Log MFA enrollment events
+    log_enrollment: true
+
+    # Log MFA method changes
+    log_method_changes: true
+
+    # Alert on suspicious MFA activity
+    alerts:
+      - multiple_failed_attempts
+      - mfa_method_removed
+      - new_device_enrollment
+      - impossible_travel_mfa
+
+  # Rate Limiting
+  rate_limiting:
+    # MFA verification attempts per user
+    verification_attempts: 5/5m
+
+    # MFA setup attempts per user
+    setup_attempts: 3/hour
+
+    # Backup code attempts per user
+    backup_code_attempts: 3/hour
+
+    # Lockout duration after max attempts
+    lockout_duration: 30m
+
+  # Compliance
+  compliance:
+    # CJIS advanced authentication compliance
+    cjis_compliant: true
+
+    # NIST 800-63B compliance level
+    nist_level: AAL2
+
+    # PCI-DSS compliance
+    pci_dss_compliant: true
+
+  # Development Settings
+  development:
+    # Allow MFA bypass in development
+    allow_bypass: ${ALLOW_MFA_BYPASS:-false}
+
+    # Test TOTP codes
+    test_mode: false
+
+    # Mock MFA providers
+    mock_providers: false

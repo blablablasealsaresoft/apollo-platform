@@ -1,0 +1,45 @@
+# Email Intelligence System Requirements
+
+# Core dependencies
+requests>=2.31.0
+aiohttp>=3.9.0
+dnspython>=2.4.0
+
+# Email validation
+email-validator>=2.1.0
+
+# Async support
+asyncio>=3.4.3
+
+# Optional dependencies for enhanced features
+# Uncomment to install
+
+# Geographic IP lookup
+# geoip2>=4.7.0
+# maxminddb>=2.5.0
+
+# Additional OSINT tools
+# python-whois>=0.8.0
+# shodan>=1.31.0
+
+# Data processing
+# pandas>=2.1.0
+# numpy>=1.26.0
+
+# Visualization (for graph generation)
+# networkx>=3.2.0
+# matplotlib>=3.8.0
+
+# Database (for caching)
+# redis>=5.0.0
+# pymongo>=4.6.0
+
+# Web scraping (for enhanced enumeration)
+# beautifulsoup4>=4.12.0
+# selenium>=4.16.0
+
+# Rate limiting
+# ratelimit>=2.2.1
+
+# Logging enhancements
+# colorlog>=6.8.0

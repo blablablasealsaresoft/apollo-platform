@@ -104,6 +104,10 @@ certstream==1.12
 # Subdomain enumeration
 sublist3r==1.1
 
+# BBOT Native Library (optional - enables native BBOT integration)
+# Install with: pip install bbot
+bbot>=2.0.0
+
 # Note: Some tools require separate installation:
 # - Sliver C2: https://github.com/BishopFox/sliver
 # - Havoc C2: https://github.com/HavocFramework/Havoc

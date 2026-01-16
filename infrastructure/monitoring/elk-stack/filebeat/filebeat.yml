@@ -1,0 +1,11 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/apollo/*.log
+    fields:
+      source_type: apollo-service
+    fields_under_root: true
+
+output.logstash:
+  hosts: ["logstash:5044"]

@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: apollo-frontend-ingress
+  namespace: apollo-system
+spec:
+  podSelector:
+    matchLabels:
+      app: apollo-frontend
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              mesh: apollo
+      ports:
+        - port: 80
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              mesh: apollo
+      ports:
+        - port: 443

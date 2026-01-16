@@ -1,16 +1,47 @@
 """
-API Orchestration Layer
-Manages 1000+ public APIs with rate limiting, caching, and resilience
+API Orchestrator System
+Comprehensive API management for 1,000+ public APIs
 """
 
-from .orchestrator import APIOrchestrator
-from .rate_limiter import RateLimiter
-from .circuit_breaker import CircuitBreaker
-from .api_registry import APIRegistry
+from .api_orchestrator import APIOrchestrator, APIRegistry, create_orchestrator
+from .api_client import APIClient, AuthConfig, AuthType, RequestConfig, BatchAPIClient
+from .rate_limiter import RateLimiter, AdaptiveRateLimiter, RateLimitConfig
+from .circuit_breaker import CircuitBreaker, CircuitBreakerManager, CircuitState
+from .api_cache import APICache, CacheKey, CacheConfig
+from .api_analytics import APIAnalytics, APIMetrics, APIQuota
+
+__version__ = "1.0.0"
 
 __all__ = [
-    'APIOrchestrator',
-    'RateLimiter',
-    'CircuitBreaker',
-    'APIRegistry',
+    # Main orchestrator
+    "APIOrchestrator",
+    "APIRegistry",
+    "create_orchestrator",
+
+    # API client
+    "APIClient",
+    "BatchAPIClient",
+    "AuthConfig",
+    "AuthType",
+    "RequestConfig",
+
+    # Rate limiting
+    "RateLimiter",
+    "AdaptiveRateLimiter",
+    "RateLimitConfig",
+
+    # Circuit breaker
+    "CircuitBreaker",
+    "CircuitBreakerManager",
+    "CircuitState",
+
+    # Caching
+    "APICache",
+    "CacheKey",
+    "CacheConfig",
+
+    # Analytics
+    "APIAnalytics",
+    "APIMetrics",
+    "APIQuota",
 ]

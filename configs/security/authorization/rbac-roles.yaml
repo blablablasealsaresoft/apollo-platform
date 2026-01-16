@@ -1,0 +1,516 @@
+# Role-Based Access Control (RBAC) Roles for Apollo Platform
+# Defines hierarchical roles for law enforcement personnel
+
+rbac_roles:
+  # System Administrator - Full platform access
+  admin:
+    name: Administrator
+    display_name: System Administrator
+    description: Full system access with all privileges
+    level: 4
+    hierarchy_rank: 100
+
+    # Special permissions
+    permissions: all
+
+    # Inherits from
+    inherits_from: []
+
+    # Can manage these roles
+    can_manage_roles:
+      - investigator
+      - analyst
+      - viewer
+      - guest
+
+    # Can access all resources
+    resource_access: unrestricted
+
+    # Capabilities
+    capabilities:
+      - full_system_access
+      - user_management
+      - role_management
+      - system_configuration
+      - audit_log_access
+      - security_management
+      - infrastructure_management
+
+    # Restrictions
+    restrictions:
+      - audit_trail_required
+      - mfa_required
+      - session_timeout: 4h
+
+  # Senior Investigator - Advanced investigation capabilities
+  senior_investigator:
+    name: Senior Investigator
+    display_name: Senior Investigator
+    description: Advanced investigation and intelligence capabilities
+    level: 4
+    hierarchy_rank: 90
+
+    permissions:
+      # Investigations
+      - read:investigations:all
+      - write:investigations:all
+      - delete:investigations:own
+      - manage:investigations:team
+      - approve:investigations
+
+      # Intelligence
+      - read:intelligence:all
+      - write:intelligence:all
+      - execute:osint:advanced
+      - execute:geoint:advanced
+      - execute:sigint:advanced
+      - execute:humint
+      - access:classified_intelligence
+
+      # Evidence
+      - read:evidence:all
+      - write:evidence:all
+      - manage:chain_of_custody
+      - approve:evidence
+
+      # Surveillance
+      - read:surveillance:all
+      - write:surveillance:all
+      - manage:cameras
+      - access:facial_recognition
+      - access:voice_recognition
+      - access:live_feeds
+
+      # Red Team
+      - execute:redteam_ops:advanced
+      - manage:c2_sessions
+      - deploy:exploits
+      - access:offensive_tools
+
+      # Team Management
+      - manage:team_members
+      - assign:cases
+      - review:reports
+
+    inherits_from: []
+
+    resource_access: team_and_assigned
+
+    capabilities:
+      - create_investigations
+      - lead_investigations
+      - approve_operations
+      - access_classified_data
+      - mentor_team_members
+
+    restrictions:
+      - mfa_required
+      - approval_required_for: [evidence_deletion, investigation_closure]
+
+  # Investigator - Standard investigation access
+  investigator:
+    name: Investigator
+    display_name: Investigator
+    description: Create and manage investigations
+    level: 3
+    hierarchy_rank: 70
+
+    permissions:
+      # Investigations
+      - read:investigations:assigned
+      - write:investigations:assigned
+      - delete:investigations:own
+      - create:investigations
+
+      # Intelligence
+      - read:intelligence:assigned
+      - write:intelligence:assigned
+      - execute:osint
+      - execute:geoint
+      - execute:sigint
+
+      # Evidence
+      - read:evidence:assigned
+      - write:evidence:assigned
+      - upload:evidence
+      - download:evidence
+
+      # Surveillance
+      - read:surveillance:assigned
+      - write:surveillance:assigned
+      - access:camera_feeds
+
+      # Red Team
+      - execute:redteam_ops:basic
+      - view:c2_sessions:assigned
+
+      # Collaboration
+      - collaborate:investigations
+      - share:intelligence
+
+    inherits_from: []
+
+    resource_access: assigned_and_shared
+
+    capabilities:
+      - create_investigations
+      - manage_own_investigations
+      - collect_evidence
+      - conduct_surveillance
+      - run_intelligence_operations
+
+    restrictions:
+      - mfa_required
+      - can_only_access_assigned_cases
+      - supervisor_approval_required_for: [investigation_closure]
+
+  # Intelligence Analyst - Intelligence analysis focus
+  intelligence_analyst:
+    name: Intelligence Analyst
+    display_name: Intelligence Analyst
+    description: Analyze intelligence and provide insights
+    level: 3
+    hierarchy_rank: 65
+
+    permissions:
+      # Investigations (Read-only)
+      - read:investigations:all
+
+      # Intelligence
+      - read:intelligence:all
+      - write:intelligence:analysis
+      - execute:osint
+      - execute:geoint
+      - execute:sigint
+      - create:intelligence_reports
+
+      # Evidence (Read-only)
+      - read:evidence:all
+
+      # Surveillance (Read-only)
+      - read:surveillance:all
+
+      # Analysis Tools
+      - access:analytics_tools
+      - access:visualization_tools
+      - access:data_mining_tools
+
+    inherits_from: []
+
+    resource_access: read_all_write_analysis
+
+    capabilities:
+      - analyze_intelligence
+      - create_reports
+      - identify_patterns
+      - link_analysis
+      - threat_assessment
+
+    restrictions:
+      - read_only_investigations
+      - read_only_evidence
+      - cannot_delete_data
+
+  # Analyst - Data analysis and reporting
+  analyst:
+    name: Analyst
+    display_name: Analyst
+    description: View and analyze investigations
+    level: 2
+    hierarchy_rank: 50
+
+    permissions:
+      # Investigations
+      - read:investigations:assigned
+      - write:analysis:investigations
+
+      # Intelligence
+      - read:intelligence:assigned
+      - write:analysis:intelligence
+
+      # Evidence
+      - read:evidence:assigned
+
+      # Surveillance
+      - read:surveillance:assigned
+
+      # Analysis
+      - write:reports
+      - write:analysis
+      - access:analytics_tools
+
+    inherits_from: []
+
+    resource_access: assigned_readonly
+
+    capabilities:
+      - view_investigations
+      - create_reports
+      - perform_analysis
+      - generate_insights
+
+    restrictions:
+      - read_only_access
+      - cannot_modify_investigations
+      - cannot_delete_data
+
+  # Forensic Specialist - Digital forensics focus
+  forensic_specialist:
+    name: Forensic Specialist
+    display_name: Forensic Specialist
+    description: Digital forensics and evidence analysis
+    level: 3
+    hierarchy_rank: 68
+
+    permissions:
+      # Investigations
+      - read:investigations:assigned
+
+      # Evidence
+      - read:evidence:all
+      - write:evidence:forensics
+      - access:forensic_tools
+      - manage:evidence_chain
+
+      # Forensics
+      - execute:forensic_analysis
+      - access:disk_imaging
+      - access:memory_analysis
+      - access:malware_analysis
+
+    inherits_from: []
+
+    resource_access: evidence_focused
+
+    capabilities:
+      - analyze_digital_evidence
+      - recover_deleted_data
+      - perform_disk_forensics
+      - conduct_malware_analysis
+      - maintain_chain_of_custody
+
+    restrictions:
+      - mfa_required
+      - evidence_access_logged
+
+  # Red Team Operator - Offensive security operations
+  redteam_operator:
+    name: Red Team Operator
+    display_name: Red Team Operator
+    description: Offensive security and penetration testing
+    level: 3
+    hierarchy_rank: 75
+
+    permissions:
+      # Red Team Operations
+      - execute:redteam_ops:advanced
+      - manage:c2_sessions
+      - deploy:exploits
+      - access:offensive_tools
+      - create:implants
+
+      # Intelligence
+      - read:intelligence:assigned
+      - write:intelligence:redteam
+
+      # Evidence
+      - write:evidence:redteam
+
+    inherits_from: []
+
+    resource_access: redteam_focused
+
+    capabilities:
+      - conduct_penetration_testing
+      - deploy_c2_infrastructure
+      - develop_exploits
+      - social_engineering
+      - physical_security_testing
+
+    restrictions:
+      - mfa_required
+      - all_operations_logged
+      - approval_required_for: [exploit_deployment, c2_deployment]
+      - authorized_targets_only
+
+  # Viewer - Read-only access
+  viewer:
+    name: Viewer
+    display_name: Viewer
+    description: Read-only access to assigned investigations
+    level: 1
+    hierarchy_rank: 30
+
+    permissions:
+      # Investigations
+      - read:investigations:assigned
+
+      # Evidence
+      - read:evidence:assigned
+
+      # Intelligence
+      - read:intelligence:public
+
+    inherits_from: []
+
+    resource_access: readonly_assigned
+
+    capabilities:
+      - view_investigations
+      - view_evidence
+      - view_reports
+
+    restrictions:
+      - read_only_access
+      - cannot_download_evidence
+      - cannot_export_data
+      - limited_intelligence_access
+
+  # Guest - Minimal access for external partners
+  guest:
+    name: Guest
+    display_name: Guest
+    description: Limited access for external partners
+    level: 0
+    hierarchy_rank: 10
+
+    permissions:
+      # Investigations
+      - read:investigations:shared
+
+      # Evidence
+      - read:evidence:shared
+
+    inherits_from: []
+
+    resource_access: explicitly_shared_only
+
+    capabilities:
+      - view_shared_investigations
+      - view_shared_evidence
+
+    restrictions:
+      - read_only_access
+      - no_download_capability
+      - no_export_capability
+      - session_timeout: 2h
+      - ip_whitelist_required
+
+  # Supervisor - Team oversight
+  supervisor:
+    name: Supervisor
+    display_name: Supervisor
+    description: Oversee team investigations and approve operations
+    level: 4
+    hierarchy_rank: 85
+
+    permissions:
+      # Investigations
+      - read:investigations:team
+      - write:investigations:team
+      - approve:investigations
+      - assign:investigations
+
+      # Intelligence
+      - read:intelligence:team
+      - approve:intelligence_operations
+
+      # Evidence
+      - read:evidence:team
+      - approve:evidence
+
+      # Team Management
+      - manage:team_members
+      - review:performance
+      - approve:operations
+
+    inherits_from:
+      - investigator
+
+    resource_access: team_wide
+
+    capabilities:
+      - oversee_investigations
+      - approve_operations
+      - manage_team
+      - review_cases
+      - assign_resources
+
+    restrictions:
+      - mfa_required
+      - approval_authority_logged
+
+  # Compliance Officer - Audit and compliance
+  compliance_officer:
+    name: Compliance Officer
+    display_name: Compliance Officer
+    description: Audit and compliance oversight
+    level: 3
+    hierarchy_rank: 80
+
+    permissions:
+      # Audit
+      - read:audit_logs:all
+      - read:investigations:all
+      - read:evidence:all
+      - access:compliance_reports
+
+      # Compliance
+      - execute:compliance_checks
+      - generate:compliance_reports
+      - access:gdpr_tools
+      - access:cjis_tools
+
+    inherits_from: []
+
+    resource_access: audit_and_compliance
+
+    capabilities:
+      - audit_access
+      - compliance_reporting
+      - policy_enforcement
+      - data_protection_oversight
+
+    restrictions:
+      - read_only_access
+      - mfa_required
+      - all_access_logged
+
+# Role Assignment Rules
+role_assignment:
+  # Require approval for role assignment
+  require_approval: true
+
+  # Approvers by role level
+  approval_by_level:
+    level_4: [admin]
+    level_3: [admin, senior_investigator]
+    level_2: [admin, senior_investigator, supervisor]
+    level_1: [admin, supervisor]
+
+  # Maximum roles per user
+  max_roles_per_user: 3
+
+  # Role combination restrictions
+  incompatible_roles:
+    - [investigator, compliance_officer]
+    - [redteam_operator, compliance_officer]
+
+  # Automatic role expiry
+  role_expiry:
+    enabled: true
+    default_expiry: 365d
+    review_period: 90d
+
+# Role Hierarchy
+hierarchy:
+  # Roles inherit permissions from lower levels
+  inheritance_enabled: true
+
+  # Higher level roles can delegate to lower levels
+  delegation_enabled: true
+
+  # Separation of duties
+  separation_of_duties:
+    enabled: true
+    enforce: true

@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+rule_files:
+  - ../rules/*.yml
+  - ../alerts/*.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: [ 'alertmanager.monitoring.svc:9093' ]
+
+scrape_configs:
+  - job_name: envoy-metrics
+    metrics_path: /stats/prometheus
+    static_configs:
+      - targets: [ 'apollo-gateway.apollo-system.svc.cluster.local:15090' ]
+
+  - job_name: included-configs
+    file_sd_configs:
+      - files:
+          - apollo-monitoring.yml

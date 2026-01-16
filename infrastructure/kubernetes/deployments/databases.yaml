@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: apollo-postgresql
+  namespace: apollo-system
+spec:
+  serviceName: apollo-postgresql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apollo-postgresql
+  template:
+    metadata:
+      labels:
+        app: apollo-postgresql
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          env:
+            - name: POSTGRES_DB
+              value: apollo
+            - name: POSTGRES_USER
+              value: apollo_admin
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: apollo-database-secrets
+                  key: postgres-password
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: pgdata
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 50Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apollo-neo4j
+  namespace: apollo-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apollo-neo4j
+  template:
+    metadata:
+      labels:
+        app: apollo-neo4j
+    spec:
+      containers:
+        - name: neo4j
+          image: neo4j:5.14-community
+          env:
+            - name: NEO4J_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: apollo-database-secrets
+                  key: neo4j-auth
+          ports:
+            - containerPort: 7474
+            - containerPort: 7687
+          volumeMounts:
+            - name: neo4j-data
+              mountPath: /data
+      volumes:
+        - name: neo4j-data
+          persistentVolumeClaim:
+            claimName: neo4j-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apollo-redis
+  namespace: apollo-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apollo-redis
+  template:
+    metadata:
+      labels:
+        app: apollo-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          args: ["--requirepass", "$(REDIS_PASSWORD)"]
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: apollo-database-secrets
+                  key: redis-password
+          ports:
+            - containerPort: 6379

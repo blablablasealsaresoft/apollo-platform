@@ -1,0 +1,12 @@
+# Breach Correlation System Requirements
+
+# Async HTTP client
+aiohttp>=3.8.0
+
+# Graph analysis for correlation
+networkx>=2.8.0
+
+# Optional: Enhanced features
+# pandas>=1.5.0  # For advanced data analysis
+# matplotlib>=3.6.0  # For visualization
+# plotly>=5.11.0  # For interactive charts

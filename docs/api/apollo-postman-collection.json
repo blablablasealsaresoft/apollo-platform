@@ -1,0 +1,1699 @@
+{
+  "info": {
+    "_postman_id": "apollo-platform-api-v2",
+    "name": "Apollo Platform API",
+    "description": "Complete API collection for Apollo Criminal Investigation Platform.\n\nThis collection includes all endpoints for:\n- Authentication & Session Management\n- Multi-Factor Authentication\n- Biometric Authentication\n- API Key Management\n- User Management\n- Operations Management\n- Intelligence Reports\n- Search & Analytics\n- Alerts & Notifications\n- OSINT Intelligence\n- Blockchain Forensics\n- Facial Recognition\n- Voice Recognition\n- Geospatial Intelligence\n\n## Getting Started\n\n1. Set up your environment variables (use Apollo Platform Environment)\n2. Start with Authentication > Login to get your JWT token\n3. The token will be automatically saved and used for subsequent requests\n\n## Authentication\n\nMost endpoints require authentication via:\n- **Bearer Token**: Include in Authorization header\n- **API Key**: Include in X-API-Key header",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "2.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "intelUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "User authentication, registration, and session management",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"agent@apollo.com\",\n  \"username\": \"agent_007\",\n  \"password\": \"SecureP@ssw0rd!\",\n  \"firstName\": \"James\",\n  \"lastName\": \"Bond\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user account"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.environment.set('accessToken', jsonData.data.accessToken);",
+                  "    pm.environment.set('refreshToken', jsonData.data.refreshToken);",
+                  "    pm.environment.set('userId', jsonData.data.user.id);",
+                  "    console.log('Tokens saved to environment');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with email and password. Tokens are automatically saved to environment."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data) {",
+                  "    pm.environment.set('accessToken', jsonData.data.accessToken);",
+                  "    pm.environment.set('refreshToken', jsonData.data.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Validate Token",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "validate"]
+            }
+          }
+        },
+        {
+          "name": "Request Password Reset",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"agent@apollo.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password/request",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "reset-password", "request"]
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset_token_from_email\",\n  \"newPassword\": \"NewSecureP@ss123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "reset-password"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"CurrentPassword123!\",\n  \"newPassword\": \"NewPassword456!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "change-password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "MFA",
+      "description": "Multi-factor authentication setup and verification",
+      "item": [
+        {
+          "name": "Setup MFA",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/mfa/setup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "mfa", "setup"]
+            },
+            "description": "Generate MFA secret and QR code"
+          }
+        },
+        {
+          "name": "Enable MFA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/mfa/enable",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "mfa", "enable"]
+            }
+          }
+        },
+        {
+          "name": "Verify MFA",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"token\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/mfa/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "mfa", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Disable MFA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{userPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/mfa/disable",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "mfa", "disable"]
+            }
+          }
+        },
+        {
+          "name": "Regenerate Backup Codes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{userPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/mfa/backup-codes/regenerate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "mfa", "backup-codes", "regenerate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions",
+      "description": "Session management and device control",
+      "item": [
+        {
+          "name": "Get Active Sessions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "sessions"]
+            }
+          }
+        },
+        {
+          "name": "Get Current Session",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/sessions/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "sessions", "current"]
+            }
+          }
+        },
+        {
+          "name": "Invalidate Session",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/sessions/:sessionId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "sessions", ":sessionId"],
+              "variable": [
+                {
+                  "key": "sessionId",
+                  "value": "session-uuid-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Invalidate Other Sessions",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "sessions"]
+            }
+          }
+        },
+        {
+          "name": "Logout Everywhere",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/sessions/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "sessions", "all"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "API Keys",
+      "description": "API key management for programmatic access",
+      "item": [
+        {
+          "name": "List API Keys",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/api-keys",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "api-keys"]
+            }
+          }
+        },
+        {
+          "name": "Get Available Scopes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/api-keys/scopes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "api-keys", "scopes"]
+            }
+          }
+        },
+        {
+          "name": "Create API Key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Production Integration\",\n  \"scopes\": [\"investigations:read\", \"targets:read\", \"intelligence:read\"],\n  \"rateLimit\": 1000,\n  \"expiresIn\": 365\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/api-keys",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "api-keys"]
+            }
+          }
+        },
+        {
+          "name": "Create API Key with Preset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Analyst Key\",\n  \"preset\": \"analyst\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/api-keys",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "api-keys"]
+            }
+          }
+        },
+        {
+          "name": "Get API Key Details",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/api-keys/:keyId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "api-keys", ":keyId"],
+              "variable": [
+                {
+                  "key": "keyId",
+                  "value": "key-uuid-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get API Key Usage",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/api-keys/:keyId/usage",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "api-keys", ":keyId", "usage"],
+              "variable": [
+                {
+                  "key": "keyId",
+                  "value": "key-uuid-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Rotate API Key",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/api-keys/:keyId/rotate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "api-keys", ":keyId", "rotate"],
+              "variable": [
+                {
+                  "key": "keyId",
+                  "value": "key-uuid-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Revoke API Key",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"No longer needed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/api-keys/:keyId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "api-keys", ":keyId"],
+              "variable": [
+                {
+                  "key": "keyId",
+                  "value": "key-uuid-here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "User management and profile administration",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/users?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/users/search?q=john",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "search"],
+              "query": [
+                {"key": "q", "value": "john"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", ":id"],
+              "variable": [
+                {"key": "id", "value": "{{userId}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"James\",\n  \"lastName\": \"Bond\",\n  \"role\": \"investigator\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", ":id"],
+              "variable": [
+                {"key": "id", "value": "user-uuid"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", ":id"],
+              "variable": [
+                {"key": "id", "value": "user-uuid"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User Activity",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/users/:id/activity?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", ":id", "activity"],
+              "variable": [
+                {"key": "id", "value": "{{userId}}"}
+              ],
+              "query": [
+                {"key": "limit", "value": "50"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Operations",
+      "description": "Operation management and team coordination",
+      "item": [
+        {
+          "name": "List Operations",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/operations?status=active&priority=high",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "operations"],
+              "query": [
+                {"key": "status", "value": "active"},
+                {"key": "priority", "value": "high"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Operation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Operation Thunderbolt\",\n  \"codename\": \"THUNDERBOLT\",\n  \"description\": \"Financial fraud investigation\",\n  \"priority\": \"high\",\n  \"clearanceLevel\": \"secret\",\n  \"leadInvestigatorId\": \"{{userId}}\",\n  \"startDate\": \"2024-01-15T00:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/operations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "operations"]
+            }
+          }
+        },
+        {
+          "name": "Get Operation",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/operations/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "operations", ":id"],
+              "variable": [
+                {"key": "id", "value": "operation-uuid"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Operation",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\",\n  \"priority\": \"critical\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/operations/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "operations", ":id"],
+              "variable": [
+                {"key": "id", "value": "operation-uuid"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Operation",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/operations/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "operations", ":id"],
+              "variable": [
+                {"key": "id", "value": "operation-uuid"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Team Member",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/operations/:id/team/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "operations", ":id", "team", ":userId"],
+              "variable": [
+                {"key": "id", "value": "operation-uuid"},
+                {"key": "userId", "value": "user-uuid"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remove Team Member",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/operations/:id/team/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "operations", ":id", "team", ":userId"],
+              "variable": [
+                {"key": "id", "value": "operation-uuid"},
+                {"key": "userId", "value": "user-uuid"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Intelligence",
+      "description": "Intelligence report management",
+      "item": [
+        {
+          "name": "List Intelligence Reports",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/intelligence?source=osint&confidence=high",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "intelligence"],
+              "query": [
+                {"key": "source", "value": "osint"},
+                {"key": "confidence", "value": "high"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Intelligence Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Suspicious Financial Activity\",\n  \"summary\": \"Multiple shell company transactions detected\",\n  \"content\": \"Detailed analysis of financial transactions...\",\n  \"source\": \"finint\",\n  \"confidence\": \"high\",\n  \"clearanceLevel\": \"secret\",\n  \"authorId\": \"{{userId}}\",\n  \"tags\": [\"financial\", \"shell-company\", \"money-laundering\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/intelligence",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "intelligence"]
+            }
+          }
+        },
+        {
+          "name": "Get Intelligence Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/intelligence/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "intelligence", ":id"],
+              "variable": [
+                {"key": "id", "value": "report-uuid"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Confidence Score",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/intelligence/:id/confidence",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "intelligence", ":id", "confidence"],
+              "variable": [
+                {"key": "id", "value": "report-uuid"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Correlate Reports",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reportIds\": [\n    \"report-uuid-1\",\n    \"report-uuid-2\",\n    \"report-uuid-3\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/correlation",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "correlation"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "description": "Full-text search across all data",
+      "item": [
+        {
+          "name": "Global Search",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"cryptocurrency fraud\",\n  \"indices\": [\"investigations\", \"targets\", \"intelligence\"],\n  \"filters\": {\n    \"status\": \"active\",\n    \"dateRange\": {\n      \"from\": \"2024-01-01\",\n      \"to\": \"2024-12-31\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search"]
+            }
+          }
+        },
+        {
+          "name": "Search Suggestions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/search/suggest?index=targets&field=name&prefix=igna",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search", "suggest"],
+              "query": [
+                {"key": "index", "value": "targets"},
+                {"key": "field", "value": "name"},
+                {"key": "prefix", "value": "igna"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "description": "System and investigation analytics",
+      "item": [
+        {
+          "name": "Investigation Metrics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/investigations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "investigations"]
+            }
+          }
+        },
+        {
+          "name": "Target Statistics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/targets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "targets"]
+            }
+          }
+        },
+        {
+          "name": "User Activity Metrics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/users?timeRange=7d",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "users"],
+              "query": [
+                {"key": "timeRange", "value": "7d"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "System Health",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/system",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "system"]
+            }
+          }
+        },
+        {
+          "name": "Operation Timeline",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/operations/:id/timeline",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "operations", ":id", "timeline"],
+              "variable": [
+                {"key": "id", "value": "operation-uuid"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Alerts",
+      "description": "System alerts and incident management",
+      "item": [
+        {
+          "name": "List Alerts",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts?status=new&severity=critical&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts"],
+              "query": [
+                {"key": "status", "value": "new"},
+                {"key": "severity", "value": "critical"},
+                {"key": "limit", "value": "50"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Alert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"security\",\n  \"severity\": \"high\",\n  \"title\": \"Suspicious Login Attempt\",\n  \"message\": \"Multiple failed login attempts detected\",\n  \"source\": \"auth-service\",\n  \"actionRequired\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts"]
+            }
+          }
+        },
+        {
+          "name": "Get Alert",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts", ":id"],
+              "variable": [
+                {"key": "id", "value": "alert-uuid"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Acknowledge Alert",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"notes\": \"Reviewing this alert\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts/:id/acknowledge",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts", ":id", "acknowledge"],
+              "variable": [
+                {"key": "id", "value": "alert-uuid"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Resolve Alert",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"resolution\": \"False positive - normal activity\",\n  \"notes\": \"Verified user identity\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts/:id/resolve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts", ":id", "resolve"],
+              "variable": [
+                {"key": "id", "value": "alert-uuid"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Alert Statistics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts/stats/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts", "stats", "summary"]
+            }
+          }
+        },
+        {
+          "name": "Bulk Acknowledge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alertIds\": [\"alert-1\", \"alert-2\", \"alert-3\"],\n  \"userId\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts/bulk/acknowledge",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts", "bulk", "acknowledge"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "OSINT - Username Search",
+      "description": "Username search across platforms",
+      "item": [
+        {
+          "name": "Search Username",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"cryptoqueen\",\n  \"timeout\": 30\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/osint/username/search",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "osint", "username", "search"]
+            }
+          }
+        },
+        {
+          "name": "Batch Username Search",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usernames\": [\"ruja\", \"ignatova\", \"cryptoqueen\"]\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/osint/username/batch-search",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "osint", "username", "batch-search"]
+            }
+          }
+        },
+        {
+          "name": "List Supported Platforms",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/osint/platforms/list",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "osint", "platforms", "list"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "OSINT - Email & Phone",
+      "description": "Email and phone intelligence",
+      "item": [
+        {
+          "name": "Email Intelligence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"target@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/osint/email/intelligence",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "osint", "email", "intelligence"]
+            }
+          }
+        },
+        {
+          "name": "Phone Lookup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+1-555-123-4567\"\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/osint/phone/lookup",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "osint", "phone", "lookup"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "OSINT - Domain",
+      "description": "Domain reconnaissance",
+      "item": [
+        {
+          "name": "Domain Scan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"domain\": \"example.com\",\n  \"scan_type\": \"subdomain_enum\"\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/osint/domain/scan",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "osint", "domain", "scan"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Blockchain",
+      "description": "Cryptocurrency and blockchain analysis",
+      "item": [
+        {
+          "name": "Get Wallet Info",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh\",\n  \"blockchain\": \"bitcoin\"\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/blockchain/wallet/info",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "blockchain", "wallet", "info"]
+            }
+          }
+        },
+        {
+          "name": "Trace Funds",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh\",\n  \"blockchain\": \"bitcoin\",\n  \"max_hops\": 5,\n  \"min_amount\": 0.01\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/blockchain/trace/funds",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "blockchain", "trace", "funds"]
+            }
+          }
+        },
+        {
+          "name": "Cluster Analysis",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh\",\n  \"blockchain\": \"bitcoin\"\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/blockchain/cluster/analyze",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "blockchain", "cluster", "analyze"]
+            }
+          }
+        },
+        {
+          "name": "Risk Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh\",\n  \"blockchain\": \"bitcoin\"\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/blockchain/risk/assess",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "blockchain", "risk", "assess"]
+            }
+          }
+        },
+        {
+          "name": "List Supported Blockchains",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/blockchain/blockchains/supported",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "blockchain", "blockchains", "supported"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Facial Recognition",
+      "description": "Face detection, matching, and database management",
+      "item": [
+        {
+          "name": "Search by Image URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imageUrl\": \"https://example.com/photo.jpg\",\n  \"threshold\": 0.6,\n  \"maxResults\": 10\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/facial/search/url",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "facial", "search", "url"]
+            }
+          }
+        },
+        {
+          "name": "Get Face Database",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/facial/database",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "facial", "database"]
+            }
+          }
+        },
+        {
+          "name": "Get Recent Matches",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/facial/matches",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "facial", "matches"]
+            }
+          }
+        },
+        {
+          "name": "Facial Recognition Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/facial/stats",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "facial", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/facial/health",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "facial", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Voice Recognition",
+      "description": "Audio transcription and speaker identification",
+      "item": [
+        {
+          "name": "Transcribe from URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"audioUrl\": \"https://example.com/audio.mp3\",\n  \"language\": null,\n  \"task\": \"transcribe\",\n  \"wordTimestamps\": true,\n  \"withDiarization\": false\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/voice/transcribe/url",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "voice", "transcribe", "url"]
+            }
+          }
+        },
+        {
+          "name": "Identify Speaker from URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"audioUrl\": \"https://example.com/audio.mp3\",\n  \"threshold\": 0.75\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/voice/identify/url",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "voice", "identify", "url"]
+            }
+          }
+        },
+        {
+          "name": "List Voice Prints",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/voice/prints",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "voice", "prints"]
+            }
+          }
+        },
+        {
+          "name": "Voice Recognition Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/voice/stats",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "voice", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/voice/health",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "voice", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "GEOINT",
+      "description": "Geospatial intelligence and location services",
+      "item": [
+        {
+          "name": "IP Geolocation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ip_address\": \"8.8.8.8\"\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/geoint/ip/geolocate",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "geoint", "ip", "geolocate"]
+            }
+          }
+        },
+        {
+          "name": "Phone Location",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+1-555-123-4567\"\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/geoint/phone/location",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "geoint", "phone", "location"]
+            }
+          }
+        },
+        {
+          "name": "Reverse Geocode",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 40.7589,\n  \"longitude\": -73.9851\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/geoint/coordinates/reverse",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "geoint", "coordinates", "reverse"]
+            }
+          }
+        },
+        {
+          "name": "Calculate Distance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lat1\": 40.7589,\n  \"lon1\": -73.9851,\n  \"lat2\": 51.5074,\n  \"lon2\": -0.1278\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/geoint/distance/calculate",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "geoint", "distance", "calculate"]
+            }
+          }
+        },
+        {
+          "name": "Timezone Lookup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 40.7589,\n  \"longitude\": -73.9851\n}"
+            },
+            "url": {
+              "raw": "{{intelUrl}}/api/v1/geoint/timezone/lookup",
+              "host": ["{{intelUrl}}"],
+              "path": ["api", "v1", "geoint", "timezone", "lookup"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "description": "System health and status endpoints",
+      "item": [
+        {
+          "name": "API Gateway Health",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "API Root",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api",
+              "host": ["{{baseUrl}}"],
+              "path": ["api"]
+            }
+          }
+        },
+        {
+          "name": "Intelligence Server Health",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{intelUrl}}/health",
+              "host": ["{{intelUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Intelligence Server Root",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{intelUrl}}/",
+              "host": ["{{intelUrl}}"],
+              "path": [""]
+            }
+          }
+        },
+        {
+          "name": "Intelligence Server Metrics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{intelUrl}}/metrics",
+              "host": ["{{intelUrl}}"],
+              "path": ["metrics"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

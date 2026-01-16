@@ -1,17 +1,95 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
   title: Apollo Platform API
-  description: Complete API documentation for Apollo criminal investigation platform
-  version: 1.0.0
+  description: |
+    ## Apollo Criminal Investigation Platform - Comprehensive API Documentation
+
+    The Apollo Platform provides a complete suite of APIs for criminal investigation,
+    intelligence gathering, and threat analysis. This documentation covers all available
+    endpoints across Node.js microservices and Python intelligence services.
+
+    ### Service Architecture
+    - **Node.js Microservices** (Port 3000-3010): Authentication, Operations, Intelligence, Search, Analytics, Notifications
+    - **Python Intelligence Server** (Port 8000): OSINT, Blockchain, Facial Recognition, Voice Analysis, GEOINT
+
+    ### Authentication Methods
+    - **JWT Bearer Token**: Primary authentication for all protected endpoints
+    - **API Key**: Alternative authentication via `X-API-Key` header
+    - **MFA**: Multi-factor authentication for sensitive operations
+
+    ### Rate Limiting
+    - Free tier: 100 requests/hour
+    - Pro tier: 1,000 requests/hour
+    - Enterprise: 10,000 requests/hour
+
+    ### Error Handling
+    All errors follow a consistent format with error codes and messages.
+
+  version: 2.0.0
   contact:
     name: Apollo Platform Team
     email: dev@apollo-platform.com
+    url: https://apollo-platform.com/support
+  license:
+    name: Proprietary
+    url: https://apollo-platform.com/license
+  x-logo:
+    url: https://apollo-platform.com/logo.png
+    altText: Apollo Platform
 
 servers:
   - url: http://localhost:3000
-    description: Development server
+    description: Development - Node.js Gateway
+  - url: http://localhost:8000
+    description: Development - Python Intelligence Server
   - url: https://api.apollo-platform.com
-    description: Production server
+    description: Production API Gateway
+  - url: https://intel.apollo-platform.com
+    description: Production Intelligence Server
+
+tags:
+  - name: Authentication
+    description: User authentication, registration, and session management
+  - name: MFA
+    description: Multi-factor authentication setup and verification
+  - name: Biometrics
+    description: Biometric authentication (fingerprint, face ID, voice print)
+  - name: Sessions
+    description: Session management and device control
+  - name: API Keys
+    description: API key management for programmatic access
+  - name: OAuth
+    description: OAuth 2.0 social authentication
+  - name: User Management
+    description: User administration and profile management
+  - name: Operations
+    description: Operation management and team coordination
+  - name: Field Reports
+    description: Field report submission and retrieval
+  - name: Intelligence
+    description: Intelligence report management
+  - name: Correlation
+    description: Intelligence correlation and analysis
+  - name: Search
+    description: Full-text search across all data
+  - name: Analytics
+    description: System and investigation analytics
+  - name: Notifications
+    description: User notifications
+  - name: Alerts
+    description: System alerts and incident management
+  - name: OSINT
+    description: Open Source Intelligence gathering
+  - name: Blockchain
+    description: Cryptocurrency and blockchain analysis
+  - name: Facial Recognition
+    description: Face detection, matching, and database management
+  - name: Voice Recognition
+    description: Audio transcription and speaker identification
+  - name: GEOINT
+    description: Geospatial intelligence and location services
+  - name: System
+    description: System health and metrics
 
 components:
   securitySchemes:
@@ -19,34 +97,224 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: JWT token authentication
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key authentication
 
   schemas:
+    # ============ Common Schemas ============
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "Invalid input provided"
+            request_id:
+              type: string
+              example: "req_1234567890"
+
+    PaginatedResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items: {}
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 20
+            total:
+              type: integer
+              example: 100
+            totalPages:
+              type: integer
+              example: 5
+
+    # ============ User & Auth Schemas ============
     User:
       type: object
       properties:
         id:
           type: string
           format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        email:
+          type: string
+          format: email
+          example: "agent@apollo.com"
+        username:
+          type: string
+          example: "agent_007"
+        firstName:
+          type: string
+          example: "James"
+        lastName:
+          type: string
+          example: "Bond"
+        role:
+          type: string
+          enum: [admin, investigator, analyst, viewer]
+          example: "investigator"
+        clearanceLevel:
+          type: string
+          enum: [top_secret, secret, confidential, restricted, unclassified]
+          example: "secret"
+        isActive:
+          type: boolean
+          example: true
+        isMfaEnabled:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        lastLoginAt:
+          type: string
+          format: date-time
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "agent@apollo.com"
+        password:
+          type: string
+          format: password
+          example: "SecureP@ssw0rd!"
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            accessToken:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIs..."
+            refreshToken:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIs..."
+            expiresIn:
+              type: integer
+              example: 3600
+
+    RegisterRequest:
+      type: object
+      required: [email, username, password, firstName, lastName]
+      properties:
         email:
           type: string
           format: email
         username:
           type: string
+          minLength: 3
+          maxLength: 50
+        password:
+          type: string
+          format: password
+          minLength: 8
         firstName:
           type: string
         lastName:
           type: string
-        role:
+
+    # ============ Session Schema ============
+    Session:
+      type: object
+      properties:
+        id:
           type: string
-          enum: [admin, investigator, analyst, viewer]
-        clearanceLevel:
+          format: uuid
+        userId:
           type: string
-          enum: [top_secret, secret, confidential, restricted, unclassified]
-        isActive:
-          type: boolean
-        isMfaEnabled:
+          format: uuid
+        deviceName:
+          type: string
+          example: "Chrome on Windows"
+        deviceType:
+          type: string
+          example: "desktop"
+        ipAddress:
+          type: string
+          example: "192.168.1.100"
+        userAgent:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        lastActivityAt:
+          type: string
+          format: date-time
+        isCurrent:
           type: boolean
 
+    # ============ API Key Schema ============
+    ApiKey:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Production Integration"
+        keyPrefix:
+          type: string
+          example: "apollo_abc..."
+        scopes:
+          type: array
+          items:
+            type: string
+          example: ["investigations:read", "targets:read"]
+        rateLimit:
+          type: integer
+          example: 1000
+        expiresAt:
+          type: string
+          format: date-time
+        lastUsedAt:
+          type: string
+          format: date-time
+        isActive:
+          type: boolean
+
+    # ============ Operation Schema ============
     Operation:
       type: object
       properties:
@@ -55,8 +323,10 @@ components:
           format: uuid
         name:
           type: string
+          example: "Operation Thunderbolt"
         codename:
           type: string
+          example: "THUNDERBOLT"
         description:
           type: string
         status:
@@ -70,10 +340,47 @@ components:
         leadInvestigatorId:
           type: string
           format: uuid
+        teamMembers:
+          type: array
+          items:
+            type: string
+            format: uuid
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateOperationRequest:
+      type: object
+      required: [name, codename, priority, clearanceLevel, leadInvestigatorId, startDate]
+      properties:
+        name:
+          type: string
+        codename:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [critical, high, medium, low]
+        clearanceLevel:
+          type: string
+        leadInvestigatorId:
+          type: string
+          format: uuid
         startDate:
           type: string
           format: date-time
 
+    # ============ Intelligence Report Schema ============
     IntelligenceReport:
       type: object
       properties:
@@ -82,6 +389,7 @@ components:
           format: uuid
         title:
           type: string
+          example: "Suspicious Financial Activity Report"
         summary:
           type: string
         content:
@@ -92,79 +400,329 @@ components:
         confidence:
           type: string
           enum: [verified, high, medium, low, unconfirmed]
+        clearanceLevel:
+          type: string
+        authorId:
+          type: string
+          format: uuid
         tags:
           type: array
           items:
             type: string
+        relatedEntities:
+          type: array
+          items:
+            type: object
+        createdAt:
+          type: string
+          format: date-time
 
-    Error:
+    # ============ Alert Schema ============
+    Alert:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [security, intelligence, operation, system, compliance, facial_match, transaction, surveillance]
+        severity:
+          type: string
+          enum: [critical, high, medium, low, info]
+        title:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+          enum: [new, acknowledged, in_progress, resolved, dismissed]
+        source:
+          type: string
+        relatedEntityType:
+          type: string
+        relatedEntityId:
+          type: string
+        actionRequired:
+          type: boolean
+        assignedTo:
+          type: string
+          format: uuid
+        acknowledgedAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    # ============ OSINT Schemas ============
+    UsernameSearchResult:
       type: object
       properties:
         success:
           type: boolean
-          example: false
-        error:
+        username:
+          type: string
+        total_platforms_checked:
+          type: integer
+        platforms_found:
+          type: integer
+        search_duration_seconds:
+          type: number
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              platform:
+                type: string
+              url:
+                type: string
+              status:
+                type: string
+                enum: [found, not_found, error]
+              confidence_score:
+                type: number
+              response_time_ms:
+                type: integer
+
+    # ============ Blockchain Schemas ============
+    WalletInfo:
+      type: object
+      properties:
+        success:
+          type: boolean
+        address:
+          type: string
+          example: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+        blockchain:
+          type: string
+          example: "bitcoin"
+        balance:
+          type: string
+          example: "1.23456789 BTC"
+        balance_raw:
+          type: number
+        total_received:
+          type: number
+        total_sent:
+          type: number
+        transaction_count:
+          type: integer
+        first_seen:
+          type: string
+          format: date-time
+        last_seen:
+          type: string
+          format: date-time
+        risk_score:
+          type: number
+        labels:
+          type: array
+          items:
+            type: string
+
+    # ============ Facial Recognition Schemas ============
+    FacialSearchResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
           type: object
           properties:
-            code:
+            faces_detected:
+              type: integer
+            matches:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  targetId:
+                    type: string
+                  confidence:
+                    type: number
+                  source:
+                    type: string
+                  timestamp:
+                    type: string
+
+    FaceCompareResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            match:
+              type: boolean
+            confidence:
+              type: number
+            distance:
+              type: number
+            threshold:
+              type: number
+
+    # ============ Voice Recognition Schemas ============
+    TranscriptionResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            text:
               type: string
-            message:
+            language:
+              type: string
+            languageProbability:
+              type: number
+            duration:
+              type: number
+            segments:
+              type: array
+              items:
+                type: object
+                properties:
+                  text:
+                    type: string
+                  start:
+                    type: number
+                  end:
+                    type: number
+                  confidence:
+                    type: number
+                  speaker:
+                    type: string
+            modelUsed:
               type: string
 
+    SpeakerIdentificationResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            matches:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  confidence:
+                    type: number
+                  isMatch:
+                    type: boolean
+            enrolledPrints:
+              type: integer
+            threshold:
+              type: number
+
 paths:
+  # ============================================================
+  # AUTHENTICATION ENDPOINTS
+  # ============================================================
   /api/auth/register:
     post:
       summary: Register a new user
+      description: Create a new user account with email verification
       tags: [Authentication]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [email, username, password, firstName, lastName]
-              properties:
-                email:
-                  type: string
-                  format: email
-                username:
-                  type: string
-                password:
-                  type: string
-                  format: password
-                firstName:
-                  type: string
-                lastName:
-                  type: string
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              email: "newagent@apollo.com"
+              username: "agent_new"
+              password: "SecureP@ssw0rd123!"
+              firstName: "John"
+              lastName: "Doe"
       responses:
         '201':
           description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data:
+                  user:
+                    id: "550e8400-e29b-41d4-a716-446655440000"
+                    email: "newagent@apollo.com"
+                    username: "agent_new"
+                  message: "Registration successful. Please verify your email."
         '400':
           description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Password must be at least 8 characters"
         '409':
           description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: "CONFLICT"
+                  message: "Email already registered"
 
   /api/auth/login:
     post:
       summary: Login with email and password
+      description: Authenticate user and receive JWT tokens
       tags: [Authentication]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [email, password]
-              properties:
-                email:
-                  type: string
-                  format: email
-                password:
-                  type: string
-                  format: password
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: "agent@apollo.com"
+              password: "SecureP@ssw0rd!"
       responses:
         '200':
           description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: "UNAUTHORIZED"
+                  message: "Invalid email or password"
+        '403':
+          description: MFA required
           content:
             application/json:
               schema:
@@ -172,21 +730,41 @@ paths:
                 properties:
                   success:
                     type: boolean
-                  data:
-                    type: object
-                    properties:
-                      user:
-                        $ref: '#/components/schemas/User'
-                      accessToken:
-                        type: string
-                      refreshToken:
-                        type: string
-        '401':
-          description: Invalid credentials
+                    example: false
+                  mfaRequired:
+                    type: boolean
+                    example: true
+                  tempToken:
+                    type: string
+
+  /api/auth/logout:
+    post:
+      summary: Logout current session
+      description: Invalidate the current session and refresh token
+      tags: [Authentication]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
 
   /api/auth/refresh:
     post:
       summary: Refresh access token
+      description: Get a new access token using refresh token
       tags: [Authentication]
       requestBody:
         required: true
@@ -201,10 +779,27 @@ paths:
       responses:
         '200':
           description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                      refreshToken:
+                        type: string
+                      expiresIn:
+                        type: integer
 
   /api/auth/me:
     get:
       summary: Get current user
+      description: Retrieve the authenticated user's profile
       tags: [Authentication]
       security:
         - bearerAuth: []
@@ -214,52 +809,85 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
 
-  /api/users:
+  /api/auth/validate:
     get:
-      summary: Get all users
-      tags: [User Management]
+      summary: Validate token
+      description: Check if the current token is valid
+      tags: [Authentication]
       security:
         - bearerAuth: []
-      parameters:
-        - in: query
-          name: page
-          schema:
-            type: integer
-            default: 1
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            default: 20
       responses:
         '200':
-          description: List of users
+          description: Token is valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      valid:
+                        type: boolean
+                      user:
+                        $ref: '#/components/schemas/User'
 
-  /api/users/{id}:
-    get:
-      summary: Get user by ID
-      tags: [User Management]
-      security:
-        - bearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: User details
-        '404':
-          description: User not found
-
-  /api/operations:
+  /api/auth/reset-password/request:
     post:
-      summary: Create a new operation
-      tags: [Operations]
+      summary: Request password reset
+      description: Send password reset email to user
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Reset email sent (if account exists)
+
+  /api/auth/reset-password:
+    post:
+      summary: Reset password
+      description: Reset password using token from email
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token:
+                  type: string
+                newPassword:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Password reset successfully
+
+  /api/auth/change-password:
+    post:
+      summary: Change password
+      description: Change password for authenticated user
+      tags: [Authentication]
       security:
         - bearerAuth: []
       requestBody:
@@ -268,49 +896,1087 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name, codename, priority, clearanceLevel, leadInvestigatorId, startDate]
+              required: [oldPassword, newPassword]
               properties:
-                name:
+                oldPassword:
                   type: string
-                codename:
+                  format: password
+                newPassword:
                   type: string
-                description:
+                  format: password
+      responses:
+        '200':
+          description: Password changed successfully
+
+  # ============================================================
+  # MFA ENDPOINTS
+  # ============================================================
+  /api/auth/mfa/setup:
+    post:
+      summary: Setup MFA
+      description: Generate MFA secret and QR code for authenticator app
+      tags: [MFA]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: MFA setup data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      secret:
+                        type: string
+                      qrCodeUrl:
+                        type: string
+                      backupCodes:
+                        type: array
+                        items:
+                          type: string
+
+  /api/auth/mfa/enable:
+    post:
+      summary: Enable MFA
+      description: Verify TOTP token and enable MFA
+      tags: [MFA]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
                   type: string
-                priority:
-                  type: string
-                clearanceLevel:
-                  type: string
-                leadInvestigatorId:
+                  pattern: '^\d{6}$'
+      responses:
+        '200':
+          description: MFA enabled successfully
+
+  /api/auth/mfa/verify:
+    post:
+      summary: Verify MFA token
+      description: Verify TOTP token during login
+      tags: [MFA]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, token]
+              properties:
+                userId:
                   type: string
                   format: uuid
-                startDate:
+                token:
                   type: string
-                  format: date-time
       responses:
-        '201':
-          description: Operation created
+        '200':
+          description: MFA verified
 
+  /api/auth/mfa/disable:
+    post:
+      summary: Disable MFA
+      description: Disable MFA (requires password confirmation)
+      tags: [MFA]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: MFA disabled
+
+  /api/auth/mfa/backup-codes/regenerate:
+    post:
+      summary: Regenerate backup codes
+      description: Generate new backup codes (requires password)
+      tags: [MFA]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: New backup codes generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      backupCodes:
+                        type: array
+                        items:
+                          type: string
+
+  # ============================================================
+  # BIOMETRIC AUTHENTICATION ENDPOINTS
+  # ============================================================
+  /api/auth/biometric/availability:
     get:
-      summary: Get all operations
-      tags: [Operations]
+      summary: Check biometric availability
+      description: Check which biometric methods are available for the user
+      tags: [Biometrics]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Biometric availability status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      fingerprint:
+                        type: boolean
+                      faceId:
+                        type: boolean
+                      voicePrint:
+                        type: boolean
+
+  /api/auth/biometric/enrollments:
+    get:
+      summary: Get biometric enrollments
+      description: List all biometric enrollments for the user
+      tags: [Biometrics]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of biometric enrollments
+
+  /api/auth/biometric/enroll/{type}:
+    post:
+      summary: Enroll biometric
+      description: Enroll a new biometric authentication method
+      tags: [Biometrics]
       security:
         - bearerAuth: []
       parameters:
-        - in: query
-          name: status
+        - name: type
+          in: path
+          required: true
           schema:
             type: string
-        - in: query
-          name: priority
+            enum: [fingerprint, face_id, voice_print]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [template, password, qualityScore]
+              properties:
+                template:
+                  type: string
+                  description: Biometric template data
+                password:
+                  type: string
+                  format: password
+                qualityScore:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                deviceId:
+                  type: string
+      responses:
+        '201':
+          description: Biometric enrolled successfully
+    delete:
+      summary: Disable biometric
+      description: Remove a biometric authentication method
+      tags: [Biometrics]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [fingerprint, face_id, voice_print]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Biometric disabled
+
+  /api/auth/biometric/authenticate/{type}:
+    post:
+      summary: Authenticate with biometric
+      description: Authenticate using biometric data
+      tags: [Biometrics]
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [fingerprint, face_id, voice_print]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [template, userId]
+              properties:
+                template:
+                  type: string
+                userId:
+                  type: string
+                  format: uuid
+                livenessProof:
+                  type: string
+      responses:
+        '200':
+          description: Authentication result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      biometricType:
+                        type: string
+                      confidence:
+                        type: number
+                      livenessScore:
+                        type: number
+
+  # ============================================================
+  # SESSION MANAGEMENT ENDPOINTS
+  # ============================================================
+  /api/auth/sessions:
+    get:
+      summary: Get active sessions
+      description: List all active sessions for the user
+      tags: [Sessions]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of active sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      sessions:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Session'
+                      totalCount:
+                        type: integer
+                      currentSessionId:
+                        type: string
+    delete:
+      summary: Invalidate other sessions
+      description: Invalidate all sessions except current
+      tags: [Sessions]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Sessions invalidated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      invalidatedCount:
+                        type: integer
+
+  /api/auth/sessions/current:
+    get:
+      summary: Get current session
+      description: Get details of the current session
+      tags: [Sessions]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current session details
+
+  /api/auth/sessions/all:
+    delete:
+      summary: Logout everywhere
+      description: Invalidate ALL sessions including current
+      tags: [Sessions]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: All sessions invalidated
+
+  /api/auth/sessions/{sessionId}:
+    delete:
+      summary: Invalidate specific session
+      description: Invalidate a specific session by ID
+      tags: [Sessions]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Session invalidated
+        '404':
+          description: Session not found
+
+  # ============================================================
+  # API KEY MANAGEMENT ENDPOINTS
+  # ============================================================
+  /api/auth/api-keys:
+    get:
+      summary: List API keys
+      description: Get all API keys for the authenticated user
+      tags: [API Keys]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of API keys
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      keys:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ApiKey'
+                      totalCount:
+                        type: integer
+    post:
+      summary: Create API key
+      description: Create a new API key (requires MFA)
+      tags: [API Keys]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, scopes]
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                scopes:
+                  type: array
+                  items:
+                    type: string
+                preset:
+                  type: string
+                  enum: [readonly, analyst, operator, admin, webhook]
+                rateLimit:
+                  type: integer
+                  minimum: 1
+                  maximum: 10000
+                rateLimitWindow:
+                  type: integer
+                  minimum: 1
+                  maximum: 3600
+                expiresIn:
+                  type: integer
+                  minimum: 1
+                  maximum: 365
+                  description: Expiration in days
+                ipWhitelist:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: API key created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      apiKey:
+                        type: string
+                        description: Only shown once!
+                      keyPrefix:
+                        type: string
+                      name:
+                        type: string
+                      scopes:
+                        type: array
+                        items:
+                          type: string
+                      expiresAt:
+                        type: string
+
+  /api/auth/api-keys/scopes:
+    get:
+      summary: Get available scopes
+      description: List available API key scopes and presets
+      tags: [API Keys]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Available scopes
+
+  /api/auth/api-keys/{keyId}:
+    get:
+      summary: Get API key details
+      description: Get details of a specific API key
+      tags: [API Keys]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: keyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: API key details
+        '404':
+          description: API key not found
+    delete:
+      summary: Revoke API key
+      description: Permanently revoke an API key
+      tags: [API Keys]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: keyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: API key revoked
+
+  /api/auth/api-keys/{keyId}/rotate:
+    post:
+      summary: Rotate API key
+      description: Generate new key value (requires MFA)
+      tags: [API Keys]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: keyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: API key rotated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      newApiKey:
+                        type: string
+                      keyPrefix:
+                        type: string
+
+  /api/auth/api-keys/{keyId}/usage:
+    get:
+      summary: Get API key usage stats
+      description: Get usage statistics for an API key
+      tags: [API Keys]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: keyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Usage statistics
+
+  # ============================================================
+  # OAUTH ENDPOINTS
+  # ============================================================
+  /api/auth/oauth/google:
+    get:
+      summary: Google OAuth login
+      description: Initiate Google OAuth flow
+      tags: [OAuth]
+      responses:
+        '302':
+          description: Redirect to Google
+
+  /api/auth/oauth/google/callback:
+    get:
+      summary: Google OAuth callback
+      description: Handle Google OAuth callback
+      tags: [OAuth]
+      responses:
+        '302':
+          description: Redirect to frontend with tokens
+
+  /api/auth/oauth/microsoft:
+    get:
+      summary: Microsoft OAuth login
+      description: Initiate Microsoft OAuth flow
+      tags: [OAuth]
+      responses:
+        '302':
+          description: Redirect to Microsoft
+
+  /api/auth/oauth/microsoft/callback:
+    get:
+      summary: Microsoft OAuth callback
+      description: Handle Microsoft OAuth callback
+      tags: [OAuth]
+      responses:
+        '302':
+          description: Redirect to frontend with tokens
+
+  /api/auth/oauth/github:
+    get:
+      summary: GitHub OAuth login
+      description: Initiate GitHub OAuth flow
+      tags: [OAuth]
+      responses:
+        '302':
+          description: Redirect to GitHub
+
+  /api/auth/oauth/github/callback:
+    get:
+      summary: GitHub OAuth callback
+      description: Handle GitHub OAuth callback
+      tags: [OAuth]
+      responses:
+        '302':
+          description: Redirect to frontend with tokens
+
+  # ============================================================
+  # USER MANAGEMENT ENDPOINTS
+  # ============================================================
+  /api/users:
+    get:
+      summary: Get all users
+      description: List all users (admin/investigator only)
+      tags: [User Management]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponse'
+
+  /api/users/search:
+    get:
+      summary: Search users
+      description: Search users by query string
+      tags: [User Management]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
           schema:
             type: string
       responses:
         '200':
-          description: List of operations
+          description: Search results
 
+  /api/users/{id}:
+    get:
+      summary: Get user by ID
+      description: Get user details by ID
+      tags: [User Management]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+    patch:
+      summary: Update user
+      description: Update user details (admin only)
+      tags: [User Management]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                role:
+                  type: string
+                clearanceLevel:
+                  type: string
+                isActive:
+                  type: boolean
+      responses:
+        '200':
+          description: User updated
+    delete:
+      summary: Delete user
+      description: Delete user account (admin only)
+      tags: [User Management]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User deleted
+
+  /api/users/{id}/activity:
+    get:
+      summary: Get user activity
+      description: Get user activity log
+      tags: [User Management]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: User activity log
+
+  # ============================================================
+  # OPERATIONS ENDPOINTS
+  # ============================================================
+  /api/operations:
+    get:
+      summary: List operations
+      description: Get all operations with optional filtering
+      tags: [Operations]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [planning, active, on_hold, completed, archived]
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [critical, high, medium, low]
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of operations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Operation'
+    post:
+      summary: Create operation
+      description: Create a new operation
+      tags: [Operations]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOperationRequest'
+      responses:
+        '201':
+          description: Operation created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Operation'
+
+  /api/operations/{id}:
+    get:
+      summary: Get operation
+      description: Get operation details by ID
+      tags: [Operations]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Operation details
+        '404':
+          description: Operation not found
+    patch:
+      summary: Update operation
+      description: Update operation details
+      tags: [Operations]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                status:
+                  type: string
+                priority:
+                  type: string
+      responses:
+        '200':
+          description: Operation updated
+    delete:
+      summary: Delete operation
+      description: Delete an operation
+      tags: [Operations]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Operation deleted
+
+  /api/operations/{id}/team/{userId}:
+    post:
+      summary: Add team member
+      description: Assign user to operation team
+      tags: [Operations]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Team member assigned
+    delete:
+      summary: Remove team member
+      description: Remove user from operation team
+      tags: [Operations]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Team member removed
+
+  # ============================================================
+  # FIELD REPORTS ENDPOINTS
+  # ============================================================
+  /api/field-reports:
+    post:
+      summary: Create field report
+      description: Submit a new field report
+      tags: [Field Reports]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [operationId, title, content, authorId]
+              properties:
+                operationId:
+                  type: string
+                  format: uuid
+                title:
+                  type: string
+                content:
+                  type: string
+                authorId:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Field report created
+
+  /api/field-reports/operation/{operationId}:
+    get:
+      summary: Get operation field reports
+      description: Get all field reports for an operation
+      tags: [Field Reports]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: operationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of field reports
+
+  # ============================================================
+  # INTELLIGENCE ENDPOINTS
+  # ============================================================
   /api/intelligence:
+    get:
+      summary: List intelligence reports
+      description: Get all intelligence reports
+      tags: [Intelligence]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: source
+          in: query
+          schema:
+            type: string
+            enum: [humint, sigint, osint, geoint, finint, techint]
+        - name: confidence
+          in: query
+          schema:
+            type: string
+            enum: [verified, high, medium, low, unconfirmed]
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of intelligence reports
     post:
       summary: Create intelligence report
+      description: Submit a new intelligence report
       tags: [Intelligence]
       security:
         - bearerAuth: []
@@ -330,8 +1996,10 @@ paths:
                   type: string
                 source:
                   type: string
+                  enum: [humint, sigint, osint, geoint, finint, techint]
                 confidence:
                   type: string
+                  enum: [verified, high, medium, low, unconfirmed]
                 clearanceLevel:
                   type: string
                 authorId:
@@ -344,10 +2012,100 @@ paths:
       responses:
         '201':
           description: Intelligence report created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/IntelligenceReport'
 
+  /api/intelligence/{id}:
+    get:
+      summary: Get intelligence report
+      description: Get intelligence report by ID
+      tags: [Intelligence]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Intelligence report details
+        '404':
+          description: Report not found
+
+  /api/intelligence/{id}/confidence:
+    get:
+      summary: Get confidence score
+      description: Calculate confidence score for a report
+      tags: [Intelligence]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Confidence score
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      score:
+                        type: number
+
+  # ============================================================
+  # CORRELATION ENDPOINTS
+  # ============================================================
+  /api/correlation:
+    post:
+      summary: Correlate reports
+      description: Find correlations between intelligence reports
+      tags: [Correlation]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reportIds]
+              properties:
+                reportIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '200':
+          description: Correlation results
+
+  # ============================================================
+  # SEARCH ENDPOINTS
+  # ============================================================
   /api/search:
     post:
-      summary: Search across all indices
+      summary: Global search
+      description: Search across all indices
       tags: [Search]
       security:
         - bearerAuth: []
@@ -361,35 +2119,232 @@ paths:
               properties:
                 query:
                   type: string
+                  example: "Ignatova financial"
                 indices:
                   type: array
                   items:
                     type: string
+                  default: ["investigations", "targets", "intelligence"]
                 filters:
                   type: object
+                  additionalProperties: true
+            example:
+              query: "suspicious transaction"
+              indices: ["investigations", "intelligence"]
+              filters:
+                status: "active"
+                dateRange:
+                  from: "2024-01-01"
+                  to: "2024-12-31"
       responses:
         '200':
           description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      results:
+                        type: array
+                        items:
+                          type: object
 
+  /api/search/index:
+    post:
+      summary: Index document
+      description: Index a document for search
+      tags: [Search]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [index, id, document]
+              properties:
+                index:
+                  type: string
+                id:
+                  type: string
+                document:
+                  type: object
+      responses:
+        '200':
+          description: Document indexed
+
+  /api/search/suggest:
+    get:
+      summary: Search suggestions
+      description: Get search suggestions/autocomplete
+      tags: [Search]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: index
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: field
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Suggestions
+
+  /api/search/{index}/{id}:
+    delete:
+      summary: Delete document
+      description: Delete a document from search index
+      tags: [Search]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Document deleted
+
+  # ============================================================
+  # ANALYTICS ENDPOINTS
+  # ============================================================
   /api/analytics/investigations:
     get:
-      summary: Get investigation metrics
+      summary: Investigation metrics
+      description: Get investigation statistics and metrics
       tags: [Analytics]
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Investigation statistics
+          description: Investigation metrics
+
+  /api/analytics/targets:
+    get:
+      summary: Target statistics
+      description: Get target statistics
+      tags: [Analytics]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Target statistics
+
+  /api/analytics/users:
+    get:
+      summary: User activity metrics
+      description: Get user activity metrics
+      tags: [Analytics]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: timeRange
+          in: query
+          schema:
+            type: string
+            default: "7d"
+            enum: ["1d", "7d", "30d", "90d"]
+      responses:
+        '200':
+          description: User activity metrics
+
+  /api/analytics/system:
+    get:
+      summary: System health metrics
+      description: Get system health and performance metrics
+      tags: [Analytics]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: System health metrics
+
+  /api/analytics/operations/{id}/timeline:
+    get:
+      summary: Operation timeline
+      description: Get operation activity timeline
+      tags: [Analytics]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Operation timeline
+
+  # ============================================================
+  # NOTIFICATIONS ENDPOINTS
+  # ============================================================
+  /api/notifications:
+    post:
+      summary: Create notification
+      description: Create a new notification
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, type, title, message]
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                type:
+                  type: string
+                title:
+                  type: string
+                message:
+                  type: string
+                metadata:
+                  type: object
+      responses:
+        '201':
+          description: Notification created
 
   /api/notifications/user/{userId}:
     get:
       summary: Get user notifications
+      description: Get all notifications for a user
       tags: [Notifications]
       security:
         - bearerAuth: []
       parameters:
-        - in: path
-          name: userId
+        - name: userId
+          in: path
           required: true
           schema:
             type: string
@@ -397,3 +2352,1509 @@ paths:
       responses:
         '200':
           description: User notifications
+
+  /api/notifications/{id}/read:
+    patch:
+      summary: Mark notification as read
+      description: Mark a notification as read
+      tags: [Notifications]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification marked as read
+
+  # ============================================================
+  # ALERTS ENDPOINTS
+  # ============================================================
+  /api/alerts:
+    get:
+      summary: List alerts
+      description: Get all alerts with filtering
+      tags: [Alerts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [new, acknowledged, in_progress, resolved, dismissed]
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [critical, high, medium, low, info]
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [security, intelligence, operation, system, compliance, facial_match, transaction, surveillance]
+        - name: assignedTo
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [created_at, severity, status, type]
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: List of alerts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      alerts:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Alert'
+                      pagination:
+                        type: object
+    post:
+      summary: Create alert
+      description: Create a new alert
+      tags: [Alerts]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, severity, title, message]
+              properties:
+                type:
+                  type: string
+                  enum: [security, intelligence, operation, system, compliance, facial_match, transaction, surveillance]
+                severity:
+                  type: string
+                  enum: [critical, high, medium, low, info]
+                title:
+                  type: string
+                message:
+                  type: string
+                source:
+                  type: string
+                relatedEntityType:
+                  type: string
+                relatedEntityId:
+                  type: string
+                actionRequired:
+                  type: boolean
+                  default: false
+                assignedTo:
+                  type: string
+                  format: uuid
+                metadata:
+                  type: object
+      responses:
+        '201':
+          description: Alert created
+
+  /api/alerts/{id}:
+    get:
+      summary: Get alert
+      description: Get alert by ID
+      tags: [Alerts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Alert details
+        '404':
+          description: Alert not found
+
+  /api/alerts/{id}/acknowledge:
+    patch:
+      summary: Acknowledge alert
+      description: Acknowledge an alert
+      tags: [Alerts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Alert acknowledged
+
+  /api/alerts/{id}/progress:
+    patch:
+      summary: Set alert in progress
+      description: Mark alert as being worked on
+      tags: [Alerts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Alert in progress
+
+  /api/alerts/{id}/resolve:
+    patch:
+      summary: Resolve alert
+      description: Mark alert as resolved
+      tags: [Alerts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                resolution:
+                  type: string
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Alert resolved
+
+  /api/alerts/{id}/dismiss:
+    patch:
+      summary: Dismiss alert
+      description: Dismiss an alert
+      tags: [Alerts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Alert dismissed
+
+  /api/alerts/{id}/assign:
+    patch:
+      summary: Assign alert
+      description: Assign alert to a user
+      tags: [Alerts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [assignedTo]
+              properties:
+                assignedTo:
+                  type: string
+                  format: uuid
+                assignedBy:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Alert assigned
+
+  /api/alerts/stats/summary:
+    get:
+      summary: Alert statistics
+      description: Get alert statistics summary
+      tags: [Alerts]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Alert statistics
+
+  /api/alerts/bulk/acknowledge:
+    post:
+      summary: Bulk acknowledge alerts
+      description: Acknowledge multiple alerts at once
+      tags: [Alerts]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [alertIds, userId]
+              properties:
+                alertIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                userId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Alerts acknowledged
+
+  /api/alerts/cleanup:
+    delete:
+      summary: Cleanup old alerts
+      description: Delete old resolved/dismissed alerts
+      tags: [Alerts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: olderThanDays
+          in: query
+          schema:
+            type: integer
+            default: 30
+      responses:
+        '200':
+          description: Alerts cleaned up
+
+  # ============================================================
+  # PYTHON INTELLIGENCE SERVER ENDPOINTS
+  # ============================================================
+
+  # ============ OSINT ENDPOINTS ============
+  /api/v1/osint/username/search:
+    post:
+      summary: Username search
+      description: Search for username across 400+ platforms
+      tags: [OSINT]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username]
+              properties:
+                username:
+                  type: string
+                  example: "cryptoqueen"
+                platforms:
+                  type: array
+                  items:
+                    type: string
+                  description: Specific platforms to search (optional)
+                timeout:
+                  type: integer
+                  default: 15
+                  description: Timeout per platform in seconds
+                check_availability:
+                  type: boolean
+                  default: false
+            example:
+              username: "ruja_ignatova"
+              timeout: 30
+      responses:
+        '200':
+          description: Username search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsernameSearchResult'
+
+  /api/v1/osint/username/batch-search:
+    post:
+      summary: Batch username search
+      description: Search multiple usernames in parallel
+      tags: [OSINT]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [usernames]
+              properties:
+                usernames:
+                  type: array
+                  items:
+                    type: string
+                platforms:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Batch search results
+
+  /api/v1/osint/email/intelligence:
+    post:
+      summary: Email intelligence
+      description: Comprehensive email intelligence gathering
+      tags: [OSINT]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Email intelligence results
+
+  /api/v1/osint/phone/lookup:
+    post:
+      summary: Phone lookup
+      description: Phone number intelligence and carrier lookup
+      tags: [OSINT]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone_number]
+              properties:
+                phone_number:
+                  type: string
+                  example: "+1-555-123-4567"
+      responses:
+        '200':
+          description: Phone lookup results
+
+  /api/v1/osint/domain/scan:
+    post:
+      summary: Domain scan
+      description: Comprehensive domain reconnaissance
+      tags: [OSINT]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [domain]
+              properties:
+                domain:
+                  type: string
+                  example: "example.com"
+                scan_type:
+                  type: string
+                  enum: [subdomain_enum, port_scan, vuln_scan, full]
+                  default: subdomain_enum
+                modules:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Domain scan results
+
+  /api/v1/osint/image/reverse-search:
+    post:
+      summary: Reverse image search
+      description: Search for image across multiple search engines
+      tags: [OSINT]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                image_url:
+                  type: string
+                  format: uri
+      responses:
+        '200':
+          description: Reverse image search results
+
+  /api/v1/osint/public-records/search:
+    post:
+      summary: Public records search
+      description: Search public records databases
+      tags: [OSINT]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                location:
+                  type: string
+                record_types:
+                  type: array
+                  items:
+                    type: string
+                    enum: [court, property, business, criminal, marriage]
+      responses:
+        '200':
+          description: Public records results
+
+  /api/v1/osint/platforms/list:
+    get:
+      summary: List supported platforms
+      description: Get list of all supported platforms for username search
+      tags: [OSINT]
+      responses:
+        '200':
+          description: List of platforms
+
+  # ============ BLOCKCHAIN ENDPOINTS ============
+  /api/v1/blockchain/wallet/info:
+    post:
+      summary: Get wallet info
+      description: Get comprehensive wallet information
+      tags: [Blockchain]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [address]
+              properties:
+                address:
+                  type: string
+                  example: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+                blockchain:
+                  type: string
+                  default: "bitcoin"
+                  enum: [bitcoin, ethereum, bsc, polygon, solana, cardano]
+      responses:
+        '200':
+          description: Wallet information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletInfo'
+
+  /api/v1/blockchain/transaction/info:
+    post:
+      summary: Get transaction info
+      description: Get detailed transaction information
+      tags: [Blockchain]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tx_hash]
+              properties:
+                tx_hash:
+                  type: string
+                blockchain:
+                  type: string
+                  default: "bitcoin"
+      responses:
+        '200':
+          description: Transaction information
+
+  /api/v1/blockchain/trace/funds:
+    post:
+      summary: Trace funds
+      description: Trace cryptocurrency funds through transaction graph
+      tags: [Blockchain]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [address]
+              properties:
+                address:
+                  type: string
+                blockchain:
+                  type: string
+                  default: "bitcoin"
+                max_hops:
+                  type: integer
+                  default: 5
+                  minimum: 1
+                  maximum: 10
+                min_amount:
+                  type: number
+                  default: 0.01
+      responses:
+        '200':
+          description: Fund tracing results
+
+  /api/v1/blockchain/cluster/analyze:
+    post:
+      summary: Analyze wallet cluster
+      description: Identify related addresses through clustering
+      tags: [Blockchain]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [address]
+              properties:
+                address:
+                  type: string
+                blockchain:
+                  type: string
+                  default: "bitcoin"
+      responses:
+        '200':
+          description: Cluster analysis results
+
+  /api/v1/blockchain/risk/assess:
+    post:
+      summary: Risk assessment
+      description: Comprehensive AML risk assessment for wallet
+      tags: [Blockchain]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [address]
+              properties:
+                address:
+                  type: string
+                blockchain:
+                  type: string
+                  default: "bitcoin"
+      responses:
+        '200':
+          description: Risk assessment results
+
+  /api/v1/blockchain/blockchains/supported:
+    get:
+      summary: List supported blockchains
+      description: Get list of all supported blockchain networks
+      tags: [Blockchain]
+      responses:
+        '200':
+          description: List of supported blockchains
+
+  # ============ FACIAL RECOGNITION ENDPOINTS ============
+  /api/v1/facial/search:
+    post:
+      summary: Search by image upload
+      description: Search for face matches using uploaded image
+      tags: [Facial Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Image file to search
+                threshold:
+                  type: number
+                  default: 0.6
+                  minimum: 0.1
+                  maximum: 1.0
+                maxResults:
+                  type: integer
+                  default: 10
+      responses:
+        '200':
+          description: Facial search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FacialSearchResult'
+
+  /api/v1/facial/search/url:
+    post:
+      summary: Search by image URL
+      description: Search for face matches using image URL
+      tags: [Facial Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [imageUrl]
+              properties:
+                imageUrl:
+                  type: string
+                  format: uri
+                threshold:
+                  type: number
+                  default: 0.6
+                maxResults:
+                  type: integer
+                  default: 10
+      responses:
+        '200':
+          description: Facial search results
+
+  /api/v1/facial/compare:
+    post:
+      summary: Compare two faces
+      description: Compare two images to determine if same person
+      tags: [Facial Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image1, image2]
+              properties:
+                image1:
+                  type: string
+                  format: binary
+                image2:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Comparison result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FaceCompareResult'
+
+  /api/v1/facial/enroll:
+    post:
+      summary: Enroll face
+      description: Enroll a new face in the database
+      tags: [Facial Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image, targetId]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                targetId:
+                  type: string
+                targetName:
+                  type: string
+      responses:
+        '201':
+          description: Face enrolled successfully
+
+  /api/v1/facial/detect:
+    post:
+      summary: Detect faces
+      description: Detect faces in image without matching
+      tags: [Facial Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                return_landmarks:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Face detection results
+
+  /api/v1/facial/matches:
+    get:
+      summary: Get matches
+      description: Get recent facial recognition matches
+      tags: [Facial Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: targetId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of matches
+
+  /api/v1/facial/matches/{match_id}:
+    get:
+      summary: Get match by ID
+      description: Get specific match details
+      tags: [Facial Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: match_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Match details
+    patch:
+      summary: Verify match
+      description: Update match verification status
+      tags: [Facial Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: match_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [verified]
+              properties:
+                verified:
+                  type: boolean
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Match verification updated
+
+  /api/v1/facial/database:
+    get:
+      summary: Get face database
+      description: List all enrolled faces
+      tags: [Facial Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: List of enrolled faces
+
+  /api/v1/facial/{target_id}/faces/{face_id}:
+    delete:
+      summary: Delete face
+      description: Delete a face from the database
+      tags: [Facial Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: target_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: face_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Face deleted
+
+  /api/v1/facial/live-feed/{camera_id}/matches:
+    get:
+      summary: Live feed matches
+      description: Get recent matches from live camera feed
+      tags: [Facial Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: camera_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Camera feed matches
+
+  /api/v1/facial/stats:
+    get:
+      summary: Facial recognition stats
+      description: Get service statistics
+      tags: [Facial Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: Service statistics
+
+  /api/v1/facial/health:
+    get:
+      summary: Health check
+      description: Facial recognition service health
+      tags: [Facial Recognition]
+      responses:
+        '200':
+          description: Health status
+
+  # ============ VOICE RECOGNITION ENDPOINTS ============
+  /api/v1/voice/transcribe:
+    post:
+      summary: Transcribe audio
+      description: Transcribe audio file using Whisper
+      tags: [Voice Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [audio]
+              properties:
+                audio:
+                  type: string
+                  format: binary
+                  description: Audio file to transcribe
+                language:
+                  type: string
+                  description: Language code (auto-detect if not specified)
+                task:
+                  type: string
+                  enum: [transcribe, translate]
+                  default: transcribe
+                wordTimestamps:
+                  type: boolean
+                  default: true
+                withDiarization:
+                  type: boolean
+                  default: false
+                numSpeakers:
+                  type: integer
+      responses:
+        '200':
+          description: Transcription result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranscriptionResult'
+
+  /api/v1/voice/transcribe/url:
+    post:
+      summary: Transcribe from URL
+      description: Transcribe audio from URL
+      tags: [Voice Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [audioUrl]
+              properties:
+                audioUrl:
+                  type: string
+                  format: uri
+                language:
+                  type: string
+                task:
+                  type: string
+                  default: transcribe
+                wordTimestamps:
+                  type: boolean
+                  default: true
+                withDiarization:
+                  type: boolean
+                  default: false
+                numSpeakers:
+                  type: integer
+      responses:
+        '200':
+          description: Transcription result
+
+  /api/v1/voice/identify:
+    post:
+      summary: Identify speaker
+      description: Identify speaker from audio against enrolled prints
+      tags: [Voice Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [audio]
+              properties:
+                audio:
+                  type: string
+                  format: binary
+                threshold:
+                  type: number
+                  default: 0.75
+                  minimum: 0.1
+                  maximum: 1.0
+      responses:
+        '200':
+          description: Speaker identification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpeakerIdentificationResult'
+
+  /api/v1/voice/identify/url:
+    post:
+      summary: Identify speaker from URL
+      description: Identify speaker from audio URL
+      tags: [Voice Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [audioUrl]
+              properties:
+                audioUrl:
+                  type: string
+                  format: uri
+                threshold:
+                  type: number
+                  default: 0.75
+      responses:
+        '200':
+          description: Speaker identification result
+
+  /api/v1/voice/enroll:
+    post:
+      summary: Enroll voice print
+      description: Enroll a new voice print in the database
+      tags: [Voice Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [audio, speakerId, speakerName]
+              properties:
+                audio:
+                  type: string
+                  format: binary
+                speakerId:
+                  type: string
+                speakerName:
+                  type: string
+                metadata:
+                  type: string
+                  description: JSON metadata string
+      responses:
+        '201':
+          description: Voice print enrolled
+
+  /api/v1/voice/prints:
+    get:
+      summary: List voice prints
+      description: Get all enrolled voice prints
+      tags: [Voice Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: List of voice prints
+
+  /api/v1/voice/prints/{speaker_id}:
+    get:
+      summary: Get voice print
+      description: Get specific voice print details
+      tags: [Voice Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: speaker_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Voice print details
+    delete:
+      summary: Delete voice print
+      description: Delete a voice print from the database
+      tags: [Voice Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: speaker_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Voice print deleted
+
+  /api/v1/voice/detect-language:
+    post:
+      summary: Detect language
+      description: Detect language spoken in audio
+      tags: [Voice Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [audio]
+              properties:
+                audio:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Language detection result
+
+  /api/v1/voice/diarize:
+    post:
+      summary: Speaker diarization
+      description: Identify who spoke when in multi-speaker audio
+      tags: [Voice Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [audio]
+              properties:
+                audio:
+                  type: string
+                  format: binary
+                numSpeakers:
+                  type: integer
+                minSpeakers:
+                  type: integer
+                  default: 1
+                maxSpeakers:
+                  type: integer
+                  default: 10
+      responses:
+        '200':
+          description: Diarization result
+
+  /api/v1/voice/compare:
+    post:
+      summary: Compare voices
+      description: Compare two audio files for same speaker
+      tags: [Voice Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [audio1, audio2]
+              properties:
+                audio1:
+                  type: string
+                  format: binary
+                audio2:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Voice comparison result
+
+  /api/v1/voice/stats:
+    get:
+      summary: Voice recognition stats
+      description: Get service statistics
+      tags: [Voice Recognition]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: Service statistics
+
+  /api/v1/voice/health:
+    get:
+      summary: Health check
+      description: Voice recognition service health
+      tags: [Voice Recognition]
+      responses:
+        '200':
+          description: Health status
+
+  # ============ GEOINT ENDPOINTS ============
+  /api/v1/geoint/ip/geolocate:
+    post:
+      summary: IP geolocation
+      description: Geolocate IP address with detailed information
+      tags: [GEOINT]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ip_address]
+              properties:
+                ip_address:
+                  type: string
+                  example: "8.8.8.8"
+      responses:
+        '200':
+          description: IP geolocation result
+
+  /api/v1/geoint/phone/location:
+    post:
+      summary: Phone location
+      description: Determine location from phone number
+      tags: [GEOINT]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone_number]
+              properties:
+                phone_number:
+                  type: string
+      responses:
+        '200':
+          description: Phone location result
+
+  /api/v1/geoint/photo/geolocate:
+    post:
+      summary: Photo geolocation
+      description: Extract geolocation from photo EXIF data
+      tags: [GEOINT]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                image_url:
+                  type: string
+                  format: uri
+                extract_exif:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: Photo geolocation result
+
+  /api/v1/geoint/coordinates/reverse:
+    post:
+      summary: Reverse geocode
+      description: Convert coordinates to address
+      tags: [GEOINT]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [latitude, longitude]
+              properties:
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+      responses:
+        '200':
+          description: Reverse geocode result
+
+  /api/v1/geoint/distance/calculate:
+    post:
+      summary: Calculate distance
+      description: Calculate distance between two coordinates
+      tags: [GEOINT]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lat1, lon1, lat2, lon2]
+              properties:
+                lat1:
+                  type: number
+                lon1:
+                  type: number
+                lat2:
+                  type: number
+                lon2:
+                  type: number
+      responses:
+        '200':
+          description: Distance calculation result
+
+  /api/v1/geoint/timezone/lookup:
+    post:
+      summary: Timezone lookup
+      description: Get timezone for coordinates
+      tags: [GEOINT]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [latitude, longitude]
+              properties:
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+      responses:
+        '200':
+          description: Timezone information
+
+  # ============ SYSTEM ENDPOINTS ============
+  /:
+    get:
+      summary: API root
+      description: Get API information and available endpoints
+      tags: [System]
+      responses:
+        '200':
+          description: API information
+
+  /health:
+    get:
+      summary: Health check
+      description: System health check endpoint
+      tags: [System]
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: integer
+                  services:
+                    type: object
+
+  /metrics:
+    get:
+      summary: System metrics
+      description: Get system metrics and statistics
+      tags: [System]
+      responses:
+        '200':
+          description: System metrics
+
+security:
+  - bearerAuth: []
+  - apiKeyAuth: []

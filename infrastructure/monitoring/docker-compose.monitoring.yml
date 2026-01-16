@@ -1,0 +1,279 @@
+version: '3.8'
+
+# Apollo Platform Monitoring Stack
+# Includes Prometheus, Alertmanager, Grafana, ELK Stack, and custom exporters
+
+services:
+  # ============================================================================
+  # PROMETHEUS & ALERTMANAGER
+  # ============================================================================
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: apollo-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--storage.tsdb.retention.size=50GB'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alert-rules.yml:/etc/prometheus/rules/alert-rules.yml:ro
+      - ./prometheus/recording-rules.yml:/etc/prometheus/rules/recording-rules.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: apollo-alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--cluster.listen-address='
+    volumes:
+      - ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./prometheus/templates:/etc/alertmanager/templates:ro
+      - alertmanager_data:/alertmanager
+    ports:
+      - "9093:9093"
+    networks:
+      - monitoring
+    restart: unless-stopped
+    environment:
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - PAGERDUTY_SERVICE_KEY=${PAGERDUTY_SERVICE_KEY}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+
+  # ============================================================================
+  # GRAFANA
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: apollo-grafana
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards/apollo:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=https://grafana.apollo.internal
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=${SMTP_HOST:-smtp:587}
+      - GF_ALERTING_ENABLED=true
+      - GF_UNIFIED_ALERTING_ENABLED=true
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # ELK STACK
+  # ============================================================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.0
+    container_name: apollo-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - cluster.name=apollo-observability
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - bootstrap.memory_lock=true
+    volumes:
+      - ./elk-stack/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - monitoring
+    restart: unless-stopped
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test: ["CMD", "curl", "-s", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.10.0
+    container_name: apollo-logstash
+    volumes:
+      - ./elk-stack/logstash/apollo-pipeline.conf:/usr/share/logstash/pipeline/apollo-pipeline.conf:ro
+    ports:
+      - "5044:5044"
+      - "5000:5000"
+      - "5514:5514"
+    networks:
+      - monitoring
+    restart: unless-stopped
+    environment:
+      - ES_HOSTS=http://elasticsearch:9200
+      - KAFKA_HOSTS=kafka:9092
+      - LS_JAVA_OPTS=-Xms1g -Xmx1g
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.10.0
+    container_name: apollo-kibana
+    volumes:
+      - ./elk-stack/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    ports:
+      - "5601:5601"
+    networks:
+      - monitoring
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-s", "http://localhost:5601/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.10.0
+    container_name: apollo-filebeat
+    user: root
+    volumes:
+      - ./elk-stack/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/log/apollo:/var/log/apollo:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - monitoring
+    restart: unless-stopped
+    depends_on:
+      logstash:
+        condition: service_started
+
+  # ============================================================================
+  # JAEGER (Distributed Tracing)
+  # ============================================================================
+  jaeger:
+    image: jaegertracing/all-in-one:1.50
+    container_name: apollo-jaeger
+    ports:
+      - "6831:6831/udp"   # Jaeger thrift compact
+      - "6832:6832/udp"   # Jaeger thrift binary
+      - "5778:5778"       # serve configs
+      - "16686:16686"     # Jaeger UI
+      - "14268:14268"     # Jaeger collector
+      - "14250:14250"     # gRPC
+    networks:
+      - monitoring
+    restart: unless-stopped
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+      - SPAN_STORAGE_TYPE=elasticsearch
+      - ES_SERVER_URLS=http://elasticsearch:9200
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  # ============================================================================
+  # CUSTOM METRICS EXPORTER
+  # ============================================================================
+  apollo-metrics-exporter:
+    build:
+      context: ./custom-metrics
+      dockerfile: Dockerfile
+    container_name: apollo-metrics-exporter
+    ports:
+      - "9101:9101"
+    networks:
+      - monitoring
+    restart: unless-stopped
+    environment:
+      - METRICS_PORT=9101
+      - DB_HOST=apollo-postgres
+      - REDIS_HOST=apollo-redis
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9101/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================================================
+  # NODE EXPORTER (System Metrics)
+  # ============================================================================
+  node-exporter:
+    image: prom/node-exporter:v1.6.1
+    container_name: apollo-node-exporter
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    ports:
+      - "9100:9100"
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # ============================================================================
+  # cAdvisor (Container Metrics)
+  # ============================================================================
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: apollo-cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - monitoring
+    restart: unless-stopped
+    privileged: true
+
+networks:
+  monitoring:
+    name: apollo-monitoring
+    driver: bridge
+
+volumes:
+  prometheus_data:
+    name: apollo-prometheus-data
+  alertmanager_data:
+    name: apollo-alertmanager-data
+  grafana_data:
+    name: apollo-grafana-data
+  elasticsearch_data:
+    name: apollo-elasticsearch-data

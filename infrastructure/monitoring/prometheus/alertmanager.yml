@@ -1,0 +1,310 @@
+# Alertmanager Configuration for Apollo Platform
+# Handles alert routing, grouping, and notification delivery
+
+global:
+  # SMTP configuration for email notifications
+  smtp_smarthost: 'smtp.apollo.internal:587'
+  smtp_from: 'alertmanager@apollo.internal'
+  smtp_auth_username: '${SMTP_USERNAME}'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: true
+
+  # Slack webhook URL (use environment variable)
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+  # PagerDuty integration key
+  pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+
+  # Default resolve timeout
+  resolve_timeout: 5m
+
+# Templates for notifications
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Inhibition rules to prevent alert storms
+inhibit_rules:
+  # If a critical alert fires, inhibit warning alerts for the same alertname
+  - source_matchers:
+      - severity = critical
+    target_matchers:
+      - severity = warning
+    equal:
+      - alertname
+      - service
+
+  # If a service is down, inhibit other alerts from that service
+  - source_matchers:
+      - alertname = ServiceDown
+    target_matchers:
+      - severity =~ "warning|critical"
+    equal:
+      - service
+
+  # If a node is down, inhibit pod alerts on that node
+  - source_matchers:
+      - alertname = NodeNotReady
+    target_matchers:
+      - severity =~ "warning|critical"
+    equal:
+      - node
+
+  # If database is down, inhibit connection pool alerts
+  - source_matchers:
+      - alertname =~ "PostgreSQLDown|RedisDown"
+    target_matchers:
+      - category = database
+    equal:
+      - service
+
+# Route tree for alert routing
+route:
+  # Default receiver
+  receiver: 'platform-team'
+
+  # Group alerts by these labels
+  group_by: ['alertname', 'service', 'severity']
+
+  # How long to wait before sending the first notification
+  group_wait: 30s
+
+  # How long to wait before sending new notifications for a group
+  group_interval: 5m
+
+  # How long to wait before re-sending a notification
+  repeat_interval: 4h
+
+  # Child routes for specific alert categories
+  routes:
+    # Critical alerts - immediate notification via PagerDuty
+    - matchers:
+        - severity = critical
+      receiver: 'pagerduty-critical'
+      group_wait: 10s
+      repeat_interval: 1h
+      continue: true  # Continue to match other routes
+
+    # Security alerts - dedicated security team
+    - matchers:
+        - category = security
+      receiver: 'security-team'
+      group_by: ['alertname', 'source_ip']
+      group_wait: 10s
+      repeat_interval: 30m
+      routes:
+        # Critical security alerts (brute force, DDoS) - immediate escalation
+        - matchers:
+            - severity = critical
+          receiver: 'security-critical'
+          group_wait: 0s
+          repeat_interval: 15m
+
+    # Database alerts - DBA team
+    - matchers:
+        - category = database
+      receiver: 'database-team'
+      group_by: ['alertname', 'datname']
+      group_wait: 30s
+      repeat_interval: 2h
+      routes:
+        - matchers:
+            - severity = critical
+          receiver: 'database-critical'
+          repeat_interval: 30m
+
+    # Infrastructure alerts - platform team
+    - matchers:
+        - category = infrastructure
+      receiver: 'platform-team'
+      group_by: ['alertname', 'pod', 'node']
+      group_wait: 30s
+      repeat_interval: 4h
+
+    # Application alerts - development team
+    - matchers:
+        - category = application
+      receiver: 'dev-team'
+      group_by: ['alertname', 'service', 'endpoint']
+      group_wait: 1m
+      repeat_interval: 4h
+
+    # Business/Operations alerts - operations team
+    - matchers:
+        - category = business
+      receiver: 'operations-team'
+      group_by: ['alertname']
+      group_wait: 1m
+      repeat_interval: 2h
+      routes:
+        # Target match detection - immediate notification
+        - matchers:
+            - alertname = TargetMatchDetected
+          receiver: 'operations-critical'
+          group_wait: 0s
+          repeat_interval: 5m
+
+    # AI/ML system alerts
+    - matchers:
+        - team = ai
+      receiver: 'ai-team'
+      group_by: ['alertname']
+      repeat_interval: 2h
+
+    # Blockchain monitoring alerts
+    - matchers:
+        - team = blockchain
+      receiver: 'blockchain-team'
+      group_by: ['alertname', 'chain']
+      repeat_interval: 2h
+
+# Receiver definitions
+receivers:
+  # Default platform team receiver
+  - name: 'platform-team'
+    slack_configs:
+      - channel: '#apollo-alerts'
+        send_resolved: true
+        title: '{{ template "slack.apollo.title" . }}'
+        text: '{{ template "slack.apollo.text" . }}'
+        actions:
+          - type: button
+            text: 'Runbook'
+            url: '{{ (index .Alerts 0).Annotations.runbook_url }}'
+          - type: button
+            text: 'Dashboard'
+            url: 'https://grafana.apollo.internal/d/apollo-overview'
+    email_configs:
+      - to: 'platform-team@apollo.internal'
+        send_resolved: true
+
+  # Critical alerts via PagerDuty
+  - name: 'pagerduty-critical'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SERVICE_KEY}'
+        severity: critical
+        description: '{{ template "pagerduty.apollo.description" . }}'
+        details:
+          firing: '{{ template "pagerduty.apollo.firing" . }}'
+          num_firing: '{{ .Alerts.Firing | len }}'
+          num_resolved: '{{ .Alerts.Resolved | len }}'
+
+  # Security team notifications
+  - name: 'security-team'
+    slack_configs:
+      - channel: '#apollo-security'
+        send_resolved: true
+        title: ':shield: Security Alert'
+        text: '{{ template "slack.apollo.security" . }}'
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+    email_configs:
+      - to: 'security-team@apollo.internal'
+        send_resolved: true
+        headers:
+          Subject: '[SECURITY] {{ .GroupLabels.alertname }}'
+
+  # Critical security alerts
+  - name: 'security-critical'
+    slack_configs:
+      - channel: '#apollo-security-critical'
+        send_resolved: true
+        title: ':rotating_light: CRITICAL SECURITY ALERT'
+        text: '{{ template "slack.apollo.security" . }}'
+        color: 'danger'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SECURITY_KEY}'
+        severity: critical
+    email_configs:
+      - to: 'security-critical@apollo.internal,ciso@apollo.internal'
+        send_resolved: true
+        headers:
+          Subject: '[CRITICAL SECURITY] {{ .GroupLabels.alertname }}'
+
+  # Database team notifications
+  - name: 'database-team'
+    slack_configs:
+      - channel: '#apollo-database'
+        send_resolved: true
+        title: ':floppy_disk: Database Alert'
+        text: '{{ template "slack.apollo.database" . }}'
+    email_configs:
+      - to: 'dba-team@apollo.internal'
+        send_resolved: true
+
+  # Critical database alerts
+  - name: 'database-critical'
+    slack_configs:
+      - channel: '#apollo-database-critical'
+        send_resolved: true
+        title: ':warning: CRITICAL Database Alert'
+        text: '{{ template "slack.apollo.database" . }}'
+        color: 'danger'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_DATABASE_KEY}'
+        severity: critical
+    email_configs:
+      - to: 'dba-team@apollo.internal,platform-team@apollo.internal'
+        send_resolved: true
+
+  # Development team notifications
+  - name: 'dev-team'
+    slack_configs:
+      - channel: '#apollo-dev-alerts'
+        send_resolved: true
+        title: ':bug: Application Alert'
+        text: '{{ template "slack.apollo.application" . }}'
+    email_configs:
+      - to: 'dev-team@apollo.internal'
+        send_resolved: true
+
+  # Operations team notifications
+  - name: 'operations-team'
+    slack_configs:
+      - channel: '#apollo-operations'
+        send_resolved: true
+        title: ':briefcase: Operations Alert'
+        text: '{{ template "slack.apollo.operations" . }}'
+    email_configs:
+      - to: 'operations@apollo.internal'
+        send_resolved: true
+
+  # Critical operations alerts (target matches)
+  - name: 'operations-critical'
+    slack_configs:
+      - channel: '#apollo-operations-critical'
+        send_resolved: true
+        title: ':rotating_light: TARGET MATCH DETECTED'
+        text: '{{ template "slack.apollo.target_match" . }}'
+        color: 'danger'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_OPERATIONS_KEY}'
+        severity: critical
+    email_configs:
+      - to: 'operations-critical@apollo.internal,command@apollo.internal'
+        send_resolved: false
+        headers:
+          Subject: '[TARGET MATCH] Immediate Action Required'
+
+  # AI/ML team notifications
+  - name: 'ai-team'
+    slack_configs:
+      - channel: '#apollo-ai-alerts'
+        send_resolved: true
+        title: ':robot_face: AI System Alert'
+        text: '{{ template "slack.apollo.ai" . }}'
+    email_configs:
+      - to: 'ai-team@apollo.internal'
+        send_resolved: true
+
+  # Blockchain team notifications
+  - name: 'blockchain-team'
+    slack_configs:
+      - channel: '#apollo-blockchain'
+        send_resolved: true
+        title: ':link: Blockchain Alert'
+        text: '{{ template "slack.apollo.blockchain" . }}'
+    email_configs:
+      - to: 'blockchain-team@apollo.internal'
+        send_resolved: true
+
+  # Null receiver for silenced alerts
+  - name: 'null'

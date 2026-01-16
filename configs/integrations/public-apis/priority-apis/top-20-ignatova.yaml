@@ -1,0 +1,407 @@
+mission: ignatova_hunt
+mission_name: "Hunt for Ruja Ignatova - The Cryptoqueen"
+priority_apis: 20
+classification: critical
+use: "Top 20 FREE APIs specifically selected for hunting Ruja Ignatova and dismantling OneCoin network"
+
+mission_objectives:
+  primary:
+    - "Locate Ruja Ignatova's current whereabouts"
+    - "Track OneCoin cryptocurrency flows and wallet activities"
+    - "Monitor FBI Most Wanted status and reward updates"
+    - "Identify OneCoin associates and network connections"
+
+  secondary:
+    - "Track private aviation movements in suspected regions"
+    - "Monitor social media for OneCoin discussions and sightings"
+    - "Analyze financial transactions related to OneCoin entities"
+    - "Gather intelligence from government databases"
+
+apis:
+  # Rank 1: FBI Wanted API (Critical)
+  - rank: 1
+    name: FBI Wanted
+    api_id: fbi_wanted
+    category: government
+    priority: critical
+    use: "Monitor Ignatova's FBI Most Wanted status, reward updates, and case developments"
+    deployment: continuous
+    frequency: daily
+    alert_on:
+      - status_change
+      - reward_update
+      - new_information
+    intelligence_value: 10/10
+    cost: free
+    rate_limit: unlimited
+
+  # Rank 2: CoinGecko (Critical)
+  - rank: 2
+    name: CoinGecko
+    api_id: coingecko
+    category: cryptocurrency
+    priority: critical
+    use: "Monitor OneCoin-related tokens, detect new OneCoin schemes, track crypto markets"
+    deployment: continuous
+    frequency: real-time
+    keywords:
+      - onecoin
+      - ruja
+      - ignatova
+      - cryptoqueen
+    alert_threshold: $1000
+    intelligence_value: 10/10
+    cost: free
+    rate_limit: 50/minute
+
+  # Rank 3: IPstack (Critical)
+  - rank: 3
+    name: IPstack
+    api_id: ipstack
+    category: geolocation
+    priority: critical
+    use: "Track IP addresses to geolocate suspects, deploy surveillance on high-confidence locations"
+    deployment: continuous
+    frequency: real-time
+    surveillance_threshold: 0.8
+    alert_on:
+      - high_confidence_location
+      - suspicious_ip_activity
+    intelligence_value: 10/10
+    cost: free
+    rate_limit: 10000/month
+
+  # Rank 4: Blockchain.info (Critical)
+  - rank: 4
+    name: Blockchain.info
+    api_id: blockchain_info
+    category: cryptocurrency
+    priority: critical
+    use: "Trace Bitcoin transactions, monitor OneCoin wallet addresses, blockchain forensics"
+    deployment: continuous
+    frequency: every_block
+    trace_depth: 5
+    alert_on_movement: true
+    intelligence_value: 10/10
+    cost: free
+    rate_limit: unlimited
+
+  # Rank 5: Reddit API (High)
+  - rank: 5
+    name: Reddit
+    api_id: reddit
+    category: social_media
+    priority: high
+    use: "Monitor r/cryptocurrency, r/onecoin, r/scams for discussions, sightings, intelligence"
+    deployment: continuous
+    frequency: hourly
+    subreddits:
+      - cryptocurrency
+      - onecoin
+      - scams
+      - crypto_exposed
+    sentiment_analysis: true
+    intelligence_value: 9/10
+    cost: free
+    rate_limit: 60/minute
+
+  # Rank 6: Etherscan (High)
+  - rank: 6
+    name: Etherscan
+    api_id: etherscan
+    category: cryptocurrency
+    priority: high
+    use: "Analyze Ethereum smart contracts, track ERC-20 tokens, monitor suspicious contracts"
+    deployment: continuous
+    frequency: hourly
+    check_vulnerabilities: true
+    intelligence_value: 9/10
+    cost: free
+    rate_limit: 100000/day
+
+  # Rank 7: OpenSky Network (High)
+  - rank: 7
+    name: OpenSky Network
+    api_id: opensky_network
+    category: transportation
+    priority: high
+    use: "Track private jet flights in suspected regions, aviation intelligence"
+    deployment: continuous
+    frequency: real-time
+    track_aircraft:
+      - private_jets
+      - suspicious_routes
+    regions:
+      - europe
+      - dubai
+      - asia
+    intelligence_value: 9/10
+    cost: free
+    rate_limit: 400/day
+
+  # Rank 8: Twitter API v2 (High)
+  - rank: 8
+    name: Twitter
+    api_id: twitter_v2
+    category: social_media
+    priority: high
+    use: "Track OneCoin mentions, monitor hashtags, detect sighting reports"
+    deployment: continuous
+    frequency: real-time
+    keywords:
+      - "#onecoin"
+      - "#cryptoqueen"
+      - "ruja ignatova"
+      - "ignatova sighting"
+    sentiment_analysis: true
+    intelligence_value: 8/10
+    cost: free
+    rate_limit: 500000/month
+
+  # Rank 9: ipapi (High)
+  - rank: 9
+    name: ipapi
+    api_id: ipapi
+    category: geolocation
+    priority: high
+    use: "Alternative IP geolocation for redundancy and validation"
+    deployment: continuous
+    frequency: real-time
+    cross_validate: true
+    intelligence_value: 8/10
+    cost: free
+    rate_limit: 1000/day
+
+  # Rank 10: Alpha Vantage (High)
+  - rank: 10
+    name: Alpha Vantage
+    api_id: alpha_vantage
+    category: finance
+    priority: high
+    use: "Track OneCoin-related stocks, financial markets, corporate connections"
+    deployment: continuous
+    frequency: daily
+    monitor_symbols:
+      - companies_linked_to_onecoin
+    intelligence_value: 8/10
+    cost: free
+    rate_limit: 500/day
+
+  # Rank 11: OpenCorporates (High)
+  - rank: 11
+    name: OpenCorporates
+    api_id: open_corporates
+    category: government
+    priority: high
+    use: "Track OneCoin corporate entities worldwide, ownership structures"
+    deployment: continuous
+    frequency: weekly
+    search_terms:
+      - onecoin
+      - onelife
+      - ruja ignatova
+    intelligence_value: 8/10
+    cost: free
+    rate_limit: 500/month
+
+  # Rank 12: Hunter.io (High)
+  - rank: 12
+    name: Hunter.io
+    api_id: hunter_io
+    category: business
+    priority: high
+    use: "Find email addresses of OneCoin associates, build contact network"
+    deployment: on_demand
+    frequency: as_needed
+    target_domains:
+      - onecoin_domains
+      - associate_companies
+    intelligence_value: 7/10
+    cost: free
+    rate_limit: 50/month
+
+  # Rank 13: Telegram Bot API (Medium)
+  - rank: 13
+    name: Telegram Bot
+    api_id: telegram_bot
+    category: social_media
+    priority: medium
+    use: "Monitor Telegram channels and groups discussing OneCoin"
+    deployment: continuous
+    frequency: real-time
+    channels:
+      - crypto_scam_alerts
+      - onecoin_victims
+    intelligence_value: 7/10
+    cost: free
+    rate_limit: 30/second
+
+  # Rank 14: AviationStack (Medium)
+  - rank: 14
+    name: AviationStack
+    api_id: aviationstack
+    category: transportation
+    priority: medium
+    use: "Cross-reference flight data, track aviation patterns"
+    deployment: continuous
+    frequency: daily
+    intelligence_value: 7/10
+    cost: free
+    rate_limit: 500/month
+
+  # Rank 15: CourtListener (Medium)
+  - rank: 15
+    name: CourtListener
+    api_id: court_listener
+    category: government
+    priority: medium
+    use: "Monitor US court cases related to OneCoin, legal proceedings"
+    deployment: continuous
+    frequency: daily
+    search_terms:
+      - onecoin
+      - ignatova
+      - pyramid scheme
+    intelligence_value: 7/10
+    cost: free
+    rate_limit: 5000/day
+
+  # Rank 16: SEC EDGAR (Medium)
+  - rank: 16
+    name: SEC EDGAR
+    api_id: sec_edgar
+    category: government
+    priority: medium
+    use: "Track SEC filings related to OneCoin entities"
+    deployment: continuous
+    frequency: daily
+    intelligence_value: 6/10
+    cost: free
+    rate_limit: 10/second
+
+  # Rank 17: Pipl (Medium)
+  - rank: 17
+    name: Pipl
+    api_id: pipl
+    category: business
+    priority: medium
+    use: "Deep people search for OneCoin associates"
+    deployment: on_demand
+    frequency: as_needed
+    intelligence_value: 8/10
+    cost: limited_free
+    rate_limit: limited
+
+  # Rank 18: YouTube Data API (Medium)
+  - rank: 18
+    name: YouTube
+    api_id: youtube_data
+    category: social_media
+    priority: medium
+    use: "Monitor YouTube for OneCoin content, documentaries, sighting reports"
+    deployment: continuous
+    frequency: daily
+    keywords:
+      - onecoin
+      - ruja ignatova
+      - cryptoqueen
+    intelligence_value: 6/10
+    cost: free
+    rate_limit: 10000/day
+
+  # Rank 19: GitHub API (Low)
+  - rank: 19
+    name: GitHub
+    api_id: github
+    category: social_media
+    priority: low
+    use: "Search for OneCoin-related code, crypto projects"
+    deployment: periodic
+    frequency: weekly
+    search_code: true
+    intelligence_value: 5/10
+    cost: free
+    rate_limit: 5000/hour
+
+  # Rank 20: MarineTraffic (Low)
+  - rank: 20
+    name: MarineTraffic
+    api_id: marinetraffic
+    category: transportation
+    priority: low
+    use: "Track yacht movements in suspected regions"
+    deployment: periodic
+    frequency: weekly
+    track_luxury_vessels: true
+    intelligence_value: 5/10
+    cost: limited_free
+    rate_limit: limited
+
+deployment_strategy:
+  auto_deploy: true
+  deployment_mode: continuous
+  monitoring_interval: varies_by_api
+
+  orchestration:
+    ai_selection: true
+    autonomous_execution: true
+    intelligent_correlation: true
+    real_time_fusion: true
+
+  alert_protocol:
+    critical_alerts: immediate
+    high_alerts: within_1_hour
+    medium_alerts: within_24_hours
+    low_alerts: weekly_summary
+
+  surveillance_integration:
+    auto_deploy_surveillance: true
+    confidence_threshold: 0.8
+    verification_required: multi_source
+    tactical_response: immediate
+
+intelligence_fusion:
+  correlate_across_apis: true
+  multi_source_validation: true
+  confidence_scoring: true
+
+  feed_to:
+    - apollo.crypto_intelligence
+    - apollo.geoint_intelligence
+    - apollo.socmint_intelligence
+    - apollo.financial_intelligence
+    - apollo.hvt_tracking
+    - apollo.fusion_center
+
+mission_effectiveness:
+  estimated_coverage: 85%
+  intelligence_quality: high
+  cost: $0 (all free APIs)
+  deployment_complexity: low
+  ai_orchestration: full
+
+success_metrics:
+  primary_kpi: "Locate Ruja Ignatova"
+  secondary_kpis:
+    - "OneCoin network mapping"
+    - "Asset tracking and recovery"
+    - "Associate identification"
+    - "Intelligence correlation quality"
+
+notes: |
+  This is the optimized set of 20 FREE APIs specifically selected for maximum
+  effectiveness in the hunt for Ruja Ignatova. All APIs have free tiers and
+  can be deployed immediately with zero cost. The AI orchestrator will
+  autonomously manage these APIs, correlate intelligence, and generate
+  actionable alerts for the Apollo Platform.
+
+  The combination provides:
+  - Real-time cryptocurrency monitoring (OneCoin tracking)
+  - Geographic intelligence (IP tracking, location intelligence)
+  - Government intelligence (FBI updates, legal proceedings)
+  - Social intelligence (social media monitoring)
+  - Transportation intelligence (flight/yacht tracking)
+  - Financial intelligence (market monitoring)
+
+  Together, these 20 APIs form a comprehensive intelligence net capable of
+  detecting Ignatova's activities across multiple domains simultaneously.

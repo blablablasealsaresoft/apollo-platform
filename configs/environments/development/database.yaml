@@ -1,0 +1,275 @@
+# Apollo Platform - Development Database Configuration
+# ===========================================================
+
+environment: development
+
+databases:
+  # PostgreSQL - Primary relational database
+  postgresql:
+    host: localhost
+    port: 5432
+    database: apollo_dev
+    user: apollo_admin
+    password: dev_password
+    pool_size: 10
+    max_connections: 20
+    min_connections: 2
+    idle_timeout: 30000
+    connection_timeout: 5000
+    ssl: false
+    ssl_mode: disable
+    schema: public
+
+    # Connection options
+    application_name: apollo_development
+    statement_timeout: 30000
+    idle_in_transaction_session_timeout: 60000
+
+    # Logging
+    log_queries: true
+    log_slow_queries: true
+    slow_query_threshold: 1000  # ms
+
+  # Neo4j - Graph database for relationship mapping
+  neo4j:
+    uri: bolt://localhost:7687
+    user: neo4j
+    password: dev_neo4j_pass
+    database: neo4j
+    encrypted: false
+    trust_strategy: TRUST_ALL_CERTIFICATES
+    max_connection_pool_size: 10
+    connection_acquisition_timeout: 60000
+    max_transaction_retry_time: 30000
+
+    # Logging
+    logging:
+      level: debug
+      log_queries: true
+
+  # Redis - Caching and session store
+  redis:
+    host: localhost
+    port: 6379
+    password: null
+    db: 0
+    username: null
+
+    # Connection options
+    connection_timeout: 5000
+    command_timeout: 5000
+    max_retries: 3
+    retry_delay: 100
+
+    # Key prefixes for different use cases
+    key_prefixes:
+      cache: "apollo:cache:"
+      session: "apollo:session:"
+      queue: "apollo:queue:"
+      pubsub: "apollo:pubsub:"
+
+    # TTL settings
+    default_ttl: 3600  # 1 hour
+    session_ttl: 1800  # 30 minutes
+    cache_ttl: 600     # 10 minutes
+
+  # Elasticsearch - Full-text search and analytics
+  elasticsearch:
+    host: localhost
+    port: 9200
+    protocol: http
+    username: null
+    password: null
+
+    # Indices
+    indices:
+      cases: apollo_cases_dev
+      evidence: apollo_evidence_dev
+      intelligence: apollo_intel_dev
+      surveillance: apollo_surveillance_dev
+      audit: apollo_audit_dev
+
+    # Index settings
+    number_of_shards: 1
+    number_of_replicas: 0
+    refresh_interval: 1s
+
+    # Request options
+    request_timeout: 30000
+    ping_timeout: 3000
+    max_retries: 3
+
+  # MongoDB - Document store for unstructured data
+  mongodb:
+    host: localhost
+    port: 27017
+    database: apollo_dev
+    user: apollo
+    password: dev_mongo_pass
+    auth_source: admin
+
+    # Connection options
+    max_pool_size: 10
+    min_pool_size: 2
+    connect_timeout: 10000
+    socket_timeout: 30000
+    server_selection_timeout: 5000
+
+    # Collections
+    collections:
+      raw_intelligence: raw_intel
+      social_media: social_media_data
+      dark_web: dark_web_intel
+      documents: documents
+      media: media_files
+
+    # Replica set (disabled in dev)
+    replica_set: null
+    read_preference: primary
+    write_concern: 1
+
+    ssl: false
+
+  # RabbitMQ - Message queue
+  rabbitmq:
+    host: localhost
+    port: 5672
+    user: apollo
+    password: dev_rabbit
+    vhost: /
+
+    # Connection options
+    heartbeat: 60
+    connection_timeout: 10000
+    channel_max: 100
+    frame_max: 131072
+
+    # SSL/TLS
+    ssl: false
+
+    # Exchanges
+    exchanges:
+      alerts:
+        name: apollo.alerts
+        type: topic
+        durable: true
+      tasks:
+        name: apollo.tasks
+        type: direct
+        durable: true
+      events:
+        name: apollo.events
+        type: fanout
+        durable: true
+
+    # Queues
+    queues:
+      high_priority:
+        name: apollo.tasks.high
+        durable: true
+        max_priority: 10
+      normal_priority:
+        name: apollo.tasks.normal
+        durable: true
+      surveillance:
+        name: apollo.surveillance
+        durable: true
+      intelligence:
+        name: apollo.intelligence
+        durable: true
+
+  # TimescaleDB - Time-series data
+  timescaledb:
+    host: localhost
+    port: 5432
+    database: apollo_timeseries_dev
+    user: apollo_admin
+    password: dev_password
+    pool_size: 10
+    ssl: false
+
+    # Hypertables
+    hypertables:
+      surveillance_events:
+        table: surveillance_events
+        time_column: timestamp
+        chunk_time_interval: 1 day
+        retention_policy: 90 days
+
+      system_metrics:
+        table: system_metrics
+        time_column: timestamp
+        chunk_time_interval: 1 hour
+        retention_policy: 30 days
+
+      api_requests:
+        table: api_requests
+        time_column: timestamp
+        chunk_time_interval: 1 day
+        retention_policy: 60 days
+
+      audit_logs:
+        table: audit_logs
+        time_column: timestamp
+        chunk_time_interval: 1 day
+        retention_policy: 365 days
+
+    # Compression
+    compression:
+      enabled: true
+      after: 7 days
+
+    # Continuous aggregates
+    continuous_aggregates:
+      enabled: false  # Disabled in dev
+
+# Database migration settings
+migrations:
+  auto_migrate: true
+  create_schema: true
+  sync_models: true
+
+# Backup settings (disabled in development)
+backup:
+  enabled: false
+  frequency: null
+  retention: null
+
+# Monitoring
+monitoring:
+  enabled: true
+  check_interval: 30s
+  alert_on_failure: false
+
+  # Health check queries
+  health_checks:
+    postgresql: "SELECT 1"
+    neo4j: "RETURN 1"
+    redis: "PING"
+    elasticsearch: "GET /"
+    mongodb: "db.adminCommand('ping')"
+    rabbitmq: "check_aliveness"
+    timescaledb: "SELECT 1"
+
+# Connection retry settings
+retry:
+  max_attempts: 5
+  initial_delay: 1000  # ms
+  max_delay: 10000     # ms
+  backoff_multiplier: 2
+
+# Development-specific settings
+development:
+  seed_data: true
+  drop_schema_on_restart: false
+  log_all_queries: true
+  enable_query_profiling: true
+
+  # Test data
+  fixtures:
+    - name: ignatova_case
+      file: ../../data/fixtures/ignatova_case.json
+    - name: sample_users
+      file: ../../data/fixtures/sample_users.json
+    - name: sample_surveillance_events
+      file: ../../data/fixtures/sample_surveillance.json

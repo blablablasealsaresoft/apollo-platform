@@ -1,0 +1,301 @@
+service:
+  name: bugtrace-ai
+  version: 0.1.0
+  port: 8001
+  description: Advanced AI-powered security testing and vulnerability discovery
+
+ai_models:
+  default: google/gemini-flash
+  fallback: anthropic/claude-3-sonnet
+
+  models:
+    gemini-flash:
+      provider: google
+      model: gemini-flash
+      api_key: ${GOOGLE_API_KEY}
+      temperature: 0.7
+      max_tokens: 8000
+      context_window: 128000
+      timeout: 60s
+
+    claude-sonnet:
+      provider: anthropic
+      model: claude-3-sonnet-20240229
+      api_key: ${ANTHROPIC_API_KEY}
+      temperature: 0.7
+      max_tokens: 4000
+      context_window: 200000
+      timeout: 60s
+
+    gpt-4:
+      provider: openai
+      model: gpt-4-turbo-preview
+      api_key: ${OPENAI_API_KEY}
+      temperature: 0.7
+      max_tokens: 8000
+      context_window: 128000
+      timeout: 60s
+
+    deepseek-v3:
+      provider: deepseek
+      model: deepseek-chat
+      api_key: ${DEEPSEEK_API_KEY}
+      temperature: 0.7
+      max_tokens: 8000
+      context_window: 64000
+      timeout: 60s
+
+analysis:
+  multi_persona: true
+  personas: 5
+  depth: 5
+  consolidation: true
+  deep_analysis: true
+  accuracy_target: 95%
+
+  personas_config:
+    - name: web_security_expert
+      focus: web_vulnerabilities
+      expertise: [xss, sqli, csrf, ssrf]
+
+    - name: api_security_expert
+      focus: api_security
+      expertise: [authentication, authorization, rate_limiting]
+
+    - name: code_analyst
+      focus: code_review
+      expertise: [static_analysis, code_quality, security_patterns]
+
+    - name: penetration_tester
+      focus: exploitation
+      expertise: [exploit_development, privilege_escalation]
+
+    - name: security_architect
+      focus: design_flaws
+      expertise: [architecture, threat_modeling, defense_in_depth]
+
+analyzers:
+  core:
+    - name: websec-agent
+      enabled: true
+      description: Web security analysis agent
+      capabilities:
+        - vulnerability_scanning
+        - payload_generation
+        - exploit_verification
+
+    - name: url-analysis
+      enabled: true
+      description: URL structure and parameter analysis
+      capabilities:
+        - parameter_discovery
+        - endpoint_enumeration
+        - routing_analysis
+
+    - name: code-analysis
+      enabled: true
+      description: Static and dynamic code analysis
+      capabilities:
+        - source_code_review
+        - dependency_scanning
+        - code_pattern_detection
+
+    - name: security-headers
+      enabled: true
+      description: HTTP security headers analysis
+      capabilities:
+        - header_validation
+        - csp_analysis
+        - cors_configuration
+
+  specialized:
+    - name: dom-xss-pathfinder
+      enabled: true
+      description: DOM-based XSS vulnerability detection
+      techniques:
+        - source_tracking
+        - sink_identification
+        - data_flow_analysis
+
+    - name: jwt-auditor
+      enabled: true
+      description: JWT security analysis
+      checks:
+        - algorithm_confusion
+        - signature_validation
+        - token_expiration
+        - claim_injection
+
+    - name: privesc-pathfinder
+      enabled: true
+      description: Privilege escalation path discovery
+      techniques:
+        - permission_mapping
+        - role_hierarchy_analysis
+        - access_control_bypass
+
+    - name: file-upload-auditor
+      enabled: true
+      description: File upload security analysis
+      checks:
+        - extension_validation
+        - content_type_verification
+        - path_traversal
+        - code_execution
+
+  reconnaissance:
+    - name: js-reconnaissance
+      enabled: true
+      description: JavaScript analysis and extraction
+      targets:
+        - api_endpoints
+        - authentication_flows
+        - sensitive_data
+        - third_party_integrations
+
+    - name: url-list-finder
+      enabled: true
+      description: URL and endpoint discovery
+      methods:
+        - sitemap_parsing
+        - robots_txt
+        - javascript_extraction
+        - link_crawling
+
+    - name: subdomain-finder
+      enabled: true
+      description: Subdomain enumeration
+      techniques:
+        - dns_enumeration
+        - certificate_transparency
+        - search_engine_discovery
+        - brute_forcing
+
+  payload:
+    - name: payload-forge
+      enabled: true
+      description: Intelligent payload generation
+      types:
+        - xss
+        - sqli
+        - command_injection
+        - template_injection
+
+    - name: ssti-forge
+      enabled: true
+      description: SSTI payload generation
+      templates: 10+
+      engines:
+        - jinja2
+        - twig
+        - freemarker
+        - velocity
+        - handlebars
+        - mustache
+        - erb
+        - ejs
+        - pug
+        - smarty
+
+    - name: oob-helper
+      enabled: true
+      description: Out-of-band interaction helper
+      protocols:
+        - dns
+        - http
+        - ftp
+        - smtp
+
+obfuscation:
+  enabled: true
+  techniques: 14+
+
+  methods:
+    - html_entity_encoding
+    - unicode_encoding
+    - base64_encoding
+    - url_encoding
+    - double_encoding
+    - case_variation
+    - comment_injection
+    - null_byte_injection
+    - tab_newline_injection
+    - mixed_case
+    - concatenation
+    - string_splitting
+    - context_switching
+    - polyglot_payloads
+
+template_engines:
+  total: 10+
+  supported:
+    - jinja2
+    - twig
+    - freemarker
+    - velocity
+    - handlebars
+    - mustache
+    - erb
+    - ejs
+    - pug
+    - smarty
+
+runtime:
+  workers: 4
+  max_memory: 8GB
+  timeout: 300s
+  concurrent_analyses: 10
+
+database:
+  postgresql:
+    connection: ${DATABASE_URL}
+    pool_size: 20
+
+  redis:
+    connection: ${REDIS_URL}
+    cache_ttl: 1h
+
+reporting:
+  formats:
+    - json
+    - html
+    - pdf
+    - markdown
+
+  severity_levels:
+    - info
+    - low
+    - medium
+    - high
+    - critical
+
+  cvss_scoring: true
+
+integration:
+  redteam_ops: http://redteam-ops:4004
+  operations: http://operations:4002
+
+api:
+  version: v1
+  base_path: /api/v1
+  authentication: jwt
+  rate_limiting: 100/minute
+
+monitoring:
+  metrics: true
+  prometheus_endpoint: /metrics
+  health_check: /health
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - stdout
+    - file: /var/log/apollo/bugtrace-ai.log
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: bugtrace-ai
+    health_check_interval: 10s

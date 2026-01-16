@@ -5,6 +5,9 @@ import { config, logger, database, redis } from '@apollo/shared';
 import authRoutes from './routes/auth.routes';
 import oauthRoutes from './routes/oauth.routes';
 import mfaRoutes from './routes/mfa.routes';
+import biometricRoutes from './routes/biometric.routes';
+import sessionRoutes from './routes/session.routes';
+import apiKeyRoutes from './routes/apikey.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { requestLogger } from './middleware/logging.middleware';
 import './config/passport';
@@ -41,6 +44,9 @@ app.get('/health', async (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/oauth', oauthRoutes);
 app.use('/api/mfa', mfaRoutes);
+app.use('/api/biometric', biometricRoutes);
+app.use('/api/sessions', sessionRoutes);
+app.use('/api/api-keys', apiKeyRoutes);
 
 // Error handling
 app.use(errorHandler);

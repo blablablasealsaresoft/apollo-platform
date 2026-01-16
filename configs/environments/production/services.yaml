@@ -1,0 +1,735 @@
+# Apollo Platform - Production Services Configuration
+# ===========================================================
+
+environment: production
+
+# Global service defaults
+global:
+  log_level: info  # info, warn, error (not debug in production)
+  enable_metrics: true
+  enable_tracing: true
+  enable_profiling: false  # Disabled for performance
+  graceful_shutdown_timeout: 30s
+
+# Backend microservices
+services:
+  # Authentication Service
+  authentication:
+    enabled: true
+    replicas: 3  # High availability
+    port: 4001
+    host: 0.0.0.0
+    workers: 4
+    debug: false
+
+    features:
+      jwt_auth: true
+      oauth2: true
+      mfa: true  # Required in production
+      session_management: true
+      api_keys: true
+
+    rate_limiting:
+      enabled: true
+      max_requests: 1000
+      window: 1m
+      burst_size: 100
+
+    cors:
+      enabled: true
+      origins:
+        - https://apollo.yourdomain.com
+      credentials: true
+
+    resources:
+      cpu: 2
+      memory: 4Gi
+
+  # Operations Service
+  operations:
+    enabled: true
+    replicas: 3
+    port: 4002
+    host: 0.0.0.0
+    workers: 4
+    debug: false
+
+    features:
+      case_management: true
+      task_management: true
+      team_collaboration: true
+      evidence_chain: true
+
+    processing:
+      max_concurrent_operations: 100
+      operation_timeout: 600s
+
+    resources:
+      cpu: 4
+      memory: 8Gi
+
+  # Intelligence Fusion Service
+  intelligence-fusion:
+    enabled: true
+    replicas: 4  # High load service
+    port: 4003
+    host: 0.0.0.0
+    workers: 8
+    debug: false
+
+    features:
+      multi_source_aggregation: true
+      ai_analysis: true
+      relationship_mapping: true
+      threat_scoring: true
+
+    ai_models:
+      enabled: true
+      max_concurrent_requests: 50
+      request_timeout: 120s
+
+    resources:
+      cpu: 8
+      memory: 16Gi
+
+  # RedTeam Operations Service
+  redteam-ops:
+    enabled: true
+    replicas: 2
+    port: 4004
+    host: 0.0.0.0
+    workers: 2
+    debug: false
+
+    features:
+      network_scanning: true
+      vulnerability_assessment: true
+      exploit_database: true
+      payload_generation: true
+
+    safety:
+      require_approval: true
+      audit_all_operations: true
+      sandbox_mode: false
+      isolation: true
+
+    resources:
+      cpu: 4
+      memory: 8Gi
+
+  # Notifications Service
+  notifications:
+    enabled: true
+    replicas: 3
+    port: 4005
+    host: 0.0.0.0
+    workers: 4
+    debug: false
+
+    channels:
+      email: true
+      sms: true
+      slack: true
+      discord: true
+      pagerduty: true
+      webhook: true
+
+    processing:
+      max_queue_size: 100000
+      batch_size: 100
+      retry_attempts: 5
+
+    resources:
+      cpu: 2
+      memory: 4Gi
+
+  # Alert Orchestration Service
+  alert-orchestration:
+    enabled: true
+    replicas: 4  # Critical service
+    port: 4006
+    host: 0.0.0.0
+    workers: 8
+    debug: false
+
+    features:
+      real_time_alerts: true
+      alert_aggregation: true
+      priority_routing: true
+      escalation_chains: true
+      deduplication: true
+
+    thresholds:
+      critical: immediate
+      high: 1m
+      medium: 5m
+      low: 15m
+
+    resources:
+      cpu: 4
+      memory: 8Gi
+
+  # Audit Logging Service
+  audit-logging:
+    enabled: true
+    replicas: 3
+    port: 4007
+    host: 0.0.0.0
+    workers: 4
+    debug: false
+
+    features:
+      comprehensive_logging: true
+      tamper_detection: true
+      compliance_reporting: true
+      real_time_indexing: true
+
+    storage:
+      buffer_size: 10000
+      flush_interval: 5s
+      retention: 2555d  # 7 years
+
+    resources:
+      cpu: 2
+      memory: 8Gi
+      storage: 1Ti
+
+  # Evidence Management Service
+  evidence-management:
+    enabled: true
+    replicas: 3
+    port: 4008
+    host: 0.0.0.0
+    workers: 4
+    debug: false
+
+    features:
+      chain_of_custody: true
+      cryptographic_hashing: true
+      metadata_extraction: true
+      version_control: true
+      digital_signatures: true
+
+    storage:
+      max_file_size: 5gb
+      allowed_types:
+        - image/*
+        - video/*
+        - audio/*
+        - application/pdf
+        - application/json
+        - text/*
+      encryption: aes-256-gcm
+
+    resources:
+      cpu: 4
+      memory: 16Gi
+      storage: 10Ti
+
+# Frontend application
+frontend:
+  enabled: true
+  replicas: 3
+  port: 3000
+  host: 0.0.0.0
+
+  features:
+    hot_reload: false
+    source_maps: false
+    dev_tools: false
+    mock_data: false
+
+  build:
+    optimization: true
+    minification: true
+    code_splitting: true
+    tree_shaking: true
+    compression: gzip
+
+  cdn:
+    enabled: true
+    provider: cloudflare
+    cache_ttl: 3600
+
+  api_proxy:
+    enabled: true
+    target: https://api.apollo.internal:4000
+    websockets: true
+    ssl_verify: true
+
+  resources:
+    cpu: 2
+    memory: 4Gi
+
+# Surveillance components
+surveillance:
+  # Facial Recognition Service
+  facial-recognition:
+    enabled: true
+    replicas: 4
+    port: 5001
+    host: 0.0.0.0
+    workers: 8
+    debug: false
+
+    processing:
+      gpu: true
+      gpu_ids: [0, 1, 2, 3]
+      model: cnn  # CNN model for accuracy
+      batch_size: 32
+      detection_threshold: 0.7
+      recognition_threshold: 0.7
+
+    database:
+      path: /mnt/apollo-data/face_database
+      encoding_file: ignatova_face_encodings.npy
+      metadata_file: ignatova_face_metadata.json
+      backup_enabled: true
+
+    performance:
+      max_fps: 30
+      queue_size: 1000
+      timeout: 5s
+
+    resources:
+      cpu: 4
+      memory: 16Gi
+      gpu: 1
+
+  # Voice Recognition Service
+  voice-recognition:
+    enabled: true
+    replicas: 2
+    port: 5002
+    host: 0.0.0.0
+    workers: 4
+    debug: false
+
+    processing:
+      sample_rate: 16000
+      channels: 1
+      format: wav
+      min_duration: 1s
+      max_duration: 600s
+
+    database:
+      path: /mnt/apollo-data/voice_database
+      voiceprint_file: ignatova_voiceprint.npy
+      metadata_file: ignatova_voice_metadata.json
+
+    resources:
+      cpu: 4
+      memory: 8Gi
+
+  # Camera Feed Manager
+  camera-manager:
+    enabled: true
+    replicas: 4
+    port: 5003
+    host: 0.0.0.0
+    workers: 8
+    debug: false
+
+    feeds:
+      max_concurrent: 100
+      reconnect_attempts: 10
+      reconnect_delay: 5s
+      frame_rate: 30
+      resolution: 1920x1080
+      buffer_size: 300  # 10 seconds at 30fps
+
+    processing:
+      motion_detection: true
+      object_detection: true
+      face_detection: true
+      person_detection: true
+
+    storage:
+      enabled: true
+      retention: 30d
+      compression: h265
+
+    resources:
+      cpu: 8
+      memory: 32Gi
+      storage: 50Ti
+
+  # ALPR Service
+  alpr:
+    enabled: true
+    replicas: 2
+    port: 5004
+    host: 0.0.0.0
+    workers: 4
+    debug: false
+
+    processing:
+      gpu: true
+      gpu_ids: [4, 5]
+      regions: [us, eu, asia]
+      confidence_threshold: 0.85
+
+    resources:
+      cpu: 4
+      memory: 8Gi
+      gpu: 1
+
+# AI Engine services
+ai-engine:
+  # Model Router
+  router:
+    enabled: true
+    replicas: 4
+    port: 6001
+    host: 0.0.0.0
+    workers: 8
+    debug: false
+
+    features:
+      model_selection: true
+      load_balancing: true
+      fallback_models: true
+      cost_optimization: true
+      response_caching: true
+
+    resources:
+      cpu: 4
+      memory: 8Gi
+
+  # Prompt Manager
+  prompt-manager:
+    enabled: true
+    replicas: 2
+    port: 6002
+    host: 0.0.0.0
+
+    features:
+      template_management: true
+      variable_substitution: true
+      version_control: true
+      ab_testing: true
+
+    resources:
+      cpu: 2
+      memory: 4Gi
+
+  # Response Processor
+  response-processor:
+    enabled: true
+    replicas: 3
+    port: 6003
+    host: 0.0.0.0
+
+    features:
+      structured_extraction: true
+      validation: true
+      post_processing: true
+      quality_scoring: true
+
+    resources:
+      cpu: 4
+      memory: 8Gi
+
+# External integrations
+integrations:
+  # OSINT Aggregator
+  osint-aggregator:
+    enabled: true
+    replicas: 4
+    port: 7001
+    host: 0.0.0.0
+    workers: 8
+
+    sources:
+      - shodan
+      - dehashed
+      - hunter_io
+      - have_i_been_pwned
+      - virustotal
+      - censys
+
+    rate_limiting:
+      enabled: true
+      max_requests_per_minute: 1000
+
+    resources:
+      cpu: 4
+      memory: 8Gi
+
+  # Blockchain Monitor
+  blockchain-monitor:
+    enabled: true
+    replicas: 3
+    port: 7002
+    host: 0.0.0.0
+    workers: 6
+
+    networks:
+      - bitcoin
+      - ethereum
+      - binance_smart_chain
+      - polygon
+      - arbitrum
+
+    polling_interval: 15s
+
+    resources:
+      cpu: 4
+      memory: 16Gi
+
+  # Social Media Monitor
+  social-media-monitor:
+    enabled: true
+    replicas: 4
+    port: 7003
+    host: 0.0.0.0
+    workers: 8
+
+    platforms:
+      - twitter
+      - linkedin
+      - facebook
+      - instagram
+      - reddit
+
+    polling_interval: 60s
+
+    resources:
+      cpu: 4
+      memory: 8Gi
+
+# Message queue workers
+workers:
+  # High Priority Queue Worker
+  high-priority:
+    enabled: true
+    replicas: 5
+    concurrency: 10
+    prefetch: 1
+    queue: apollo.tasks.high
+
+    resources:
+      cpu: 4
+      memory: 8Gi
+
+  # Normal Priority Queue Worker
+  normal-priority:
+    enabled: true
+    replicas: 10
+    concurrency: 5
+    prefetch: 10
+    queue: apollo.tasks.normal
+
+    resources:
+      cpu: 2
+      memory: 4Gi
+
+  # Surveillance Queue Worker
+  surveillance:
+    enabled: true
+    replicas: 8
+    concurrency: 4
+    prefetch: 1
+    queue: apollo.surveillance
+
+    resources:
+      cpu: 4
+      memory: 16Gi
+      gpu: 1
+
+  # Intelligence Queue Worker
+  intelligence:
+    enabled: true
+    replicas: 6
+    concurrency: 3
+    prefetch: 2
+    queue: apollo.intelligence
+
+    resources:
+      cpu: 4
+      memory: 8Gi
+
+# Load Balancing
+load_balancing:
+  enabled: true
+  algorithm: least_connections
+  health_check_interval: 10s
+  health_check_timeout: 5s
+
+  session_affinity:
+    enabled: true
+    type: client_ip
+
+# Auto-scaling
+autoscaling:
+  enabled: true
+
+  # Horizontal Pod Autoscaler
+  hpa:
+    min_replicas: 2
+    max_replicas: 20
+
+    metrics:
+      - type: cpu
+        target: 70%
+      - type: memory
+        target: 80%
+      - type: custom
+        name: queue_depth
+        target: 1000
+
+  # Vertical Pod Autoscaler
+  vpa:
+    enabled: false  # Use with caution
+
+# Health checks
+health:
+  enabled: true
+  port: 9000
+  path: /health
+
+  liveness:
+    enabled: true
+    path: /health/live
+    interval: 10s
+    timeout: 5s
+    failure_threshold: 3
+
+  readiness:
+    enabled: true
+    path: /health/ready
+    interval: 5s
+    timeout: 3s
+    failure_threshold: 3
+
+  startup:
+    enabled: true
+    path: /health/startup
+    interval: 5s
+    timeout: 5s
+    failure_threshold: 30
+
+  checks:
+    - name: database
+      type: postgres
+      critical: true
+    - name: cache
+      type: redis
+      critical: true
+    - name: queue
+      type: rabbitmq
+      critical: true
+    - name: search
+      type: elasticsearch
+      critical: false
+
+# Metrics collection
+metrics:
+  enabled: true
+  port: 9090
+  path: /metrics
+
+  collectors:
+    - system
+    - database
+    - api
+    - queue
+    - cache
+    - custom
+
+  export_interval: 15s
+
+  prometheus:
+    enabled: true
+    scrape_interval: 15s
+    retention: 15d
+
+  grafana:
+    enabled: true
+    dashboards:
+      - system_overview
+      - service_performance
+      - database_metrics
+      - surveillance_metrics
+      - alert_metrics
+
+# Distributed Tracing
+tracing:
+  enabled: true
+  provider: jaeger
+  sampling_rate: 0.1  # 10% of requests
+
+  jaeger:
+    agent_host: jaeger-agent.internal
+    agent_port: 6831
+
+# Circuit Breaker
+circuit_breaker:
+  enabled: true
+  failure_threshold: 5
+  success_threshold: 2
+  timeout: 60s
+  half_open_max_requests: 3
+
+# Service Mesh
+service_mesh:
+  enabled: true
+  provider: istio
+
+  features:
+    mtls: true
+    traffic_management: true
+    observability: true
+    security_policies: true
+
+# Disaster Recovery
+disaster_recovery:
+  enabled: true
+
+  # Regional failover
+  multi_region:
+    enabled: true
+    primary_region: us-east-1
+    dr_region: us-west-2
+    replication: async
+
+  # Backup services
+  backup:
+    enabled: true
+    frequency: hourly
+    retention: 7d
+
+# Security
+security:
+  # Pod Security
+  pod_security:
+    enabled: true
+    policy: restricted
+    read_only_root_filesystem: true
+    run_as_non_root: true
+    drop_capabilities:
+      - ALL
+
+  # Network Policies
+  network_policies:
+    enabled: true
+    default_deny_all: true
+    allow_list:
+      - dns
+      - metrics
+      - tracing
+
+  # Secrets Management
+  secrets:
+    provider: kubernetes
+    encryption: true
+    rotation: quarterly
+
+  # RBAC
+  rbac:
+    enabled: true
+    roles:
+      - admin
+      - operator
+      - viewer
+    service_accounts: true

@@ -1,0 +1,174 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: '${SMTP_HOST}:${SMTP_PORT}'
+  smtp_from: 'alertmanager@apollo.local'
+  smtp_auth_username: '${SMTP_USER}'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: true
+
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+  http_config:
+    follow_redirects: true
+
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+route:
+  receiver: 'default'
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: critical-alerts
+      group_wait: 0s
+      group_interval: 5m
+      repeat_interval: 1h
+      continue: true
+
+    # Surveillance alerts - high priority
+    - match_re:
+        alertname: SurveillanceMatch.*
+      receiver: surveillance-alerts
+      group_wait: 0s
+      repeat_interval: 30m
+
+    # Database alerts
+    - match_re:
+        service: (postgres|redis|neo4j|elasticsearch|mongodb)
+      receiver: database-alerts
+      group_wait: 30s
+      repeat_interval: 4h
+
+    # Backend service alerts
+    - match_re:
+        group: backend
+      receiver: backend-alerts
+      group_wait: 30s
+      repeat_interval: 2h
+
+    # AI engine alerts
+    - match_re:
+        group: ai
+      receiver: ai-alerts
+      group_wait: 1m
+      repeat_interval: 4h
+
+    # Infrastructure alerts
+    - match_re:
+        tier: infrastructure
+      receiver: infrastructure-alerts
+      group_wait: 1m
+      repeat_interval: 6h
+
+receivers:
+  - name: 'default'
+    email_configs:
+      - to: 'ops@apollo.local'
+        headers:
+          Subject: '[Apollo] {{ .GroupLabels.alertname }}'
+        html: '{{ template "email.default.html" . }}'
+
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'critical@apollo.local'
+        headers:
+          Subject: '[CRITICAL] Apollo Alert: {{ .GroupLabels.alertname }}'
+        send_resolved: true
+
+    slack_configs:
+      - channel: '#apollo-critical'
+        title: 'Critical Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+
+    webhook_configs:
+      - url: 'http://alert-orchestration:4006/api/v1/alerts/webhook'
+        send_resolved: true
+
+  - name: 'surveillance-alerts'
+    email_configs:
+      - to: 'surveillance@apollo.local'
+        headers:
+          Subject: '[SURVEILLANCE] Match Detected'
+
+    slack_configs:
+      - channel: '#apollo-surveillance'
+        title: 'Surveillance Match'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+    webhook_configs:
+      - url: 'http://alert-orchestration:4006/api/v1/alerts/surveillance'
+
+  - name: 'database-alerts'
+    email_configs:
+      - to: 'dba@apollo.local'
+        headers:
+          Subject: '[DATABASE] {{ .GroupLabels.service }}: {{ .GroupLabels.alertname }}'
+
+    slack_configs:
+      - channel: '#apollo-database'
+        title: 'Database Alert'
+
+  - name: 'backend-alerts'
+    email_configs:
+      - to: 'backend@apollo.local'
+        headers:
+          Subject: '[BACKEND] {{ .GroupLabels.alertname }}'
+
+    slack_configs:
+      - channel: '#apollo-backend'
+
+  - name: 'ai-alerts'
+    email_configs:
+      - to: 'ai-team@apollo.local'
+        headers:
+          Subject: '[AI] {{ .GroupLabels.alertname }}'
+
+    slack_configs:
+      - channel: '#apollo-ai'
+
+  - name: 'infrastructure-alerts'
+    email_configs:
+      - to: 'infra@apollo.local'
+        headers:
+          Subject: '[INFRA] {{ .GroupLabels.alertname }}'
+
+    slack_configs:
+      - channel: '#apollo-infra'
+
+inhibit_rules:
+  # Inhibit warning if critical is firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+
+  # Inhibit any alert if service is down
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match_re:
+      severity: '.*'
+    equal: ['service']
+
+time_intervals:
+  - name: business-hours
+    time_intervals:
+      - times:
+          - start_time: '09:00'
+            end_time: '18:00'
+        weekdays: ['monday:friday']
+
+  - name: off-hours
+    time_intervals:
+      - times:
+          - start_time: '18:00'
+            end_time: '09:00'
+        weekdays: ['monday:friday']
+      - weekdays: ['saturday', 'sunday']

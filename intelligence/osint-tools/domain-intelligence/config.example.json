@@ -1,0 +1,68 @@
+{
+  "api_keys": {
+    "shodan_api_key": "YOUR_SHODAN_API_KEY_HERE",
+    "censys_api_id": "YOUR_CENSYS_API_ID_HERE",
+    "censys_api_secret": "YOUR_CENSYS_API_SECRET_HERE",
+    "virustotal_api_key": "YOUR_VIRUSTOTAL_API_KEY_HERE",
+    "securitytrails_api_key": "YOUR_SECURITYTRAILS_API_KEY_HERE",
+    "builtwith_api_key": "YOUR_BUILTWITH_API_KEY_HERE",
+    "chaos_api_key": "YOUR_CHAOS_API_KEY_HERE"
+  },
+  "settings": {
+    "default_scan_mode": "full",
+    "subdomain_wordlist_size": "medium",
+    "max_concurrent_workers": 10,
+    "request_timeout": 30,
+    "enable_caching": true,
+    "cache_ttl": 3600,
+    "export_format": "json",
+    "log_level": "INFO"
+  },
+  "modules": {
+    "whois": {
+      "enabled": true,
+      "timeout": 10
+    },
+    "dns": {
+      "enabled": true,
+      "include_historical": true,
+      "check_propagation": true
+    },
+    "subdomain": {
+      "enabled": true,
+      "methods": ["crtsh", "brute", "virustotal", "chaos"],
+      "brute_force_wordlist": "common",
+      "max_workers": 10
+    },
+    "ssl": {
+      "enabled": true,
+      "check_certificate_transparency": true,
+      "check_vulnerabilities": true
+    },
+    "technology": {
+      "enabled": true,
+      "check_security_headers": true,
+      "detect_waf": true
+    },
+    "shodan": {
+      "enabled": true,
+      "search_limit": 100
+    },
+    "censys": {
+      "enabled": true,
+      "search_limit": 50
+    }
+  },
+  "output": {
+    "report_directory": "./reports",
+    "save_raw_data": true,
+    "include_timestamps": true,
+    "format_json_indent": 2
+  },
+  "rate_limiting": {
+    "shodan_delay": 1,
+    "virustotal_delay": 15,
+    "censys_delay": 1,
+    "securitytrails_delay": 1
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "_comment": "Phone Intelligence Configuration Template",
+  "_instructions": "Copy this file to config.json and fill in your API keys",
+
+  "truecaller": {
+    "api_key": "YOUR_TRUECALLER_API_KEY",
+    "installation_id": "YOUR_INSTALLATION_ID",
+    "rate_limit": 60
+  },
+
+  "hlr": {
+    "provider": "hlr-lookups",
+    "api_key": "YOUR_HLR_API_KEY",
+    "username": "YOUR_USERNAME",
+    "api_url": "",
+    "rate_limit": 30
+  },
+
+  "phoneinfoga": {
+    "api_url": "http://localhost:5000",
+    "use_cli": false,
+    "cli_path": "phoneinfoga",
+    "google_dork": true
+  },
+
+  "sms": {
+    "enable_gateway_detection": true,
+    "enable_spam_detection": true
+  },
+
+  "voip": {
+    "enable_detection": true,
+    "confidence_threshold": 0.5
+  },
+
+  "correlator": {
+    "dehashed_api_key": "YOUR_DEHASHED_API_KEY",
+    "snusbase_api_key": "YOUR_SNUSBASE_API_KEY",
+    "hibp_api_key": "YOUR_HIBP_API_KEY",
+    "social_apis": {
+      "facebook": {
+        "enabled": false,
+        "api_key": ""
+      },
+      "twitter": {
+        "enabled": false,
+        "api_key": "",
+        "api_secret": ""
+      }
+    }
+  },
+
+  "general": {
+    "timeout": 30,
+    "max_retries": 3,
+    "enable_caching": true,
+    "cache_ttl": 3600,
+    "parallel_workers": 6
+  },
+
+  "logging": {
+    "level": "INFO",
+    "file": "phone_intel.log",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  }
+}

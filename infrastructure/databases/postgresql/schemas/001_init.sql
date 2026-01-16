@@ -10,15 +10,21 @@ CREATE EXTENSION IF NOT EXISTS "btree_gin"; -- For advanced indexing
 CREATE EXTENSION IF NOT EXISTS "pg_stat_statements"; -- For query performance monitoring
 
 -- Create custom types
-CREATE TYPE user_role AS ENUM ('admin', 'lead_investigator', 'investigator', 'analyst', 'viewer', 'external');
-CREATE TYPE investigation_status AS ENUM ('planning', 'active', 'monitoring', 'closed', 'archived', 'suspended');
+CREATE TYPE user_role AS ENUM ('admin', 'lead_investigator', 'investigator', 'analyst', 'field_agent', 'viewer', 'external');
+CREATE TYPE clearance_level AS ENUM ('unclassified', 'restricted', 'confidential', 'secret', 'top_secret');
+CREATE TYPE investigation_status AS ENUM ('planning', 'active', 'on_hold', 'monitoring', 'closed', 'archived', 'suspended');
 CREATE TYPE investigation_priority AS ENUM ('low', 'medium', 'high', 'critical', 'top_ten');
-CREATE TYPE target_status AS ENUM ('active', 'located', 'apprehended', 'deceased', 'cleared', 'unknown');
+CREATE TYPE target_status AS ENUM ('active', 'monitoring', 'located', 'apprehended', 'deceased', 'cleared', 'unknown');
 CREATE TYPE threat_level AS ENUM ('low', 'medium', 'high', 'extreme', 'fbi_most_wanted');
+CREATE TYPE risk_level AS ENUM ('low', 'medium', 'high', 'extreme');
 CREATE TYPE evidence_type AS ENUM ('document', 'photo', 'video', 'audio', 'digital', 'physical', 'testimony', 'financial', 'communication');
-CREATE TYPE intelligence_type AS ENUM ('osint', 'sigint', 'geoint', 'humint', 'finint', 'blockchain', 'facial_recognition', 'voice_recognition');
+CREATE TYPE intelligence_type AS ENUM ('osint', 'sigint', 'geoint', 'humint', 'finint', 'imint', 'techint', 'blockchain', 'facial_recognition', 'voice_recognition');
+CREATE TYPE intelligence_source AS ENUM ('humint', 'sigint', 'osint', 'geoint', 'finint', 'techint');
+CREATE TYPE confidence_level AS ENUM ('verified', 'high', 'medium', 'low', 'unconfirmed');
 CREATE TYPE alert_severity AS ENUM ('info', 'low', 'medium', 'high', 'critical', 'immediate');
-CREATE TYPE operation_type AS ENUM ('surveillance', 'raid', 'interview', 'arrest', 'search', 'monitoring', 'undercover', 'digital_forensics');
+CREATE TYPE alert_status AS ENUM ('new', 'acknowledged', 'in_progress', 'resolved', 'dismissed');
+CREATE TYPE operation_type AS ENUM ('surveillance', 'raid', 'interview', 'arrest', 'search', 'monitoring', 'undercover', 'digital_forensics', 'asset_seizure');
+CREATE TYPE operation_status AS ENUM ('planning', 'approved', 'active', 'on_hold', 'in_progress', 'completed', 'cancelled', 'archived');
 
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()

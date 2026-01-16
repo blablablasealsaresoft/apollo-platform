@@ -1,0 +1,31 @@
+name: Compliance Controls
+
+on:
+  push:
+    paths:
+      - 'security/**'
+      - 'docs/**'
+      - 'infrastructure/**'
+  workflow_dispatch:
+
+jobs:
+  policy-as-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Terraform policies
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: infrastructure/terraform
+      - name: Validate Kubernetes baseline
+        run: |
+          pip install kubeconform
+          kubeconform -summary infrastructure/kubernetes/**/*.yaml
+      - name: Generate audit artifact
+        run: |
+          mkdir -p artifacts
+          python scripts/generate_audit_matrix.py > artifacts/compliance-report.md || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compliance-report
+          path: artifacts/

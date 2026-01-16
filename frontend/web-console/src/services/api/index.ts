@@ -7,5 +7,8 @@ export { intelligenceService } from './intelligence.service';
 export { operationsService } from './operations.service';
 export { blockchainService } from './blockchain.service';
 export { facialService } from './facial.service';
+export { geolocationService } from './geolocation.service';
 export { dashboardService } from './dashboard.service';
 export { adminService } from './admin.service';
+export { analyticsService } from './analytics.service';
+export { settingsService } from './settings.service';

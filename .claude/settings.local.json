@@ -3,7 +3,17 @@
     "allow": [
       "Bash(git checkout:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(ls:*)",
+      "Read(//c/SECURE_THREAT_INTEL/YoureGunnaHAveToShootMeToStopME/apollo/**)",
+      "Bash(tree:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(wc:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.straiker.ai)",
+      "Bash(python3:*)",
+      "Bash(chmod:*)"
     ]
   }
 }

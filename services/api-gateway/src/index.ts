@@ -3,9 +3,24 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
+import yaml from 'js-yaml';
+import fs from 'fs';
+import path from 'path';
 import { config, logger } from '@apollo/shared';
 import { authenticate } from './middleware/auth.middleware';
 import { requestLogger } from './middleware/logging.middleware';
+
+// Load OpenAPI specification
+let openApiSpec: any = null;
+try {
+  const specPath = path.join(__dirname, '../../API_DOCUMENTATION.yaml');
+  const specContent = fs.readFileSync(specPath, 'utf8');
+  openApiSpec = yaml.load(specContent);
+  logger.info('OpenAPI specification loaded successfully');
+} catch (err) {
+  logger.warn('Failed to load OpenAPI spec, documentation will be unavailable:', err);
+}
 
 const app = express();
 const PORT = process.env.API_GATEWAY_PORT || 3000;
@@ -40,6 +55,69 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// API Documentation - Swagger UI
+if (openApiSpec) {
+  // Swagger UI options
+  const swaggerOptions: swaggerUi.SwaggerUiOptions = {
+    customCss: `
+      .swagger-ui .topbar { display: none }
+      .swagger-ui .info .title { color: #1a365d }
+      .swagger-ui .info .description { margin-bottom: 20px }
+    `,
+    customSiteTitle: 'Apollo Platform API Documentation',
+    customfavIcon: '/favicon.ico',
+    swaggerOptions: {
+      persistAuthorization: true,
+      displayRequestDuration: true,
+      filter: true,
+      showExtensions: true,
+      showCommonExtensions: true,
+      docExpansion: 'none',
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
+    },
+  };
+
+  // Serve Swagger UI at /api/docs
+  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec, swaggerOptions));
+
+  // Serve OpenAPI spec as JSON
+  app.get('/api/openapi.json', (req, res) => {
+    res.json(openApiSpec);
+  });
+
+  // Serve OpenAPI spec as YAML
+  app.get('/api/openapi.yaml', (req, res) => {
+    const yamlContent = yaml.dump(openApiSpec);
+    res.type('text/yaml').send(yamlContent);
+  });
+
+  // API documentation index/redirect
+  app.get('/api', (req, res) => {
+    res.json({
+      message: 'Apollo Platform API',
+      version: openApiSpec.info?.version || '2.0.0',
+      documentation: {
+        swagger_ui: '/api/docs',
+        openapi_json: '/api/openapi.json',
+        openapi_yaml: '/api/openapi.yaml',
+      },
+      endpoints: {
+        authentication: '/api/auth',
+        users: '/api/users',
+        operations: '/api/operations',
+        intelligence: '/api/intelligence',
+        notifications: '/api/notifications',
+        analytics: '/api/analytics',
+        search: '/api/search',
+        alerts: '/api/alerts',
+      },
+    });
+  });
+
+  logger.info('API Documentation available at /api/docs');
+}
 
 // Public routes (no authentication)
 app.use('/api/auth', createProxyMiddleware({

@@ -2,16 +2,19 @@
 Bitcoin API Clients
 
 Clients for Bitcoin blockchain explorers:
-- blockchain.info
-- blockchair.com
-- blockcypher.com
-- btc.com
+- blockchain.info (free, no API key)
+- blockchair.com (free tier available)
+- blockcypher.com (free tier with optional API key)
+- btc.com (free)
+- blockstream.info (free, no API key) - NEW
+- mempool.space (free, no API key) - NEW
 """
 
 import aiohttp
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from datetime import datetime
 import logging
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -431,3 +434,433 @@ class BTCComClient(BaseBlockchainClient):
     async def get_current_price(self) -> float:
         """BTC.com doesn't provide price data in API"""
         return 0.0
+
+
+class BlockstreamAPIClient(BaseBlockchainClient):
+    """
+    Blockstream Esplora API client
+    https://github.com/Blockstream/esplora/blob/master/API.md
+
+    Free, no API key required. Excellent data quality.
+    """
+
+    def __init__(self, session: aiohttp.ClientSession, config):
+        super().__init__(session, config)
+        self.base_url = "https://blockstream.info/api"
+
+    async def get_address_transactions(
+        self,
+        address: str,
+        limit: int = 100
+    ) -> List[Dict]:
+        """Get transactions for an address"""
+        endpoint = f"/address/{address}/txs"
+
+        data = await self._get(endpoint)
+
+        if not data:
+            return []
+
+        transactions = []
+        for tx in data[:limit]:
+            # Parse inputs
+            inputs = []
+            for vin in tx.get('vin', []):
+                prevout = vin.get('prevout', {})
+                inputs.append({
+                    'address': prevout.get('scriptpubkey_address'),
+                    'amount': prevout.get('value', 0) / 1e8,
+                })
+
+            # Parse outputs
+            outputs = []
+            for vout in tx.get('vout', []):
+                outputs.append({
+                    'address': vout.get('scriptpubkey_address'),
+                    'amount': vout.get('value', 0) / 1e8,
+                })
+
+            status = tx.get('status', {})
+            transactions.append({
+                'txid': tx.get('txid'),
+                'timestamp': status.get('block_time'),
+                'confirmed': status.get('confirmed', False),
+                'block_height': status.get('block_height'),
+                'inputs': inputs,
+                'outputs': outputs,
+                'fee': tx.get('fee', 0) / 1e8,
+                'size': tx.get('size'),
+                'weight': tx.get('weight'),
+            })
+
+        return transactions
+
+    async def get_transaction(self, txid: str) -> Optional[Dict]:
+        """Get transaction details"""
+        endpoint = f"/tx/{txid}"
+
+        data = await self._get(endpoint)
+
+        if not data:
+            return None
+
+        inputs = []
+        for vin in data.get('vin', []):
+            prevout = vin.get('prevout', {})
+            inputs.append({
+                'address': prevout.get('scriptpubkey_address'),
+                'amount': prevout.get('value', 0) / 1e8,
+                'prev_txid': vin.get('txid'),
+                'prev_vout': vin.get('vout'),
+            })
+
+        outputs = []
+        for vout in data.get('vout', []):
+            outputs.append({
+                'address': vout.get('scriptpubkey_address'),
+                'amount': vout.get('value', 0) / 1e8,
+                'script_type': vout.get('scriptpubkey_type'),
+            })
+
+        status = data.get('status', {})
+        return {
+            'txid': data.get('txid'),
+            'timestamp': status.get('block_time'),
+            'confirmed': status.get('confirmed', False),
+            'block_height': status.get('block_height'),
+            'block_hash': status.get('block_hash'),
+            'inputs': inputs,
+            'outputs': outputs,
+            'fee': data.get('fee', 0) / 1e8,
+            'size': data.get('size'),
+            'weight': data.get('weight'),
+            'locktime': data.get('locktime'),
+            'version': data.get('version'),
+        }
+
+    async def get_address_balance(self, address: str) -> float:
+        """Get address balance in BTC"""
+        endpoint = f"/address/{address}"
+
+        data = await self._get(endpoint)
+
+        if not data:
+            return 0.0
+
+        chain_stats = data.get('chain_stats', {})
+        funded = chain_stats.get('funded_txo_sum', 0)
+        spent = chain_stats.get('spent_txo_sum', 0)
+
+        return (funded - spent) / 1e8
+
+    async def get_address_utxos(self, address: str) -> List[Dict]:
+        """Get unspent transaction outputs for an address"""
+        endpoint = f"/address/{address}/utxo"
+
+        data = await self._get(endpoint)
+
+        if not data:
+            return []
+
+        utxos = []
+        for utxo in data:
+            status = utxo.get('status', {})
+            utxos.append({
+                'txid': utxo.get('txid'),
+                'vout': utxo.get('vout'),
+                'value': utxo.get('value', 0),
+                'value_btc': utxo.get('value', 0) / 1e8,
+                'confirmed': status.get('confirmed', False),
+                'block_height': status.get('block_height'),
+            })
+
+        return utxos
+
+    async def get_current_price(self) -> float:
+        """Blockstream doesn't provide price data"""
+        return 0.0
+
+    async def get_fee_estimates(self) -> Dict[str, float]:
+        """Get fee estimates for different confirmation targets"""
+        endpoint = "/fee-estimates"
+
+        data = await self._get(endpoint)
+
+        if not data:
+            return {}
+
+        return data
+
+    async def get_block_height(self) -> Optional[int]:
+        """Get current block height"""
+        endpoint = "/blocks/tip/height"
+
+        data = await self._get(endpoint)
+
+        if data:
+            try:
+                return int(data)
+            except (ValueError, TypeError):
+                pass
+
+        return None
+
+
+class MempoolSpaceAPIClient(BaseBlockchainClient):
+    """
+    Mempool.space API client
+    https://mempool.space/docs/api/rest
+
+    Free, no API key required. Excellent for fee estimation and mempool data.
+    """
+
+    def __init__(self, session: aiohttp.ClientSession, config):
+        super().__init__(session, config)
+        self.base_url = "https://mempool.space/api"
+
+    async def get_address_transactions(
+        self,
+        address: str,
+        limit: int = 100
+    ) -> List[Dict]:
+        """Get transactions for an address"""
+        endpoint = f"/address/{address}/txs"
+
+        data = await self._get(endpoint)
+
+        if not data:
+            return []
+
+        transactions = []
+        for tx in data[:limit]:
+            inputs = []
+            for vin in tx.get('vin', []):
+                prevout = vin.get('prevout', {})
+                inputs.append({
+                    'address': prevout.get('scriptpubkey_address'),
+                    'amount': prevout.get('value', 0) / 1e8,
+                })
+
+            outputs = []
+            for vout in tx.get('vout', []):
+                outputs.append({
+                    'address': vout.get('scriptpubkey_address'),
+                    'amount': vout.get('value', 0) / 1e8,
+                })
+
+            status = tx.get('status', {})
+            transactions.append({
+                'txid': tx.get('txid'),
+                'timestamp': status.get('block_time'),
+                'confirmed': status.get('confirmed', False),
+                'block_height': status.get('block_height'),
+                'inputs': inputs,
+                'outputs': outputs,
+                'fee': tx.get('fee', 0) / 1e8,
+            })
+
+        return transactions
+
+    async def get_transaction(self, txid: str) -> Optional[Dict]:
+        """Get transaction details"""
+        endpoint = f"/tx/{txid}"
+
+        data = await self._get(endpoint)
+
+        if not data:
+            return None
+
+        inputs = []
+        for vin in data.get('vin', []):
+            prevout = vin.get('prevout', {})
+            inputs.append({
+                'address': prevout.get('scriptpubkey_address'),
+                'amount': prevout.get('value', 0) / 1e8,
+            })
+
+        outputs = []
+        for vout in data.get('vout', []):
+            outputs.append({
+                'address': vout.get('scriptpubkey_address'),
+                'amount': vout.get('value', 0) / 1e8,
+            })
+
+        status = data.get('status', {})
+        return {
+            'txid': data.get('txid'),
+            'timestamp': status.get('block_time'),
+            'confirmed': status.get('confirmed', False),
+            'block_height': status.get('block_height'),
+            'inputs': inputs,
+            'outputs': outputs,
+            'fee': data.get('fee', 0) / 1e8,
+        }
+
+    async def get_address_balance(self, address: str) -> float:
+        """Get address balance"""
+        endpoint = f"/address/{address}"
+
+        data = await self._get(endpoint)
+
+        if not data:
+            return 0.0
+
+        chain_stats = data.get('chain_stats', {})
+        funded = chain_stats.get('funded_txo_sum', 0)
+        spent = chain_stats.get('spent_txo_sum', 0)
+
+        return (funded - spent) / 1e8
+
+    async def get_address_utxos(self, address: str) -> List[Dict]:
+        """Get UTXOs for an address"""
+        endpoint = f"/address/{address}/utxo"
+
+        data = await self._get(endpoint)
+
+        if not data:
+            return []
+
+        return [
+            {
+                'txid': utxo.get('txid'),
+                'vout': utxo.get('vout'),
+                'value': utxo.get('value', 0),
+                'value_btc': utxo.get('value', 0) / 1e8,
+                'confirmed': utxo.get('status', {}).get('confirmed', False),
+            }
+            for utxo in data
+        ]
+
+    async def get_current_price(self) -> float:
+        """Mempool.space doesn't provide price data"""
+        return 0.0
+
+    async def get_recommended_fees(self) -> Dict[str, int]:
+        """
+        Get recommended fees for different confirmation targets
+
+        Returns:
+            {
+                'fastestFee': sat/vB for next block,
+                'halfHourFee': sat/vB for ~30 min,
+                'hourFee': sat/vB for ~1 hour,
+                'economyFee': sat/vB for low priority,
+                'minimumFee': sat/vB minimum
+            }
+        """
+        endpoint = "/v1/fees/recommended"
+
+        data = await self._get(endpoint)
+
+        if not data:
+            return {
+                'fastestFee': 20,
+                'halfHourFee': 15,
+                'hourFee': 10,
+                'economyFee': 5,
+                'minimumFee': 1
+            }
+
+        return data
+
+    async def get_mempool_info(self) -> Optional[Dict]:
+        """Get current mempool statistics"""
+        endpoint = "/mempool"
+
+        return await self._get(endpoint)
+
+    async def get_block_height(self) -> Optional[int]:
+        """Get current block height"""
+        endpoint = "/blocks/tip/height"
+
+        data = await self._get(endpoint)
+
+        if data:
+            try:
+                return int(data)
+            except (ValueError, TypeError):
+                pass
+
+        return None
+
+
+class CoinGeckoClient:
+    """
+    CoinGecko API client for cryptocurrency prices
+    Free tier available, no API key required for basic usage
+    """
+
+    def __init__(self, session: aiohttp.ClientSession, config):
+        self.session = session
+        self.config = config
+        self.base_url = "https://api.coingecko.com/api/v3"
+
+    async def _get(self, endpoint: str, params: Optional[Dict] = None) -> Any:
+        """Make GET request"""
+        url = f"{self.base_url}{endpoint}"
+
+        try:
+            async with self.session.get(url, params=params) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    logger.error(f"CoinGecko API error: {response.status}")
+                    return None
+        except Exception as e:
+            logger.error(f"CoinGecko request error: {e}")
+            return None
+
+    async def get_bitcoin_price(self) -> float:
+        """Get current Bitcoin price in USD"""
+        data = await self._get("/simple/price", {
+            'ids': 'bitcoin',
+            'vs_currencies': 'usd'
+        })
+
+        if data:
+            return data.get('bitcoin', {}).get('usd', 0.0)
+
+        return 0.0
+
+    async def get_ethereum_price(self) -> float:
+        """Get current Ethereum price in USD"""
+        data = await self._get("/simple/price", {
+            'ids': 'ethereum',
+            'vs_currencies': 'usd'
+        })
+
+        if data:
+            return data.get('ethereum', {}).get('usd', 0.0)
+
+        return 0.0
+
+    async def get_prices(self, coin_ids: List[str]) -> Dict[str, float]:
+        """Get prices for multiple cryptocurrencies"""
+        ids_str = ','.join(coin_ids)
+        data = await self._get("/simple/price", {
+            'ids': ids_str,
+            'vs_currencies': 'usd'
+        })
+
+        if data:
+            return {
+                coin: info.get('usd', 0.0)
+                for coin, info in data.items()
+            }
+
+        return {}
+
+    async def get_historical_price(
+        self,
+        coin_id: str,
+        date: str  # dd-mm-yyyy format
+    ) -> Optional[float]:
+        """Get historical price for a specific date"""
+        data = await self._get(f"/coins/{coin_id}/history", {
+            'date': date
+        })
+
+        if data:
+            return data.get('market_data', {}).get('current_price', {}).get('usd')
+
+        return None

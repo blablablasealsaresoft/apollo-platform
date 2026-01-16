@@ -1,0 +1,106 @@
+# Criminal Behavior AI - Model Configuration
+# Apollo Platform v0.1.0
+
+models:
+  crypto_criminal:
+    architecture: lstm
+    sequence_length: 30
+    features: 8
+    hidden_layers: [128, 64, 32]
+    dropout_rate: 0.3
+    accuracy_target: 0.85
+    precision_target: 0.80
+    recall_target: 0.85
+
+  predator_behavior:
+    architecture: transformer
+    max_sequence_length: 1000
+    embedding_dim: 256
+    num_heads: 8
+    num_layers: 6
+    precision_target: 0.95  # High precision for safety
+    recall_target: 0.90
+    false_positive_tolerance: 0.05  # Very low tolerance
+
+  trafficking_network:
+    architecture: graph_neural_network
+    node_features: 15
+    edge_features: 8
+    hidden_channels: 128
+    num_layers: 4
+    accuracy_target: 0.88
+
+  financial_crime:
+    architecture: ensemble
+    base_models:
+      - gradient_boosting
+      - random_forest
+      - neural_network
+    voting_strategy: weighted
+    accuracy_target: 0.87
+
+training:
+  epochs: 100
+  batch_size: 32
+  validation_split: 0.2
+  test_split: 0.1
+  early_stopping:
+    enabled: true
+    patience: 10
+    min_delta: 0.001
+  learning_rate:
+    initial: 0.001
+    decay: 0.95
+    schedule: exponential
+  optimizer: adam
+  loss_function: binary_crossentropy
+
+inference:
+  batch_mode:
+    enabled: true
+    batch_size: 64
+    max_concurrent: 4
+  real_time_mode:
+    enabled: true
+    max_latency_ms: 100
+    cache_predictions: true
+  confidence_threshold:
+    default: 0.80
+    high_risk: 0.90
+    emergency: 0.95
+
+evaluation:
+  metrics:
+    - accuracy
+    - precision
+    - recall
+    - f1_score
+    - auc_roc
+    - confusion_matrix
+  cross_validation:
+    enabled: true
+    folds: 5
+  explainability:
+    enabled: true
+    method: shap
+
+deployment:
+  model_versioning: true
+  a_b_testing: true
+  rollback_on_degradation: true
+  monitoring:
+    performance_tracking: true
+    drift_detection: true
+    alert_threshold: 0.05
+
+security:
+  data_encryption: true
+  model_encryption: true
+  audit_logging: true
+  access_control: role_based
+
+compliance:
+  gdpr_compliant: true
+  data_retention_days: 90
+  anonymization_required: true
+  bias_detection: true

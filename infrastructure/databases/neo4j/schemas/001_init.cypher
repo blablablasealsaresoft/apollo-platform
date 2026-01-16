@@ -298,7 +298,135 @@ MERGE (onecoin)-[:OPERATED_IN {
 }]->(frankfurt);
 
 // ============================================================================
-// HELPER FUNCTIONS
+// ADDITIONAL NODE TYPES AND CONSTRAINTS
+// ============================================================================
+
+// Investigation nodes (links to PostgreSQL)
+CREATE CONSTRAINT investigation_id IF NOT EXISTS FOR (i:Investigation) REQUIRE i.id IS UNIQUE;
+
+// Evidence nodes
+CREATE CONSTRAINT evidence_id IF NOT EXISTS FOR (e:Evidence) REQUIRE e.id IS UNIQUE;
+
+// Document nodes (for document linking)
+CREATE CONSTRAINT document_id IF NOT EXISTS FOR (d:Document) REQUIRE d.id IS UNIQUE;
+
+// Shell company tracking
+CREATE CONSTRAINT shell_company_id IF NOT EXISTS FOR (s:ShellCompany) REQUIRE s.id IS UNIQUE;
+
+// Legal entity
+CREATE CONSTRAINT legal_entity_id IF NOT EXISTS FOR (le:LegalEntity) REQUIRE le.id IS UNIQUE;
+
+// Domain/Website
+CREATE CONSTRAINT domain_id IF NOT EXISTS FOR (dom:Domain) REQUIRE dom.domain IS UNIQUE;
+
+// Device
+CREATE CONSTRAINT device_id IF NOT EXISTS FOR (dev:Device) REQUIRE dev.id IS UNIQUE;
+
+// Additional indexes
+CREATE INDEX shell_company_name IF NOT EXISTS FOR (s:ShellCompany) ON (s.name);
+CREATE INDEX shell_company_jurisdiction IF NOT EXISTS FOR (s:ShellCompany) ON (s.jurisdiction);
+CREATE INDEX evidence_type IF NOT EXISTS FOR (e:Evidence) ON (e.type);
+CREATE INDEX investigation_status IF NOT EXISTS FOR (i:Investigation) ON (i.status);
+CREATE INDEX domain_registered IF NOT EXISTS FOR (dom:Domain) ON (dom.registrar);
+
+// ============================================================================
+// ADDITIONAL RELATIONSHIP TYPES FOR FINANCIAL CRIMES
+// ============================================================================
+
+// Shell company relationships for Mark Scott's money laundering
+MERGE (fenero:ShellCompany {id: 'fenero-funds'})
+SET fenero.name = 'Fenero Funds',
+    fenero.jurisdiction = 'British Virgin Islands',
+    fenero.type = 'Investment Fund',
+    fenero.created_date = date('2015-01-01'),
+    fenero.status = 'DISSOLVED',
+    fenero.laundered_amount = 400000000.00,
+    fenero.currency = 'USD',
+    fenero.created_at = datetime();
+
+MERGE (rn:ShellCompany {id: 'rivendale-network'})
+SET rn.name = 'Rivendale International',
+    rn.jurisdiction = 'British Virgin Islands',
+    rn.type = 'Shell Corporation',
+    rn.status = 'DISSOLVED',
+    rn.created_at = datetime();
+
+// Mark Scott created/controlled shell companies
+MATCH (mark:Person {id: 'scott-mark'})
+MERGE (mark)-[:CREATED {
+    date: date('2015-01-01'),
+    purpose: 'Money laundering vehicle',
+    confidence: 1.0,
+    verified: true
+}]->(fenero);
+
+MATCH (mark:Person {id: 'scott-mark'})
+MERGE (mark)-[:CONTROLLED {
+    start_date: date('2015-01-01'),
+    end_date: date('2017-10-01'),
+    role: 'Beneficial Owner',
+    confidence: 1.0,
+    verified: true
+}]->(rn);
+
+// OneCoin funds flowed through shell companies
+MATCH (onecoin:Organization {id: 'onecoin'}), (fenero:ShellCompany {id: 'fenero-funds'})
+MERGE (onecoin)-[:TRANSFERRED_FUNDS_TO {
+    start_date: date('2015-01-01'),
+    end_date: date('2017-10-01'),
+    amount: 400000000.00,
+    currency: 'USD',
+    method: 'Wire transfers through multiple accounts',
+    confidence: 1.0,
+    verified: true
+}]->(fenero);
+
+// ============================================================================
+// CRYPTOCURRENCY ADDRESS TRACKING
+// ============================================================================
+
+// Known OneCoin-related addresses (examples)
+MERGE (addr1:CryptocurrencyAddress {address: '1BTC_EXAMPLE_ADDRESS_1'})
+SET addr1.blockchain = 'bitcoin',
+    addr1.label = 'OneCoin Exchange Address',
+    addr1.first_seen = datetime('2015-03-15'),
+    addr1.last_active = datetime('2017-10-20'),
+    addr1.total_received = 5000.0,
+    addr1.total_sent = 4950.0,
+    addr1.is_flagged = true,
+    addr1.flag_reason = 'OneCoin fraud proceeds',
+    addr1.created_at = datetime();
+
+// Link address to OneCoin
+MATCH (onecoin:Organization {id: 'onecoin'}), (addr1:CryptocurrencyAddress {address: '1BTC_EXAMPLE_ADDRESS_1'})
+MERGE (onecoin)-[:CONTROLS_ADDRESS {
+    confidence: 0.95,
+    source: 'Blockchain analysis',
+    verified: false
+}]->(addr1);
+
+// ============================================================================
+// COMMUNICATION AND TRAVEL PATTERNS
+// ============================================================================
+
+// Ruja's known phones
+MERGE (phone1:PhoneNumber {number: '+359-REDACTED-001'})
+SET phone1.country = 'Bulgaria',
+    phone1.carrier = 'Unknown',
+    phone1.status = 'INACTIVE',
+    phone1.last_active = date('2017-10-25'),
+    phone1.created_at = datetime();
+
+MATCH (ruja:Person {id: 'ignatova-ruja'}), (phone1:PhoneNumber {number: '+359-REDACTED-001'})
+MERGE (ruja)-[:USED_PHONE {
+    start_date: date('2014-01-01'),
+    end_date: date('2017-10-25'),
+    confidence: 1.0,
+    verified: true
+}]->(phone1);
+
+// ============================================================================
+// HELPER QUERIES
 // ============================================================================
 
 // Return summary of OneCoin network
@@ -308,4 +436,16 @@ MERGE (onecoin)-[:OPERATED_IN {
 // MATCH (p:Person)-[r]-(o:Organization {name: 'OneCoin'})
 // RETURN count(DISTINCT p) as people, count(DISTINCT r) as relationships;
 
-RETURN "Apollo Neo4j database initialized with OneCoin network structure" AS status;
+// Find all entities connected to a person within 3 hops
+// MATCH path = (p:Person {id: 'ignatova-ruja'})-[*1..3]-(connected)
+// RETURN path;
+
+// Money trail query
+// MATCH path = (org:Organization {name: 'OneCoin'})-[:TRANSFERRED_FUNDS_TO*1..5]->(dest)
+// RETURN path;
+
+// Find shortest path between two entities
+// MATCH path = shortestPath((start:Person {id: 'ignatova-ruja'})-[*]-(end:Person {id: 'scott-mark'}))
+// RETURN path;
+
+RETURN "Apollo Neo4j database initialized with comprehensive criminal network structure" AS status;

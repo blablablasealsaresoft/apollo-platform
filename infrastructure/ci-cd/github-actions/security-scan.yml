@@ -1,0 +1,41 @@
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  sast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Node SAST
+        run: |
+          npm ci
+          npx eslint .
+      - name: Python bandit
+        run: |
+          pip install bandit safety
+          bandit -r services
+      - name: Dependency review
+        uses: actions/dependency-review-action@v4
+
+  container:
+    runs-on: ubuntu-latest
+    needs: sast
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build images
+        run: docker compose -f docker-compose.dev.yml build
+      - name: Scan images with Grype
+        uses: anchore/scan-action@v3
+        with:
+          image: apollo-api:latest
+
+  secrets:
+    runs-on: ubuntu-latest
+    needs: sast
+    steps:
+      - uses: actions/checkout@v4
+      - uses: zricethezav/gitleaks-action@v2

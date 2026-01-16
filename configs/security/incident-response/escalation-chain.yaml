@@ -1,0 +1,103 @@
+# Incident Escalation Chain
+
+escalation_chain:
+  # Level 1: Security Team (Initial Response)
+  level_1:
+    team: Security Operations Team
+    response_time: 15m
+    contact:
+      - ${SECURITY_TEAM_EMAIL}
+      - ${SECURITY_TEAM_SLACK}
+      - ${SECURITY_HOTLINE}
+
+    responsibilities:
+      - initial_triage
+      - immediate_containment
+      - evidence_preservation
+      - severity_assessment
+
+    escalate_to_level_2_if:
+      - severity: high
+      - duration: 30m
+      - data_breach_suspected
+      - system_compromise_confirmed
+
+  # Level 2: Security Manager
+  level_2:
+    role: Security Manager
+    response_time: 30m
+    contact:
+      - ${SECURITY_MANAGER_EMAIL}
+      - ${SECURITY_MANAGER_MOBILE}
+
+    responsibilities:
+      - coordinate_response
+      - resource_allocation
+      - stakeholder_communication
+      - containment_strategy
+
+    escalate_to_level_3_if:
+      - severity: critical
+      - duration: 1h
+      - significant_impact
+      - executive_notification_required
+
+  # Level 3: CISO
+  level_3:
+    role: Chief Information Security Officer
+    response_time: immediate
+    contact:
+      - ${CISO_EMAIL}
+      - ${CISO_MOBILE}
+      - ${CISO_EMERGENCY}
+
+    responsibilities:
+      - incident_commander
+      - executive_briefing
+      - regulatory_decisions
+      - public_statements
+
+    escalate_to_level_4_if:
+      - severity: critical
+      - widespread_impact
+      - regulatory_notification_required
+      - media_attention
+
+  # Level 4: Executive Team
+  level_4:
+    team: C-Suite Executives
+    response_time: immediate
+    contact:
+      - ${CEO_EMAIL}
+      - ${CTO_EMAIL}
+      - ${GENERAL_COUNSEL_EMAIL}
+
+    responsibilities:
+      - strategic_decisions
+      - board_notification
+      - regulatory_coordination
+      - crisis_management
+
+  # Parallel Notifications
+  parallel_notifications:
+    legal_team:
+      trigger: data_breach
+      contact: ${LEGAL_EMAIL}
+
+    pr_team:
+      trigger: media_attention
+      contact: ${PR_EMAIL}
+
+    law_enforcement:
+      trigger: criminal_activity
+      contact: ${FBI_CYBER_CRIME}
+
+    compliance_officer:
+      trigger: regulatory_violation
+      contact: ${COMPLIANCE_EMAIL}
+
+  # Out of Hours
+  out_of_hours:
+    on_call_rotation: ${ONCALL_SCHEDULE_URL}
+    emergency_contacts: ${EMERGENCY_CONTACT_LIST}
+    escalation_faster: true

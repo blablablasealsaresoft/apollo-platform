@@ -9,6 +9,9 @@ import { store, persistor } from './store';
 // Layout
 import MainLayout from './components/common/Layout/MainLayout';
 
+// WebSocket Provider
+import { WebSocketProvider } from './contexts/WebSocketContext';
+
 // Auth Pages
 import LoginPage from './pages/Auth/LoginPage';
 import RegisterPage from './pages/Auth/RegisterPage';
@@ -25,6 +28,7 @@ import OperationsListPage from './pages/Operations/OperationsListPage';
 import OperationDetailPage from './pages/Operations/OperationDetailPage';
 import BlockchainPage from './pages/Blockchain/BlockchainPage';
 import FacialRecognitionPage from './pages/FacialRecognition/FacialRecognitionPage';
+import GeolocationPage from './pages/Geolocation/GeolocationPage';
 import AnalyticsPage from './pages/Analytics/AnalyticsPage';
 import SettingsPage from './pages/Settings/SettingsPage';
 import AdminPage from './pages/Administration/AdminPage';
@@ -47,8 +51,9 @@ function App() {
     <Provider store={store}>
       <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
         <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <Routes>
+          <WebSocketProvider autoConnect={true}>
+            <BrowserRouter>
+              <Routes>
               {/* Public Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
@@ -67,6 +72,7 @@ function App() {
                   <Route path="/operations/:id" element={<OperationDetailPage />} />
                   <Route path="/blockchain" element={<BlockchainPage />} />
                   <Route path="/facial-recognition" element={<FacialRecognitionPage />} />
+                  <Route path="/geolocation" element={<GeolocationPage />} />
                   <Route path="/analytics" element={<AnalyticsPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/admin" element={<AdminPage />} />
@@ -76,9 +82,10 @@ function App() {
               {/* Default Route */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-          </BrowserRouter>
-          <Toaster position="top-right" />
+              </Routes>
+            </BrowserRouter>
+            <Toaster position="top-right" />
+          </WebSocketProvider>
         </QueryClientProvider>
       </PersistGate>
     </Provider>

@@ -1,0 +1,3045 @@
+🏗️ APOLLO PLATFORM - Complete Enhanced Directory Architecture
+v2.0 - Advanced Criminal Investigation Platform
+apollo/
+├── 📋 README.md
+├── ⚖️ LICENSE
+├── 📄 CONTRIBUTING.md
+├── 🔒 SECURITY.md
+├── 📖 CHANGELOG.md
+├── 🐳 docker-compose.yml
+├── 🐳 docker-compose.prod.yml
+├── 🐳 docker-compose.dev.yml
+├── ⚙️ .env.example
+├── ⚙️ .env.local.example
+├── 🚫 .gitignore
+├── 📦 package.json
+├── 🔧 tsconfig.json
+├── 📝 apollo.config.js
+└── 🔐 .apollo/
+    ├── keys/
+    ├── certificates/
+    └── secrets/
+
+🧠 Enhanced AI & Intelligence Systems
+apollo/
+├── ai-engine/
+│   ├── 🧠 bugtrace-ai/
+│   │   ├── src/
+│   │   │   ├── analyzers/
+│   │   │   │   ├── vulnerability-scanner.ts
+│   │   │   │   ├── payload-forge.ts
+│   │   │   │   ├── recursive-analyzer.ts
+│   │   │   │   ├── ssti-forge.ts
+│   │   │   │   ├── privesc-pathfinder.ts
+│   │   │   │   ├── dom-xss-pathfinder.ts
+│   │   │   │   ├── js-reconnaissance.ts
+│   │   │   │   ├── oob-interaction-helper.ts
+│   │   │   │   └── file-upload-auditor.ts
+│   │   │   ├── services/
+│   │   │   │   ├── openrouter-client.ts
+│   │   │   │   ├── prompt-engine.ts
+│   │   │   │   ├── response-validator.ts
+│   │   │   │   ├── analysis-orchestrator.ts
+│   │   │   │   └── multi-persona-engine.ts
+│   │   │   ├── prompts/
+│   │   │   │   ├── dast-prompts.ts
+│   │   │   │   ├── sast-prompts.ts
+│   │   │   │   ├── chat-prompts.ts
+│   │   │   │   ├── deep-analysis.ts
+│   │   │   │   ├── consolidation.ts
+│   │   │   │   └── exploitation-prompts.ts
+│   │   │   ├── types/
+│   │   │   │   ├── vulnerability.ts
+│   │   │   │   ├── analysis-config.ts
+│   │   │   │   ├── report-types.ts
+│   │   │   │   └── exploit-context.ts
+│   │   │   └── utils/
+│   │   │       ├── payload-generator.ts
+│   │   │       ├── waf-bypass.ts
+│   │   │       ├── exploit-helper.ts
+│   │   │       └── security-headers-analyzer.ts
+│   │   ├── models/
+│   │   │   ├── gemini-models.ts
+│   │   │   ├── claude-models.ts
+│   │   │   ├── gpt-models.ts
+│   │   │   └── custom-models.ts
+│   │   ├── components/
+│   │   │   ├── UrlAnalyzer.tsx
+│   │   │   ├── CodeAnalyzer.tsx
+│   │   │   ├── PayloadForge.tsx
+│   │   │   ├── SstiForge.tsx
+│   │   │   ├── PrivEscPathfinder.tsx
+│   │   │   ├── DomXssPathfinder.tsx
+│   │   │   ├── JsRecon.tsx
+│   │   │   ├── SecurityHeadersAnalyzer.tsx
+│   │   │   └── XssExploitAssistant.tsx
+│   │   ├── 🧪 tests/
+│   │   ├── 📚 docs/
+│   │   ├── 🐳 Dockerfile
+│   │   ├── 📦 package.json
+│   │   └── ⚙️ tsconfig.json
+│   │
+│   ├── 🎯 cyberspike-villager/
+│   │   ├── core/
+│   │   │   ├── ai-c2-controller.ts
+│   │   │   ├── adaptive-evasion.ts
+│   │   │   ├── intelligent-payloads.ts
+│   │   │   ├── behavioral-analysis.ts
+│   │   │   ├── autonomous-operations.ts
+│   │   │   ├── predictive-decision-engine.ts
+│   │   │   └── criminal-pattern-recognition.ts
+│   │   ├── modules/
+│   │   │   ├── crypto-crime-hunter.ts
+│   │   │   ├── predator-tracker.ts
+│   │   │   ├── network-mapper.ts
+│   │   │   ├── evidence-collector.ts
+│   │   │   ├── blockchain-analyzer.ts
+│   │   │   └── trafficking-detector.ts
+│   │   ├── agents/
+│   │   │   ├── windows-agent/
+│   │   │   │   ├── crypto-forensics-module.exe
+│   │   │   │   ├── registry-scanner.exe
+│   │   │   │   └── wallet-detector.exe
+│   │   │   ├── linux-agent/
+│   │   │   │   ├── blockchain-monitor
+│   │   │   │   ├── network-scanner
+│   │   │   │   └── evidence-harvester
+│   │   │   ├── macos-agent/
+│   │   │   └── mobile-agent/
+│   │   │       ├── android-forensics/
+│   │   │       └── ios-forensics/
+│   │   ├── c2-server/
+│   │   │   ├── team-server.ts
+│   │   │   ├── listener-manager.ts
+│   │   │   ├── session-handler.ts
+│   │   │   ├── ai-orchestrator.ts
+│   │   │   ├── criminal-target-manager.ts
+│   │   │   └── evidence-chain-custody.ts
+│   │   ├── 🔧 config/
+│   │   ├── 🧪 tests/
+│   │   ├── 📚 docs/
+│   │   └── 🐳 docker/
+│   │
+│   ├── 🤖 criminal-behavior-ai/
+│   │   ├── models/
+│   │   │   ├── crypto-criminal-patterns.py
+│   │   │   ├── predator-behavior-models.py
+│   │   │   ├── trafficking-network-analysis.py
+│   │   │   ├── financial-crime-detection.py
+│   │   │   ├── onecoin-specific-patterns.py
+│   │   │   ├── ignatova-behavior-model.py
+│   │   │   └── darkweb-communication-analysis.py
+│   │   ├── training/
+│   │   │   ├── datasets/
+│   │   │   │   ├── crypto-crime-data/
+│   │   │   │   ├── trafficking-patterns/
+│   │   │   │   ├── blockchain-fraud-cases/
+│   │   │   │   └── criminal-communication/
+│   │   │   ├── preprocessing/
+│   │   │   ├── feature-extraction/
+│   │   │   └── model-training/
+│   │   ├── inference/
+│   │   │   ├── real-time-analysis.py
+│   │   │   ├── batch-processing.py
+│   │   │   ├── prediction-service.py
+│   │   │   └── behavioral-scoring.py
+│   │   ├── 🧪 tests/
+│   │   └── 📚 docs/
+│   │
+│   ├── 🔮 predictive-analytics/
+│   │   ├── threat-modeling/
+│   │   │   ├── crypto-crime-forecasting.py
+│   │   │   ├── predator-risk-assessment.py
+│   │   │   └── network-evolution-prediction.py
+│   │   ├── behavioral-forecasting/
+│   │   │   ├── criminal-movement-prediction.py
+│   │   │   ├── communication-pattern-analysis.py
+│   │   │   └── asset-movement-forecasting.py
+│   │   ├── network-evolution-prediction/
+│   │   ├── risk-assessment/
+│   │   └── operation-optimization/
+│   │
+│   └── 🎤 audio-intelligence/
+│       ├── voice-recognition/
+│       │   ├── whisper-integration/
+│       │   │   ├── multilingual-transcription.py
+│       │   │   ├── real-time-processing.py
+│       │   │   ├── ignatova-specific-models/
+│       │   │   └── accent-detection.py
+│       │   ├── resemblyzer-analysis/
+│       │   │   ├── voice-signature-creation.py
+│       │   │   ├── speaker-verification.py
+│       │   │   ├── voice-clustering.py
+│       │   │   └── similarity-scoring.py
+│       │   ├── speechbrain-integration/
+│       │   │   ├── speaker-recognition.py
+│       │   │   ├── emotion-detection.py
+│       │   │   ├── language-identification.py
+│       │   │   └── voice-activity-detection.py
+│       │   └── praat-analysis/
+│       │       ├── phonetic-analysis.praat
+│       │       ├── accent-profiling.praat
+│       │       ├── voice-quality-assessment.praat
+│       │       └── forensic-voice-comparison.praat
+│       ├── audio-surveillance/
+│       │   ├── real-time-monitoring/
+│       │   │   ├── jack-audio-integration.py
+│       │   │   ├── voip-interception.py
+│       │   │   ├── radio-monitoring.py
+│       │   │   └── ambient-audio-capture.py
+│       │   ├── social-media-audio/
+│       │   │   ├── video-audio-extraction.py
+│       │   │   ├── tiktok-audio-scraper.py
+│       │   │   ├── instagram-story-audio.py
+│       │   │   └── youtube-voice-analysis.py
+│       │   ├── communication-intercept/
+│       │   │   ├── sip-call-capture.py
+│       │   │   ├── rtp-stream-analysis.py
+│       │   │   ├── telegram-voice-intercept.py
+│       │   │   └── whatsapp-call-monitoring.py
+│       │   └── conference-surveillance/
+│       │       ├── zoom-meeting-monitor.py
+│       │       ├── webex-call-analysis.py
+│       │       ├── crypto-conference-surveillance.py
+│       │       └── webinar-voice-tracking.py
+│       ├── audio-processing/
+│       │   ├── noise-reduction/
+│       │   ├── voice-enhancement/
+│       │   ├── audio-fingerprinting/
+│       │   └── format-conversion/
+│       └── voice-databases/
+│           ├── ignatova-voice-profiles/
+│           │   ├── english-samples/
+│           │   ├── german-samples/
+│           │   ├── bulgarian-samples/
+│           │   └── composite-profile/
+│           ├── associate-voices/
+│           ├── criminal-voice-library/
+│           └── reference-speakers/
+
+🕵️ Enhanced Intelligence Collection Systems
+apollo/
+├── intelligence/
+│   ├── 📊 osint-engine/
+│   │   ├── social-media/
+│   │   │   ├── sherlock-integration/
+│   │   │   │   ├── sherlock-client.py
+│   │   │   │   ├── 4000-platform-scanner.py
+│   │   │   │   ├── result-processor.py
+│   │   │   │   ├── ignatova-specific-searches.py
+│   │   │   │   └── 4000-sites-config.json
+│   │   │   ├── social-analyzer/
+│   │   │   │   ├── profile-correlation.py
+│   │   │   │   ├── cross-platform-linking.py
+│   │   │   │   ├── relationship-mapping.py
+│   │   │   │   └── behavioral-analysis.py
+│   │   │   ├── maigret-scanner/
+│   │   │   │   ├── advanced-username-search.py
+│   │   │   │   ├── profile-enumeration.py
+│   │   │   │   └── cross-reference-analysis.py
+│   │   │   ├── holehe-integration/
+│   │   │   │   ├── email-platform-checker.py
+│   │   │   │   └── account-discovery.py
+│   │   │   ├── epieos-connector/
+│   │   │   │   ├── reverse-email-lookup.py
+│   │   │   │   └── phone-number-analysis.py
+│   │   │   └── tookie-osint/
+│   │   │       ├── advanced-profile-finder.py
+│   │   │       └── social-media-doubles.py
+│   │   ├── blockchain-intelligence/
+│   │   │   ├── bitcoin-analysis/
+│   │   │   │   ├── wallet-clustering.py
+│   │   │   │   ├── transaction-flow.py
+│   │   │   │   ├── exchange-mapping.py
+│   │   │   │   ├── onecoin-specific-tracking.py
+│   │   │   │   └── address-attribution.py
+│   │   │   ├── ethereum-analysis/
+│   │   │   │   ├── smart-contract-analysis.py
+│   │   │   │   ├── defi-transaction-tracking.py
+│   │   │   │   └── token-flow-analysis.py
+│   │   │   ├── altcoin-trackers/
+│   │   │   │   ├── monero-analysis.py
+│   │   │   │   ├── privacy-coin-tracking.py
+│   │   │   │   └── cross-chain-analysis.py
+│   │   │   ├── exchange-monitors/
+│   │   │   │   ├── coinwink-alerts.py
+│   │   │   │   ├── blockpath-accounting.py
+│   │   │   │   ├── real-time-monitoring.py
+│   │   │   │   ├── exchange-api-integration.py
+│   │   │   │   └── suspicious-activity-detector.py
+│   │   │   ├── defi-analysis/
+│   │   │   │   ├── liquidity-pool-tracking.py
+│   │   │   │   ├── yield-farming-analysis.py
+│   │   │   │   └── flash-loan-detection.py
+│   │   │   └── blockchain-forensics/
+│   │   │       ├── transaction-graph-analysis.py
+│   │   │       ├── mixing-service-detection.py
+│   │   │       ├── criminal-wallet-clustering.py
+│   │   │       └── money-laundering-patterns.py
+│   │   ├── darkweb-monitoring/
+│   │   │   ├── onion-crawlers/
+│   │   │   │   ├── ahmia-search.py
+│   │   │   │   ├── onionland-scanner.py
+│   │   │   │   ├── hidden-service-monitor.py
+│   │   │   │   ├── tor-network-analysis.py
+│   │   │   │   └── darkweb-forum-scraper.py
+│   │   │   ├── marketplace-trackers/
+│   │   │   │   ├── ransomware-watch.py
+│   │   │   │   ├── criminal-markets.py
+│   │   │   │   ├── illegal-services.py
+│   │   │   │   ├── crypto-market-surveillance.py
+│   │   │   │   └── vendor-tracking.py
+│   │   │   ├── breach-monitoring/
+│   │   │   │   ├── ddosecrets-monitor.py
+│   │   │   │   ├── infostealers-tracker.py
+│   │   │   │   ├── credential-leaks.py
+│   │   │   │   ├── stealer-log-analysis.py
+│   │   │   │   └── breach-correlation.py
+│   │   │   ├── communication-intercept/
+│   │   │   │   ├── darkweb-messaging.py
+│   │   │   │   ├── encrypted-chat-monitoring.py
+│   │   │   │   └── criminal-communication-analysis.py
+│   │   │   └── intelligence-feeds/
+│   │   │       ├── threat-actor-tracking.py
+│   │   │       ├── criminal-group-monitoring.py
+│   │   │       └── illegal-activity-detection.py
+│   │   ├── domain-intelligence/
+│   │   │   ├── chiasmodon-integration/
+│   │   │   │   ├── domain-intelligence-gathering.py
+│   │   │   │   ├── credential-harvesting.py
+│   │   │   │   ├── cidr-analysis.py
+│   │   │   │   └── asn-investigation.py
+│   │   │   ├── subdomain-discovery/
+│   │   │   │   ├── certificate-transparency-logs.py
+│   │   │   │   ├── dns-enumeration.py
+│   │   │   │   ├── passive-dns-analysis.py
+│   │   │   │   └── subdomain-monitoring.py
+│   │   │   ├── subdomain-takeover/
+│   │   │   │   ├── dnsreaper-integration/
+│   │   │   │   │   ├── takeover-scanner.py
+│   │   │   │   │   ├── subdomain-monitor.py
+│   │   │   │   │   ├── infrastructure-hijack.py
+│   │   │   │   │   ├── evidence-preservation.py
+│   │   │   │   │   └── criminal-infrastructure-disruption.py
+│   │   │   │   ├── automated-takeover.py
+│   │   │   │   ├── dns-monitoring.py
+│   │   │   │   └── infrastructure-mapping.py
+│   │   │   ├── certificate-transparency/
+│   │   │   │   ├── ct-log-monitoring.py
+│   │   │   │   ├── certificate-analysis.py
+│   │   │   │   └── ssl-intelligence.py
+│   │   │   └── infrastructure-mapping/
+│   │   │       ├── ip-analysis.py
+│   │   │       ├── hosting-intelligence.py
+│   │   │       └── network-topology.py
+│   │   ├── breach-correlation/
+│   │   │   ├── dehashed-client.py
+│   │   │   ├── haveibeenpwned-api.py
+│   │   │   ├── leak-databases/
+│   │   │   │   ├── credential-analysis.py
+│   │   │   │   ├── password-pattern-analysis.py
+│   │   │   │   └── identity-correlation.py
+│   │   │   ├── breach-timeline-analysis.py
+│   │   │   └── credential-reuse-detection.py
+│   │   ├── reconnaissance-automation/
+│   │   │   ├── bbot-integration/
+│   │   │   │   ├── recursive-scanner.py
+│   │   │   │   ├── custom-modules/
+│   │   │   │   ├── intelligence-feeds.py
+│   │   │   │   ├── target-enumeration.py
+│   │   │   │   └── automated-osint-workflows.py
+│   │   │   ├── subhunterx-framework/
+│   │   │   │   ├── automation-engine/
+│   │   │   │   ├── workflow-orchestrator.py
+│   │   │   │   ├── subdomain-hunting.py
+│   │   │   │   ├── vulnerability-chaining.py
+│   │   │   │   └── bounty-hunting-workflows.py
+│   │   │   └── spiderfoot-integration/
+│   │   │       ├── data-correlation.py
+│   │   │       ├── relationship-mapping.py
+│   │   │       └── intelligence-fusion.py
+│   │   ├── 🔧 config/
+│   │   ├── 🧪 tests/
+│   │   └── 📚 docs/
+│   │
+│   ├── 🌍 geoint-engine/
+│   │   ├── surveillance-networks/
+│   │   │   ├── os-surveillance/
+│   │   │   │   ├── real-time-feeds.py
+│   │   │   │   ├── camera-networks.py
+│   │   │   │   ├── iot-monitoring.py
+│   │   │   │   ├── social-geo-correlation.py
+│   │   │   │   ├── amber-alert-integration.py
+│   │   │   │   ├── crime-mapping.py
+│   │   │   │   └── multi-modal-surveillance.py
+│   │   │   ├── global-webcams/
+│   │   │   │   ├── insecam-crawler.py
+│   │   │   │   ├── opentopia-feeds.py
+│   │   │   │   ├── traffic-cameras.py
+│   │   │   │   ├── security-cam-access.py
+│   │   │   │   ├── hotel-surveillance.py
+│   │   │   │   ├── airport-monitoring.py
+│   │   │   │   └── luxury-location-cams.py
+│   │   │   ├── satellite-intelligence/
+│   │   │   │   ├── google-earth-analysis.py
+│   │   │   │   ├── historical-imagery.py
+│   │   │   │   └── geospatial-analysis.py
+│   │   │   └── facial-recognition-networks/
+│   │   │       ├── face-recognition-integration/
+│   │   │       │   ├── ageitgey-face-recognition.py
+│   │   │       │   ├── batch-face-processing.py
+│   │   │       │   ├── real-time-face-detection.py
+│   │   │       │   ├── ignatova-face-matching.py
+│   │   │       │   └── surveillance-face-scanner.py
+│   │   │       ├── pimeyes-integration/
+│   │   │       │   ├── automated-searches.py
+│   │   │       │   ├── reverse-image-lookup.py
+│   │   │       │   └── face-monitoring-alerts.py
+│   │   │       ├── yandex-image-search/
+│   │   │       │   ├── facial-recognition-queries.py
+│   │   │       │   ├── eastern-european-focus.py
+│   │   │       │   └── image-source-tracking.py
+│   │   │       └── clearview-alternative/
+│   │   │           ├── free-facial-recognition.py
+│   │   │           ├── social-media-scraping.py
+│   │   │           └── face-database-building.py
+│   │   ├── geolocation-services/
+│   │   │   ├── geospy-ai/
+│   │   │   │   ├── photo-analysis.py
+│   │   │   │   ├── ai-location-prediction.py
+│   │   │   │   ├── image-intelligence.py
+│   │   │   │   └── location-verification.py
+│   │   │   ├── geocreepy-integration/
+│   │   │   │   ├── social-media-geolocation.py
+│   │   │   │   ├── photo-metadata-extraction.py
+│   │   │   │   └── location-timeline-analysis.py
+│   │   │   ├── social-geolocation/
+│   │   │   │   ├── instagram-location-tracking.py
+│   │   │   │   ├── twitter-geo-analysis.py
+│   │   │   │   ├── facebook-check-in-monitoring.py
+│   │   │   │   └── cross-platform-correlation.py
+│   │   │   └── metadata-extraction/
+│   │   │       ├── exif-data-analysis.py
+│   │   │       ├── geo-tagging-detection.py
+│   │   │       └── location-clustering.py
+│   │   ├── transportation-tracking/
+│   │   │   ├── aviation/
+│   │   │   │   ├── adsb-exchange.py
+│   │   │   │   ├── flightradar24.py
+│   │   │   │   ├── icarus-flights.py
+│   │   │   │   ├── ownership-records.py
+│   │   │   │   ├── private-jet-monitoring.py
+│   │   │   │   ├── flight-pattern-analysis.py
+│   │   │   │   └── airport-surveillance-integration.py
+│   │   │   ├── maritime/
+│   │   │   │   ├── marine-traffic.py
+│   │   │   │   ├── vessel-finder.py
+│   │   │   │   ├── shipping-intelligence.py
+│   │   │   │   ├── yacht-tracking.py
+│   │   │   │   ├── port-monitoring.py
+│   │   │   │   └── luxury-vessel-surveillance.py
+│   │   │   ├── ground-transport/
+│   │   │   │   ├── license-plate-db.py
+│   │   │   │   ├── vin-analysis.py
+│   │   │   │   ├── vehicle-tracking.py
+│   │   │   │   ├── public-transit.py
+│   │   │   │   ├── luxury-vehicle-monitoring.py
+│   │   │   │   └── rental-car-tracking.py
+│   │   │   └── border-crossings/
+│   │   │       ├── passport-usage-tracking.py
+│   │   │       ├── customs-data-analysis.py
+│   │   │       └── international-movement.py
+│   │   ├── 🔧 config/
+│   │   ├── 🧪 tests/
+│   │   └── 📚 docs/
+│   │
+│   └── 📡 sigint-engine/
+│       ├── communications/
+│       │   ├── broadcastify/
+│       │   │   ├── scanner-feeds.py
+│       │   │   ├── frequency-analysis.py
+│       │   │   ├── real-time-transcription.py
+│       │   │   ├── emergency-monitoring.py
+│       │   │   └── law-enforcement-chatter.py
+│       │   ├── radio-intelligence/
+│       │   │   ├── radioreference-db.py
+│       │   │   ├── wigle-wifi.py
+│       │   │   ├── signal-analysis.py
+│       │   │   ├── spectrum-monitoring.py
+│       │   │   └── frequency-coordination.py
+│       │   ├── encrypted-comms/
+│       │   │   ├── messaging-apps/
+│       │   │   │   ├── telegram-monitoring.py
+│       │   │   │   ├── signal-metadata-analysis.py
+│       │   │   │   ├── whatsapp-traffic-analysis.py
+│       │   │   │   └── discord-surveillance.py
+│       │   │   ├── dark-chat-networks/
+│       │   │   │   ├── tor-chat-monitoring.py
+│       │   │   │   ├── i2p-communication-analysis.py
+│       │   │   │   └── encrypted-forum-surveillance.py
+│       │   │   └── communication-patterns/
+│       │   │       ├── traffic-analysis.py
+│       │   │       ├── metadata-correlation.py
+│       │   │       └── behavioral-profiling.py
+│       │   └── voip-surveillance/
+│       │       ├── sip-monitoring.py
+│       │       ├── rtp-stream-analysis.py
+│       │       ├── international-call-tracking.py
+│       │       └── voice-pattern-analysis.py
+│       ├── network-analysis/
+│       │   ├── traffic-interception/
+│       │   ├── protocol-analysis/
+│       │   ├── metadata-extraction/
+│       │   └── communication-mapping/
+│       ├── pattern-recognition/
+│       │   ├── communication-patterns.py
+│       │   ├── behavioral-analysis.py
+│       │   ├── anomaly-detection.py
+│       │   └── threat-identification.py
+│       └── signal-processing/
+│           ├── digital-signal-analysis.py
+│           ├── frequency-domain-analysis.py
+│           └── modulation-detection.py
+
+⚔️ Enhanced Red Team Operations
+apollo/
+├── redteam/
+│   ├── 🎯 c2-frameworks/
+│   │   ├── cyberspike-villager/
+│   │   │   ├── ai-native-operations/
+│   │   │   ├── autonomous-decision-making/
+│   │   │   ├── predictive-evasion/
+│   │   │   ├── criminal-behavior-adaptation/
+│   │   │   └── intelligent-payload-morphing/
+│   │   ├── cobalt-strike/
+│   │   │   ├── profiles/
+│   │   │   │   ├── crypto-crime-profiles/
+│   │   │   │   ├── predator-hunting-profiles/
+│   │   │   │   └── stealth-communication.profile
+│   │   │   ├── beacons/
+│   │   │   │   ├── blockchain-forensics-beacon/
+│   │   │   │   ├── evidence-collection-beacon/
+│   │   │   │   └── surveillance-beacon/
+│   │   │   ├── listeners/
+│   │   │   │   ├── encrypted-listeners/
+│   │   │   │   ├── tor-listeners/
+│   │   │   │   └── decoy-listeners/
+│   │   │   ├── aggressor-scripts/
+│   │   │   │   ├── crypto-investigation.cna
+│   │   │   │   ├── evidence-automation.cna
+│   │   │   │   ├── network-mapping.cna
+│   │   │   │   └── criminal-profiling.cna
+│   │   │   └── malleable-c2/
+│   │   │       ├── social-media-c2.profile
+│   │   │       ├── crypto-exchange-c2.profile
+│   │   │       └── darkweb-c2.profile
+│   │   ├── havoc-framework/
+│   │   │   ├── demons/
+│   │   │   │   ├── crypto-demon/
+│   │   │   │   ├── surveillance-demon/
+│   │   │   │   └── evidence-demon/
+│   │   │   ├── modules/
+│   │   │   │   ├── blockchain-analysis-modules/
+│   │   │   │   ├── wallet-extraction-modules/
+│   │   │   │   └── forensics-modules/
+│   │   │   ├── listeners/
+│   │   │   └── payloads/
+│   │   ├── mythic-framework/
+│   │   │   ├── agents/
+│   │   │   │   ├── crypto-investigation-agent/
+│   │   │   │   ├── surveillance-agent/
+│   │   │   │   └── evidence-collection-agent/
+│   │   │   ├── c2-profiles/
+│   │   │   │   ├── social-media-profiles/
+│   │   │   │   └── crypto-market-profiles/
+│   │   │   ├── commands/
+│   │   │   │   ├── blockchain-commands/
+│   │   │   │   ├── surveillance-commands/
+│   │   │   │   └── evidence-commands/
+│   │   │   └── containers/
+│   │   ├── sliver/
+│   │   │   ├── implants/
+│   │   │   │   ├── crypto-forensics-implant/
+│   │   │   │   ├── surveillance-implant/
+│   │   │   │   └── evidence-implant/
+│   │   │   ├── listeners/
+│   │   │   ├── modules/
+│   │   │   └── extensions/
+│   │   │       ├── blockchain-extensions/
+│   │   │       ├── crypto-wallet-extensions/
+│   │   │       └── forensics-extensions/
+│   │   └── custom-c2/
+│   │       ├── apollo-c2/
+│   │       │   ├── criminal-investigation-c2/
+│   │       │   ├── evidence-chain-custody/
+│   │       │   └── legal-compliance-framework/
+│   │       ├── stealth-channels/
+│   │       │   ├── social-media-c2/
+│   │       │   ├── blockchain-c2/
+│   │       │   └── darkweb-c2/
+│   │       └── ai-enhanced-comms/
+│   │           ├── intelligent-routing/
+│   │           ├── adaptive-protocols/
+│   │           └── predictive-evasion/
+│   │
+│   ├── 🔍 reconnaissance/
+│   │   ├── automation/
+│   │   │   ├── bbot-integration/
+│   │   │   │   ├── recursive-scanner.py
+│   │   │   │   ├── custom-modules/
+│   │   │   │   │   ├── crypto-exchange-enum.py
+│   │   │   │   │   ├── blockchain-infrastructure.py
+│   │   │   │   │   ├── darkweb-discovery.py
+│   │   │   │   │   └── criminal-network-mapping.py
+│   │   │   │   ├── intelligence-feeds.py
+│   │   │   │   ├── target-enumeration.py
+│   │   │   │   └── automated-osint-workflows.py
+│   │   │   ├── subhunterx-framework/
+│   │   │   │   ├── automation-engine/
+│   │   │   │   │   ├── workflow-orchestrator.py
+│   │   │   │   │   ├── criminal-target-automation.py
+│   │   │   │   │   └── evidence-collection-workflows.py
+│   │   │   │   ├── subdomain-hunting/
+│   │   │   │   │   ├── crypto-infrastructure-discovery.py
+│   │   │   │   │   ├── criminal-domain-enumeration.py
+│   │   │   │   │   └── darkweb-service-discovery.py
+│   │   │   │   ├── vulnerability-chaining/
+│   │   │   │   │   ├── crypto-platform-exploitation.py
+│   │   │   │   │   ├── evidence-extraction-chains.py
+│   │   │   │   │   └── infrastructure-compromise.py
+│   │   │   │   └── bounty-hunting-workflows/
+│   │   │   │       ├── fbi-most-wanted-automation.py
+│   │   │   │       ├── crypto-crime-bounties.py
+│   │   │   │       └── reward-optimization.py
+│   │   │   └── amass-integration/
+│   │   │       ├── domain-enumeration.py
+│   │   │       ├── asset-discovery.py
+│   │   │       └── infrastructure-mapping.py
+│   │   ├── subdomain-operations/
+│   │   │   ├── dnsreaper-integration/
+│   │   │   │   ├── takeover-scanner.py
+│   │   │   │   ├── subdomain-monitor.py
+│   │   │   │   ├── infrastructure-hijack.py
+│   │   │   │   ├── evidence-preservation.py
+│   │   │   │   ├── criminal-infrastructure-disruption.py
+│   │   │   │   └── automated-takeover-operations.py
+│   │   │   ├── certificate-transparency/
+│   │   │   │   ├── ct-log-monitoring.py
+│   │   │   │   ├── subdomain-discovery.py
+│   │   │   │   └── certificate-analysis.py
+│   │   │   └── subdomain-bruteforce/
+│   │   │       ├── wordlist-generation.py
+│   │   │       ├── dns-enumeration.py
+│   │   │       └── pattern-analysis.py
+│   │   ├── cloud-reconnaissance/
+│   │   │   ├── cloud-enum/
+│   │   │   │   ├── aws-enumeration.py
+│   │   │   │   ├── azure-discovery.py
+│   │   │   │   ├── gcp-reconnaissance.py
+│   │   │   │   └── multi-cloud-correlation.py
+│   │   │   ├── cloudrecon-enhanced/
+│   │   │   │   ├── advanced-cloud-recon.py
+│   │   │   │   ├── crypto-infrastructure-discovery.py
+│   │   │   │   ├── cloud-forensics.py
+│   │   │   │   └── criminal-cloud-analysis.py
+│   │   │   ├── aws-enumeration/
+│   │   │   │   ├── s3-bucket-discovery.py
+│   │   │   │   ├── ec2-instance-enumeration.py
+│   │   │   │   ├── iam-analysis.py
+│   │   │   │   └── lambda-function-discovery.py
+│   │   │   ├── azure-recon/
+│   │   │   │   ├── resource-enumeration.py
+│   │   │   │   ├── active-directory-analysis.py
+│   │   │   │   └── storage-account-discovery.py
+│   │   │   └── gcp-discovery/
+│   │   │       ├── compute-instance-enum.py
+│   │   │       ├── storage-bucket-discovery.py
+│   │   │       └── iam-policy-analysis.py
+│   │   ├── github-intelligence/
+│   │   │   ├── gato-toolkit/
+│   │   │   │   ├── github-enumeration.py
+│   │   │   │   ├── repository-analysis.py
+│   │   │   │   ├── secret-discovery.py
+│   │   │   │   └── pipeline-exploitation.py
+│   │   │   ├── secret-scanning/
+│   │   │   │   ├── api-key-discovery.py
+│   │   │   │   ├── credential-extraction.py
+│   │   │   │   ├── crypto-wallet-discovery.py
+│   │   │   │   └── private-key-detection.py
+│   │   │   ├── repo-analysis/
+│   │   │   │   ├── code-analysis.py
+│   │   │   │   ├── commit-history-analysis.py
+│   │   │   │   ├── contributor-profiling.py
+│   │   │   │   └── project-relationship-mapping.py
+│   │   │   └── pipeline-exploitation/
+│   │   │       ├── ci-cd-analysis.py
+│   │   │       ├── workflow-exploitation.py
+│   │   │       └── supply-chain-analysis.py
+│   │   └── web-reconnaissance/
+│   │       ├── witnessme/
+│   │       │   ├── screenshot-analysis.py
+│   │       │   ├── web-technology-detection.py
+│   │       │   └── visual-reconnaissance.py
+│   │       ├── spiderfoot/
+│   │       │   ├── intelligence-correlation.py
+│   │       │   ├── relationship-mapping.py
+│   │       │   └── threat-actor-profiling.py
+│   │       ├── nuclei-scanner/
+│   │       │   ├── vulnerability-scanning.py
+│   │       │   ├── crypto-specific-templates.py
+│   │       │   └── custom-payloads.py
+│   │       └── custom-crawlers/
+│   │           ├── darkweb-crawlers/
+│   │           ├── social-media-crawlers/
+│   │           └── crypto-platform-crawlers/
+│   │
+│   ├── 💥 exploitation/
+│   │   ├── payload-development/
+│   │   │   ├── scarecrow/
+│   │   │   │   ├── edr-evasion.py
+│   │   │   │   ├── payload-encryption.py
+│   │   │   │   └── loader-generation.py
+│   │   │   ├── pezor/
+│   │   │   │   ├── pe-packing.py
+│   │   │   │   ├── anti-analysis.py
+│   │   │   │   └── stealth-loading.py
+│   │   │   ├── donut/
+│   │   │   │   ├── shellcode-generation.py
+│   │   │   │   ├── in-memory-execution.py
+│   │   │   │   └── position-independent-code.py
+│   │   │   ├── charlotte/
+│   │   │   │   ├── undetected-execution.py
+│   │   │   │   ├── c++-shellcode-launcher.cpp
+│   │   │   │   └── stealth-techniques.py
+│   │   │   └── custom-loaders/
+│   │   │       ├── crypto-investigation-payloads/
+│   │   │       ├── evidence-collection-loaders/
+│   │   │       └── surveillance-implants/
+│   │   ├── evasion-techniques/
+│   │   │   ├── reflexxion/
+│   │   │   │   ├── hook-bypass.py
+│   │   │   │   ├── usermode-unhooking.py
+│   │   │   │   └── av-epp-edr-bypass.py
+│   │   │   ├── edrsandblast/
+│   │   │   │   ├── kernel-callback-bypass.py
+│   │   │   │   ├── etw-provider-bypass.py
+│   │   │   │   ├── lsass-protection-bypass.py
+│   │   │   │   └── vulnerable-driver-exploitation.py
+│   │   │   ├── undefender/
+│   │   │   │   ├── antimalware-termination.py
+│   │   │   │   ├── symbolic-link-abuse.py
+│   │   │   │   └── nt-path-exploitation.py
+│   │   │   └── dynamic-evasion/
+│   │   │       ├── ai-powered-evasion.py
+│   │   │       ├── real-time-adaptation.py
+│   │   │       └── behavioral-mimicry.py
+│   │   ├── privilege-escalation/
+│   │   │   ├── privkit/
+│   │   │   │   ├── misconfiguration-detection.py
+│   │   │   │   ├── privilege-escalation-bof.c
+│   │   │   │   └── windows-privesc.py
+│   │   │   ├── peass-suite/
+│   │   │   │   ├── windows-privilege-escalation.py
+│   │   │   │   ├── linux-privilege-escalation.py
+│   │   │   │   ├── macos-privilege-escalation.py
+│   │   │   │   └── colors-highlighting.py
+│   │   │   ├── sweetpotato/
+│   │   │   │   ├── service-account-exploitation.py
+│   │   │   │   ├── impersonation-techniques.py
+│   │   │   │   └── system-level-access.py
+│   │   │   └── zero-day-research/
+│   │   │       ├── vulnerability-discovery.py
+│   │   │       ├── exploit-development.py
+│   │   │       └── weaponization.py
+│   │   └── post-exploitation/
+│   │       ├── lateral-movement/
+│   │       │   ├── network-propagation.py
+│   │       │   ├── credential-harvesting.py
+│   │       │   └── infrastructure-mapping.py
+│   │       ├── persistence/
+│   │       │   ├── registry-persistence.py
+│   │       │   ├── service-persistence.py
+│   │       │   └── scheduled-task-persistence.py
+│   │       ├── credential-dumping/
+│   │       │   ├── lsass-dumping.py
+│   │       │   ├── registry-credential-extraction.py
+│   │       │   └── browser-credential-harvesting.py
+│   │       └── data-exfiltration/
+│   │           ├── evidence-extraction.py
+│   │           ├── crypto-wallet-harvesting.py
+│   │           ├── communication-interception.py
+│   │           └── blockchain-data-collection.py
+│   │
+│   ├── 🎭 deception/
+│   │   ├── phishing/
+│   │   │   ├── evilginx2/
+│   │   │   │   ├── crypto-exchange-phishing/
+│   │   │   │   ├── social-media-phishing/
+│   │   │   │   └── banking-credential-harvesting/
+│   │   │   ├── gophish/
+│   │   │   │   ├── crypto-themed-campaigns/
+│   │   │   │   ├── investment-scam-templates/
+│   │   │   │   └── social-engineering-campaigns/
+│   │   │   ├── modlishka/
+│   │   │   │   ├── reverse-proxy-phishing/
+│   │   │   │   ├── real-time-credential-harvesting/
+│   │   │   │   └── advanced-phishing-campaigns/
+│   │   │   └── custom-campaigns/
+│   │   │       ├── ignatova-themed-phishing/
+│   │   │       ├── onecoin-recovery-scams/
+│   │   │       └── crypto-bounty-hunter-lures/
+│   │   ├── social-engineering/
+│   │   │   ├── pretexting-frameworks/
+│   │   │   ├── psychological-profiling/
+│   │   │   └── influence-campaigns/
+│   │   └── infrastructure-deception/
+│   │       ├── honeypots/
+│   │       ├── decoy-services/
+│   │       └── false-flag-operations/
+│   │
+│   └── 🛡️ operational-security/
+│       ├── traffic-obfuscation/
+│       │   ├── domain-fronting.py
+│       │   ├── traffic-tunneling.py
+│       │   └── protocol-mimicry.py
+│       ├── attribution-avoidance/
+│       │   ├── identity-compartmentalization.py
+│       │   ├── digital-footprint-minimization.py
+│       │   └── operational-anonymity.py
+│       ├── counter-surveillance/
+│       │   ├── blue-team-detection.py
+│       │   ├── law-enforcement-monitoring.py
+│       │   └── threat-actor-awareness.py
+│       └── evidence-cleanup/
+│           ├── artifact-removal.py
+│           ├── log-sanitization.py
+│           └── forensic-anti-analysis.py
+
+🔧 Enhanced Core Platform Services
+apollo/
+├── services/
+│   ├── 🔐 authentication/
+│   │   ├── src/
+│   │   │   ├── controllers/
+│   │   │   │   ├── auth-controller.ts
+│   │   │   │   ├── user-controller.ts
+│   │   │   │   ├── rbac-controller.ts
+│   │   │   │   ├── law-enforcement-auth.ts
+│   │   │   │   └── bounty-hunter-auth.ts
+│   │   │   ├── services/
+│   │   │   │   ├── jwt-service.ts
+│   │   │   │   ├── oauth-service.ts
+│   │   │   │   ├── mfa-service.ts
+│   │   │   │   ├── session-service.ts
+│   │   │   │   ├── biometric-auth.ts
+│   │   │   │   └── clearance-verification.ts
+│   │   │   ├── middleware/
+│   │   │   │   ├── auth-middleware.ts
+│   │   │   │   ├── rbac-middleware.ts
+│   │   │   │   ├── rate-limit.ts
+│   │   │   │   ├── jurisdiction-check.ts
+│   │   │   │   └── legal-compliance.ts
+│   │   │   ├── models/
+│   │   │   │   ├── user.model.ts
+│   │   │   │   ├── role.model.ts
+│   │   │   │   ├── permission.model.ts
+│   │   │   │   ├── clearance-level.model.ts
+│   │   │   │   └── investigation-access.model.ts
+│   │   │   └── utils/
+│   │   │       ├── crypto-utils.ts
+│   │   │       ├── password-utils.ts
+│   │   │       ├── validation.ts
+│   │   │       └── security-logging.ts
+│   │   ├── 🐳 Dockerfile
+│   │   ├── 📦 package.json
+│   │   ├── 🧪 tests/
+│   │   └── 📚 docs/
+│   │
+│   ├── 🎯 operation-management/
+│   │   ├── src/
+│   │   │   ├── controllers/
+│   │   │   │   ├── campaign-controller.ts
+│   │   │   │   ├── target-controller.ts
+│   │   │   │   ├── task-controller.ts
+│   │   │   │   ├── evidence-controller.ts
+│   │   │   │   ├── bounty-tracking-controller.ts
+│   │   │   │   └── investigation-controller.ts
+│   │   │   ├── services/
+│   │   │   │   ├── campaign-service.ts
+│   │   │   │   ├── workflow-engine.ts
+│   │   │   │   ├── task-scheduler.ts
+│   │   │   │   ├── notification-service.ts
+│   │   │   │   ├── evidence-chain-custody.ts
+│   │   │   │   ├── legal-compliance-service.ts
+│   │   │   │   └── bounty-calculation-service.ts
+│   │   │   ├── models/
+│   │   │   │   ├── campaign.model.ts
+│   │   │   │   ├── target.model.ts
+│   │   │   │   ├── task.model.ts
+│   │   │   │   ├── evidence.model.ts
+│   │   │   │   ├── bounty.model.ts
+│   │   │   │   ├── investigation.model.ts
+│   │   │   │   └── criminal-network.model.ts
+│   │   │   └── workflows/
+│   │   │       ├── crypto-investigation.ts
+│   │   │       ├── predator-hunting.ts
+│   │   │       ├── network-mapping.ts
+│   │   │       ├── evidence-collection.ts
+│   │   │       ├── ignatova-specific-workflows.ts
+│   │   │       ├── blockchain-forensics.ts
+│   │   │       ├── voice-recognition-workflows.ts
+│   │   │       └── facial-recognition-workflows.ts
+│   │   ├── 🐳 Dockerfile
+│   │   ├── 📦 package.json
+│   │   └── 🧪 tests/
+│   │
+│   ├── 📊 intelligence-fusion/
+│   │   ├── src/
+│   │   │   ├── controllers/
+│   │   │   │   ├── fusion-controller.ts
+│   │   │   │   ├── correlation-controller.ts
+│   │   │   │   ├── analysis-controller.ts
+│   │   │   │   ├── audio-intelligence-controller.ts
+│   │   │   │   └── facial-recognition-controller.ts
+│   │   │   ├── services/
+│   │   │   │   ├── data-fusion.ts
+│   │   │   │   ├── correlation-engine.ts
+│   │   │   │   ├── pattern-detection.ts
+│   │   │   │   ├── real-time-processor.ts
+│   │   │   │   ├── voice-analysis-service.ts
+│   │   │   │   ├── face-recognition-service.ts
+│   │   │   │   ├── blockchain-correlation.ts
+│   │   │   │   └── criminal-network-analysis.ts
+│   │   │   ├── processors/
+│   │   │   │   ├── osint-processor.ts
+│   │   │   │   ├── geoint-processor.ts
+│   │   │   │   ├── sigint-processor.ts
+│   │   │   │   ├── blockchain-processor.ts
+│   │   │   │   ├── audio-processor.ts
+│   │   │   │   ├── image-processor.ts
+│   │   │   │   └── video-processor.ts
+│   │   │   └── algorithms/
+│   │   │       ├── network-analysis.ts
+│   │   │       ├── behavioral-analysis.ts
+│   │   │       ├── anomaly-detection.ts
+│   │   │       ├── risk-assessment.ts
+│   │   │       ├── voice-matching-algorithms.ts
+│   │   │       ├── facial-recognition-algorithms.ts
+│   │   │       └── predictive-modeling.ts
+│   │   ├── 🐳 Dockerfile
+│   │   └── 📦 package.json
+│   │
+│   ├── 📈 analytics/
+│   │   ├── src/
+│   │   │   ├── controllers/
+│   │   │   │   ├── investigation-analytics.ts
+│   │   │   │   ├── threat-analytics.ts
+│   │   │   │   ├── performance-analytics.ts
+│   │   │   │   ├── bounty-analytics.ts
+│   │   │   │   └── predictive-analytics.ts
+│   │   │   ├── services/
+│   │   │   │   ├── data-mining.ts
+│   │   │   │   ├── statistical-analysis.ts
+│   │   │   │   ├── machine-learning.ts
+│   │   │   │   ├── behavioral-modeling.ts
+│   │   │   │   ├── success-rate-analysis.ts
+│   │   │   │   └── roi-calculation.ts
+│   │   │   ├── models/
+│   │   │   │   ├── analytics.model.ts
+│   │   │   │   ├── metrics.model.ts
+│   │   │   │   ├── performance.model.ts
+│   │   │   │   └── prediction.model.ts
+│   │   │   └── processors/
+│   │   │       ├── criminal-behavior-analysis.ts
+│   │   │       ├── network-evolution-tracking.ts
+│   │   │       ├── investigation-success-prediction.ts
+│   │   │       └── resource-optimization.ts
+│   │   ├── ml-models/
+│   │   │   ├── criminal-classification/
+│   │   │   ├── behavior-prediction/
+│   │   │   ├── network-analysis/
+│   │   │   └── risk-assessment/
+│   │   ├── data-pipelines/
+│   │   │   ├── streaming-analytics/
+│   │   │   ├── batch-processing/
+│   │   │   ├── real-time-scoring/
+│   │   │   └── predictive-pipelines/
+│   │   └── visualization/
+│   │       ├── dashboard-components/
+│   │       ├── chart-generators/
+│   │       ├── network-visualizations/
+│   │       └── geospatial-displays/
+│   │
+│   ├── 🔔 notification/
+│   │   ├── src/
+│   │   │   ├── services/
+│   │   │   │   ├── email-service.ts
+│   │   │   │   ├── sms-service.ts
+│   │   │   │   ├── slack-service.ts
+│   │   │   │   ├── webhook-service.ts
+│   │   │   │   ├── emergency-alert-service.ts
+│   │   │   │   ├── law-enforcement-notification.ts
+│   │   │   │   └── bounty-alert-service.ts
+│   │   │   ├── templates/
+│   │   │   │   ├── email-templates/
+│   │   │   │   │   ├── evidence-discovery.html
+│   │   │   │   │   ├── target-sighting.html
+│   │   │   │   │   ├── voice-match-alert.html
+│   │   │   │   │   └── facial-recognition-match.html
+│   │   │   │   ├── sms-templates/
+│   │   │   │   │   ├── urgent-alerts.txt
+│   │   │   │   │   ├── investigation-updates.txt
+│   │   │   │   │   └── bounty-notifications.txt
+│   │   │   │   └── slack-templates/
+│   │   │   │       ├── investigation-channels/
+│   │   │   │       ├── alert-formats/
+│   │   │   │       └── collaboration-templates/
+│   │   │   └── queue/
+│   │   │       ├── notification-queue.ts
+│   │   │       ├── priority-handler.ts
+│   │   │       ├── emergency-escalation.ts
+│   │   │       └── delivery-tracking.ts
+│   │   └── 📦 package.json
+│   │
+│   ├── 📝 reporting/
+│   │   ├── src/
+│   │   │   ├── generators/
+│   │   │   │   ├── pdf-generator.ts
+│   │   │   │   ├── docx-generator.ts
+│   │   │   │   ├── excel-generator.ts
+│   │   │   │   ├── html-generator.ts
+│   │   │   │   ├── legal-report-generator.ts
+│   │   │   │   └── evidence-summary-generator.ts
+│   │   │   ├── templates/
+│   │   │   │   ├── investigation-report.hbs
+│   │   │   │   ├── evidence-summary.hbs
+│   │   │   │   ├── technical-analysis.hbs
+│   │   │   │   ├── executive-summary.hbs
+│   │   │   │   ├── legal-compliance-report.hbs
+│   │   │   │   ├── bounty-claim-documentation.hbs
+│   │   │   │   ├── chain-of-custody-report.hbs
+│   │   │   │   └── court-ready-evidence.hbs
+│   │   │   ├── formatters/
+│   │   │   │   ├── legal-formatting.ts
+│   │   │   │   ├── evidence-formatting.ts
+│   │   │   │   ├── technical-formatting.ts
+│   │   │   │   └── compliance-formatting.ts
+│   │   │   └── exporters/
+│   │   │       ├── court-document-export.ts
+│   │   │       ├── law-enforcement-export.ts
+│   │   │       ├── bounty-claim-export.ts
+│   │   │       └── encrypted-export.ts
+│   │   └── 📦 package.json
+│   │
+│   ├── 🗄️ file-storage/
+│   │   ├── src/
+│   │   │   ├── services/
+│   │   │   │   ├── s3-service.ts
+│   │   │   │   ├── local-storage.ts
+│   │   │   │   ├── encryption.ts
+│   │   │   │   ├── compression.ts
+│   │   │   │   ├── evidence-storage.ts
+│   │   │   │   ├── blockchain-storage.ts
+│   │   │   │   ├── audio-file-storage.ts
+│   │   │   │   └── image-storage.ts
+│   │   │   ├── controllers/
+│   │   │   │   ├── file-controller.ts
+│   │   │   │   ├── evidence-controller.ts
+│   │   │   │   ├── media-controller.ts
+│   │   │   │   └── blockchain-data-controller.ts
+│   │   │   └── middleware/
+│   │   │       ├── file-validation.ts
+│   │   │       ├── virus-scanning.ts
+│   │   │       ├── chain-of-custody.ts
+│   │   │       └── forensic-integrity.ts
+│   │   └── 📦 package.json
+│   │
+│   ├── 🔍 search/
+│   │   ├── src/
+│   │   │   ├── services/
+│   │   │   │   ├── elasticsearch.ts
+│   │   │   │   ├── vector-search.ts
+│   │   │   │   ├── graph-search.ts
+│   │   │   │   ├── full-text-search.ts
+│   │   │   │   ├── voice-search.ts
+│   │   │   │   ├── image-search.ts
+│   │   │   │   ├── blockchain-search.ts
+│   │   │   │   └── criminal-network-search.ts
+│   │   │   ├── indexers/
+│   │   │   │   ├── evidence-indexer.ts
+│   │   │   │   ├── audio-indexer.ts
+│   │   │   │   ├── image-indexer.ts
+│   │   │   │   ├── blockchain-indexer.ts
+│   │   │   │   └── communication-indexer.ts
+│   │   │   └── analyzers/
+│   │   │       ├── content-analyzer.ts
+│   │   │       ├── semantic-analyzer.ts
+│   │   │       ├── forensic-analyzer.ts
+│   │   │       └── pattern-analyzer.ts
+│   │   └── 📦 package.json
+│   │
+│   ├── 🎤 audio-processing/
+│   │   ├── src/
+│   │   │   ├── services/
+│   │   │   │   ├── whisper-service.ts
+│   │   │   │   ├── resemblyzer-service.ts
+│   │   │   │   ├── speechbrain-service.ts
+│   │   │   │   ├── voice-matching-service.ts
+│   │   │   │   ├── accent-analysis-service.ts
+│   │   │   │   ├── multilingual-processing.ts
+│   │   │   │   └── real-time-voice-monitoring.ts
+│   │   │   ├── controllers/
+│   │   │   │   ├── voice-analysis-controller.ts
+│   │   │   │   ├── audio-surveillance-controller.ts
+│   │   │   │   ├── transcription-controller.ts
+│   │   │   │   └── voice-matching-controller.ts
+│   │   │   ├── processors/
+│   │   │   │   ├── audio-preprocessor.ts
+│   │   │   │   ├── noise-reduction.ts
+│   │   │   │   ├── voice-enhancement.ts
+│   │   │   │   ├── speaker-separation.ts
+│   │   │   │   └── feature-extraction.ts
+│   │   │   └── models/
+│   │   │       ├── voice-profile.model.ts
+│   │   │       ├── audio-analysis.model.ts
+│   │   │       ├── transcription.model.ts
+│   │   │       └── voice-match.model.ts
+│   │   └── 📦 package.json
+│   │
+│   ├── 👤 facial-recognition/
+│   │   ├── src/
+│   │   │   ├── services/
+│   │   │   │   ├── face-recognition-service.ts
+│   │   │   │   ├── face-encoding-service.ts
+│   │   │   │   ├── face-comparison-service.ts
+│   │   │   │   ├── real-time-detection.ts
+│   │   │   │   ├── batch-processing.ts
+│   │   │   │   ├── age-progression.ts
+│   │   │   │   └── plastic-surgery-analysis.ts
+│   │   │   ├── controllers/
+│   │   │   │   ├── face-analysis-controller.ts
+│   │   │   │   ├── surveillance-controller.ts
+│   │   │   │   ├── comparison-controller.ts
+│   │   │   │   └── identification-controller.ts
+│   │   │   ├── processors/
+│   │   │   │   ├── image-preprocessor.ts
+│   │   │   │   ├── face-detector.ts
+│   │   │   │   ├── feature-extractor.ts
+│   │   │   │   ├── quality-assessor.ts
+│   │   │   │   └── similarity-calculator.ts
+│   │   │   └── models/
+│   │   │       ├── face-profile.model.ts
+│   │   │       ├── face-encoding.model.ts
+│   │   │       ├── detection-result.model.ts
+│   │   │       └── comparison-result.model.ts
+│   │   └── 📦 package.json
+│   │
+│   └── ₿ blockchain-forensics/
+│       ├── src/
+│       │   ├── services/
+│       │   │   ├── bitcoin-analysis.ts
+│       │   │   ├── ethereum-analysis.ts
+│       │   │   ├── altcoin-analysis.ts
+│       │   │   ├── wallet-clustering.ts
+│       │   │   ├── transaction-tracing.ts
+│       │   │   ├── exchange-monitoring.ts
+│       │   │   ├── onecoin-specific-analysis.ts
+│       │   │   └── mixing-service-detection.ts
+│       │   ├── controllers/
+│       │   │   ├── blockchain-controller.ts
+│       │   │   ├── wallet-controller.ts
+│       │   │   ├── transaction-controller.ts
+│       │   │   └── forensics-controller.ts
+│       │   ├── processors/
+│       │   │   ├── transaction-processor.ts
+│       │   │   ├── address-processor.ts
+│       │   │   ├── block-processor.ts
+│       │   │   └── network-processor.ts
+│       │   └── models/
+│       │       ├── blockchain.model.ts
+│       │       ├── transaction.model.ts
+│       │       ├── wallet.model.ts
+│       │       └── address.model.ts
+│       └── 📦 package.json
+
+🖥️ Enhanced Frontend Applications
+apollo/
+├── frontend/
+│   ├── 🎨 web-console/
+│   │   ├── src/
+│   │   │   ├── 📱 components/
+│   │   │   │   ├── common/
+│   │   │   │   │   ├── Layout/
+│   │   │   │   │   │   ├── Header.tsx
+│   │   │   │   │   │   ├── Sidebar.tsx
+│   │   │   │   │   │   ├── Navigation.tsx
+│   │   │   │   │   │   ├── Footer.tsx
+│   │   │   │   │   │   ├── CriminalDashboardLayout.tsx
+│   │   │   │   │   │   └── BountyHunterLayout.tsx
+│   │   │   │   │   ├── UI/
+│   │   │   │   │   │   ├── Button.tsx
+│   │   │   │   │   │   ├── Input.tsx
+│   │   │   │   │   │   ├── Modal.tsx
+│   │   │   │   │   │   ├── DataTable.tsx
+│   │   │   │   │   │   ├── Chart.tsx
+│   │   │   │   │   │   ├── Map.tsx
+│   │   │   │   │   │   ├── AudioPlayer.tsx
+│   │   │   │   │   │   ├── ImageViewer.tsx
+│   │   │   │   │   │   ├── VideoPlayer.tsx
+│   │   │   │   │   │   ├── NetworkGraph.tsx
+│   │   │   │   │   │   ├── Timeline.tsx
+│   │   │   │   │   │   └── EvidenceViewer.tsx
+│   │   │   │   │   ├── Forms/
+│   │   │   │   │   │   ├── InvestigationForm.tsx
+│   │   │   │   │   │   ├── TargetForm.tsx
+│   │   │   │   │   │   ├── EvidenceForm.tsx
+│   │   │   │   │   │   └── BountyClaimForm.tsx
+│   │   │   │   │   └── Loading/
+│   │   │   │   │       ├── Spinner.tsx
+│   │   │   │   │       ├── ProgressBar.tsx
+│   │   │   │   │       └── LoadingStates.tsx
+│   │   │   │   ├── investigation/
+│   │   │   │   │   ├── CampaignDashboard.tsx
+│   │   │   │   │   ├── TargetProfile.tsx
+│   │   │   │   │   ├── EvidenceViewer.tsx
+│   │   │   │   │   ├── TimelineView.tsx
+│   │   │   │   │   ├── NetworkGraph.tsx
+│   │   │   │   │   ├── CryptoCrimeDashboard.tsx
+│   │   │   │   │   ├── PredatorHuntingDashboard.tsx
+│   │   │   │   │   ├── IgnatovaTracker.tsx
+│   │   │   │   │   ├── OneCoinAnalysis.tsx
+│   │   │   │   │   ├── BountyProgress.tsx
+│   │   │   │   │   └── RewardCalculator.tsx
+│   │   │   │   ├── intelligence/
+│   │   │   │   │   ├── OSINTDashboard.tsx
+│   │   │   │   │   ├── GEOINTViewer.tsx
+│   │   │   │   │   ├── SIGINTAnalysis.tsx
+│   │   │   │   │   ├── BlockchainAnalyzer.tsx
+│   │   │   │   │   ├── ThreatIntelligence.tsx
+│   │   │   │   │   ├── SocialMediaIntel.tsx
+│   │   │   │   │   ├── DarkWebMonitor.tsx
+│   │   │   │   │   ├── VoiceRecognitionConsole.tsx
+│   │   │   │   │   ├── FacialRecognitionDashboard.tsx
+│   │   │   │   │   ├── AudioSurveillanceCenter.tsx
+│   │   │   │   │   ├── GeolocationIntelligence.tsx
+│   │   │   │   │   ├── TransportationTracking.tsx
+│   │   │   │   │   └── CommunicationInterception.tsx
+│   │   │   │   ├── operations/
+│   │   │   │   │   ├── C2Dashboard.tsx
+│   │   │   │   │   ├── PayloadManager.tsx
+│   │   │   │   │   ├── SessionManager.tsx
+│   │   │   │   │   ├── TaskScheduler.tsx
+│   │   │   │   │   ├── VillagerConsole.tsx
+│   │   │   │   │   ├── CriminalNetworkOps.tsx
+│   │   │   │   │   ├── InfrastructureDisruption.tsx
+│   │   │   │   │   ├── EvidenceCollection.tsx
+│   │   │   │   │   └── LegalComplianceMonitor.tsx
+│   │   │   │   ├── analytics/
+│   │   │   │   │   ├── AnalyticsDashboard.tsx
+│   │   │   │   │   ├── ReportGenerator.tsx
+│   │   │   │   │   ├── MetricsViewer.tsx
+│   │   │   │   │   ├── Visualizations.tsx
+│   │   │   │   │   ├── PredictiveAnalytics.tsx
+│   │   │   │   │   ├── BehavioralAnalysis.tsx
+│   │   │   │   │   ├── NetworkEvolution.tsx
+│   │   │   │   │   ├── SuccessPrediction.tsx
+│   │   │   │   │   └── ROICalculator.tsx
+│   │   │   │   ├── ai-tools/
+│   │   │   │   │   ├── BugTraceConsole.tsx
+│   │   │   │   │   ├── VillagerInterface.tsx
+│   │   │   │   │   ├── PredictiveAnalysis.tsx
+│   │   │   │   │   ├── AIChat.tsx
+│   │   │   │   │   ├── VoiceAnalysisAI.tsx
+│   │   │   │   │   ├── FaceRecognitionAI.tsx
+│   │   │   │   │   ├── BehavioralModelingAI.tsx
+│   │   │   │   │   ├── CriminalProfilingAI.tsx
+│   │   │   │   │   └── InvestigationAssistantAI.tsx
+│   │   │   │   ├── audio-intelligence/
+│   │   │   │   │   ├── VoiceAnalysisDashboard.tsx
+│   │   │   │   │   ├── AudioSurveillanceCenter.tsx
+│   │   │   │   │   ├── SpeechRecognitionConsole.tsx
+│   │   │   │   │   ├── VoiceMatchingInterface.tsx
+│   │   │   │   │   ├── AccentAnalysis.tsx
+│   │   │   │   │   ├── MultilingualProcessor.tsx
+│   │   │   │   │   ├── CommunicationInterception.tsx
+│   │   │   │   │   ├── ConferenceMonitoring.tsx
+│   │   │   │   │   └── RealTimeVoiceAlert.tsx
+│   │   │   │   ├── facial-recognition/
+│   │   │   │   │   ├── FaceRecognitionDashboard.tsx
+│   │   │   │   │   ├── FaceComparisonInterface.tsx
+│   │   │   │   │   ├── SurveillanceMonitor.tsx
+│   │   │   │   │   ├── BatchFaceProcessing.tsx
+│   │   │   │   │   ├── RealTimeFaceDetection.tsx
+│   │   │   │   │   ├── AgeProgressionAnalysis.tsx
+│   │   │   │   │   ├── PlasticSurgeryDetection.tsx
+│   │   │   │   │   ├── FaceProfileManager.tsx
+│   │   │   │   │   └── IdentificationAlerts.tsx
+│   │   │   │   └── blockchain-forensics/
+│   │   │   │       ├── BlockchainAnalyzer.tsx
+│   │   │   │       ├── WalletTracker.tsx
+│   │   │   │       ├── TransactionAnalysis.tsx
+│   │   │   │       ├── CryptoForensics.tsx
+│   │   │   │       ├── OneCoinSpecificAnalysis.tsx
+│   │   │   │       ├── ExchangeMonitoring.tsx
+│   │   │   │       ├── MixingServiceDetection.tsx
+│   │   │   │       ├── CriminalWalletClustering.tsx
+│   │   │   │       └── MoneyLaunderingDetection.tsx
+│   │   │   ├── 📄 pages/
+│   │   │   │   ├── Dashboard/
+│   │   │   │   │   ├── MainDashboard.tsx
+│   │   │   │   │   ├── CryptoDashboard.tsx
+│   │   │   │   │   ├── PredatorDashboard.tsx
+│   │   │   │   │   ├── BountyHunterDashboard.tsx
+│   │   │   │   │   ├── IgnatovaDashboard.tsx
+│   │   │   │   │   ├── FBIMostWantedDashboard.tsx
+│   │   │   │   │   └── InvestigationOverview.tsx
+│   │   │   │   ├── Investigations/
+│   │   │   │   │   ├── CampaignList.tsx
+│   │   │   │   │   ├── CampaignDetails.tsx
+│   │   │   │   │   ├── TargetManagement.tsx
+│   │   │   │   │   ├── EvidenceManagement.tsx
+│   │   │   │   │   ├── CriminalNetworkMapping.tsx
+│   │   │   │   │   ├── BountyTracking.tsx
+│   │   │   │   │   ├── LegalCompliance.tsx
+│   │   │   │   │   └── ChainOfCustody.tsx
+│   │   │   │   ├── Intelligence/
+│   │   │   │   │   ├── OSINTCenter.tsx
+│   │   │   │   │   ├── GEOINTCenter.tsx
+│   │   │   │   │   ├── SIGINTCenter.tsx
+│   │   │   │   │   ├── ThreatIntel.tsx
+│   │   │   │   │   ├── VoiceIntelligence.tsx
+│   │   │   │   │   ├── FacialIntelligence.tsx
+│   │   │   │   │   ├── BlockchainIntelligence.tsx
+│   │   │   │   │   ├── SocialMediaIntelligence.tsx
+│   │   │   │   │   ├── DarkWebIntelligence.tsx
+│   │   │   │   │   └── CommunicationIntelligence.tsx
+│   │   │   │   ├── Operations/
+│   │   │   │   │   ├── C2Operations.tsx
+│   │   │   │   │   ├── ActiveSessions.tsx
+│   │   │   │   │   ├── PayloadFactory.tsx
+│   │   │   │   │   ├── InfrastructureOps.tsx
+│   │   │   │   │   ├── VillagerOperations.tsx
+│   │   │   │   │   ├── CriminalInfiltration.tsx
+│   │   │   │   │   ├── EvidenceHarvesting.tsx
+│   │   │   │   │   ├── NetworkDisruption.tsx
+│   │   │   │   │   └── OperationalSecurity.tsx
+│   │   │   │   ├── Analytics/
+│   │   │   │   │   ├── InvestigationAnalytics.tsx
+│   │   │   │   │   ├── ThreatAnalytics.tsx
+│   │   │   │   │   ├── OperationalMetrics.tsx
+│   │   │   │   │   ├── Reports.tsx
+│   │   │   │   │   ├── PredictiveModeling.tsx
+│   │   │   │   │   ├── BehavioralAnalysis.tsx
+│   │   │   │   │   ├── SuccessRateAnalysis.tsx
+│   │   │   │   │   ├── ResourceOptimization.tsx
+│   │   │   │   │   └── BountyROI.tsx
+│   │   │   │   ├── Administration/
+│   │   │   │   │   ├── UserManagement.tsx
+│   │   │   │   │   ├── RoleManagement.tsx
+│   │   │   │   │   ├── SystemConfig.tsx
+│   │   │   │   │   ├── AuditLogs.tsx
+│   │   │   │   │   ├── LegalCompliance.tsx
+│   │   │   │   │   ├── JurisdictionManagement.tsx
+│   │   │   │   │   ├── ClearanceLevels.tsx
+│   │   │   │   │   └── InternationalCooperation.tsx
+│   │   │   │   └── Settings/
+│   │   │   │       ├── Profile.tsx
+│   │   │   │       ├── Preferences.tsx
+│   │   │   │       ├── APIKeys.tsx
+│   │   │   │       ├── Integrations.tsx
+│   │   │   │       ├── VoiceSettings.tsx
+│   │   │   │       ├── FaceRecognitionSettings.tsx
+│   │   │   │       ├── SurveillancePreferences.tsx
+│   │   │   │       └── ComplianceSettings.tsx
+│   │   │   ├── 🔧 services/
+│   │   │   │   ├── api/
+│   │   │   │   │   ├── apollo-api.ts
+│   │   │   │   │   ├── auth-api.ts
+│   │   │   │   │   ├── investigation-api.ts
+│   │   │   │   │   ├── intelligence-api.ts
+│   │   │   │   │   ├── operations-api.ts
+│   │   │   │   │   ├── voice-analysis-api.ts
+│   │   │   │   │   ├── facial-recognition-api.ts
+│   │   │   │   │   ├── blockchain-forensics-api.ts
+│   │   │   │   │   ├── bounty-tracking-api.ts
+│   │   │   │   │   └── legal-compliance-api.ts
+│   │   │   │   ├── websocket/
+│   │   │   │   │   ├── real-time-client.ts
+│   │   │   │   │   ├── notification-client.ts
+│   │   │   │   │   ├── collaboration-client.ts
+│   │   │   │   │   ├── voice-alert-client.ts
+│   │   │   │   │   ├── face-detection-client.ts
+│   │   │   │   │   ├── surveillance-client.ts
+│   │   │   │   │   └── emergency-alert-client.ts
+│   │   │   │   ├── storage/
+│   │   │   │   │   ├── local-storage.ts
+│   │   │   │   │   ├── session-storage.ts
+│   │   │   │   │   ├── indexed-db.ts
+│   │   │   │   │   ├── evidence-storage.ts
+│   │   │   │   │   ├── audio-storage.ts
+│   │   │   │   │   └── image-storage.ts
+│   │   │   │   └── utils/
+│   │   │   │       ├── data-formatter.ts
+│   │   │   │       ├── validation.ts
+│   │   │   │       ├── crypto-utils.ts
+│   │   │   │       ├── date-utils.ts
+│   │   │   │       ├── audio-utils.ts
+│   │   │   │       ├── image-utils.ts
+│   │   │   │       ├── legal-utils.ts
+│   │   │   │       └── bounty-utils.ts
+│   │   │   ├── 🎨 styles/
+│   │   │   │   ├── globals.css
+│   │   │   │   ├── variables.css
+│   │   │   │   ├── components.css
+│   │   │   │   ├── investigation-themes.css
+│   │   │   │   ├── surveillance-themes.css
+│   │   │   │   ├── law-enforcement-themes.css
+│   │   │   │   └── themes/
+│   │   │   │       ├── default.css
+│   │   │   │       ├── dark.css
+│   │   │   │       ├── high-contrast.css
+│   │   │   │       ├── law-enforcement.css
+│   │   │   │       ├── bounty-hunter.css
+│   │   │   │       └── cyber-investigation.css
+│   │   │   ├── 🗂️ store/
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── auth-store.ts
+│   │   │   │   ├── investigation-store.ts
+│   │   │   │   ├── intelligence-store.ts
+│   │   │   │   ├── operations-store.ts
+│   │   │   │   ├── ui-store.ts
+│   │   │   │   ├── voice-analysis-store.ts
+│   │   │   │   ├── facial-recognition-store.ts
+│   │   │   │   ├── blockchain-store.ts
+│   │   │   │   ├── surveillance-store.ts
+│   │   │   │   ├── bounty-store.ts
+│   │   │   │   └── legal-compliance-store.ts
+│   │   │   ├── 🔗 hooks/
+│   │   │   │   ├── useAuth.ts
+│   │   │   │   ├── useWebSocket.ts
+│   │   │   │   ├── useInvestigation.ts
+│   │   │   │   ├── useIntelligence.ts
+│   │   │   │   ├── useOperations.ts
+│   │   │   │   ├── useVoiceAnalysis.ts
+│   │   │   │   ├── useFacialRecognition.ts
+│   │   │   │   ├── useBlockchainForensics.ts
+│   │   │   │   ├── useSurveillance.ts
+│   │   │   │   ├── useBountyTracking.ts
+│   │   │   │   ├── useRealTimeAlerts.ts
+│   │   │   │   └── useLegalCompliance.ts
+│   │   │   ├── 🛠️ utils/
+│   │   │   │   ├── constants.ts
+│   │   │   │   ├── helpers.ts
+│   │   │   │   ├── formatters.ts
+│   │   │   │   ├── validators.ts
+│   │   │   │   ├── audio-processing.ts
+│   │   │   │   ├── image-processing.ts
+│   │   │   │   ├── blockchain-utils.ts
+│   │   │   │   ├── evidence-utils.ts
+│   │   │   │   ├── legal-utils.ts
+│   │   │   │   └── bounty-calculations.ts
+│   │   │   └── 📝 types/
+│   │   │       ├── api.types.ts
+│   │   │       ├── investigation.types.ts
+│   │   │       ├── intelligence.types.ts
+│   │   │       ├── operations.types.ts
+│   │   │       ├── ui.types.ts
+│   │   │       ├── voice-analysis.types.ts
+│   │   │       ├── facial-recognition.types.ts
+│   │   │       ├── blockchain.types.ts
+│   │   │       ├── surveillance.types.ts
+│   │   │       ├── bounty.types.ts
+│   │   │       ├── legal.types.ts
+│   │   │       └── criminal-network.types.ts
+│   │   ├── 📦 package.json
+│   │   ├── 🔧 vite.config.ts
+│   │   ├── 🔧 tsconfig.json
+│   │   ├── 🔧 tailwind.config.js
+│   │   ├── 🐳 Dockerfile
+│   │   ├── 🧪 tests/
+│   │   └── 📚 docs/
+│   │
+│   ├── 📱 mobile-app/
+│   │   ├── src/
+│   │   │   ├── screens/
+│   │   │   │   ├── investigation/
+│   │   │   │   ├── surveillance/
+│   │   │   │   ├── voice-analysis/
+│   │   │   │   ├── facial-recognition/
+│   │   │   │   └── bounty-tracking/
+│   │   │   ├── components/
+│   │   │   │   ├── audio-recorder/
+│   │   │   │   ├── camera-capture/
+│   │   │   │   ├── real-time-alerts/
+│   │   │   │   └── field-evidence/
+│   │   │   ├── services/
+│   │   │   │   ├── mobile-surveillance/
+│   │   │   │   ├── offline-processing/
+│   │   │   │   ├── emergency-alerts/
+│   │   │   │   └── field-reporting/
+│   │   │   ├── store/
+│   │   │   └── utils/
+│   │   │Continue11:37 PM├── mobile-audio-processing/
+│   │   │       ├── mobile-image-processing/
+│   │   │       └── offline-sync/
+│   │   ├── android/
+│   │   │   ├── surveillance-modules/
+│   │   │   ├── audio-capture/
+│   │   │   ├── camera-integration/
+│   │   │   └── background-monitoring/
+│   │   ├── ios/
+│   │   │   ├── surveillance-modules/
+│   │   │   ├── audio-capture/
+│   │   │   ├── camera-integration/
+│   │   │   └── background-monitoring/
+│   │   ├── 📦 package.json
+│   │   └── 🧪 tests/
+│   │
+│   └── 🖥️ desktop-app/
+│       ├── src/
+│       │   ├── main/
+│       │   │   ├── surveillance-services/
+│       │   │   ├── audio-monitoring/
+│       │   │   ├── video-analysis/
+│       │   │   └── evidence-management/
+│       │   ├── renderer/
+│       │   │   ├── investigation-interface/
+│       │   │   ├── surveillance-dashboard/
+│       │   │   ├── analysis-tools/
+│       │   │   └── reporting-tools/
+│       │   └── shared/
+│       │       ├── criminal-databases/
+│       │       ├── forensic-tools/
+│       │       └── compliance-frameworks/
+│       ├── resources/
+│       │   ├── audio-models/
+│       │   ├── face-recognition-models/
+│       │   ├── criminal-databases/
+│       │   └── legal-templates/
+│       ├── 📦 package.json
+│       └── 🧪 tests/
+
+---
+
+## **💾 Enhanced Data & Infrastructure**
+apollo/
+├── infrastructure/
+│   ├── 🗄️ databases/
+│   │   ├── postgresql/
+│   │   │   ├── schemas/
+│   │   │   │   ├── users.sql
+│   │   │   │   ├── investigations.sql
+│   │   │   │   ├── targets.sql
+│   │   │   │   ├── evidence.sql
+│   │   │   │   ├── intelligence.sql
+│   │   │   │   ├── operations.sql
+│   │   │   │   ├── bounties.sql
+│   │   │   │   ├── criminal-networks.sql
+│   │   │   │   ├── voice-profiles.sql
+│   │   │   │   ├── face-profiles.sql
+│   │   │   │   ├── blockchain-data.sql
+│   │   │   │   ├── surveillance-logs.sql
+│   │   │   │   └── legal-compliance.sql
+│   │   │   ├── migrations/
+│   │   │   │   ├── 001-initial-schema.sql
+│   │   │   │   ├── 002-add-voice-recognition.sql
+│   │   │   │   ├── 003-add-facial-recognition.sql
+│   │   │   │   ├── 004-add-blockchain-forensics.sql
+│   │   │   │   ├── 005-add-bounty-system.sql
+│   │   │   │   └── 006-add-legal-compliance.sql
+│   │   │   ├── seeders/
+│   │   │   │   ├── fbi-most-wanted.sql
+│   │   │   │   ├── known-criminals.sql
+│   │   │   │   ├── voice-samples.sql
+│   │   │   │   ├── face-samples.sql
+│   │   │   │   └── blockchain-addresses.sql
+│   │   │   └── procedures/
+│   │   │       ├── investigation-workflows.sql
+│   │   │       ├── evidence-chain-custody.sql
+│   │   │       ├── voice-matching.sql
+│   │   │       ├── face-comparison.sql
+│   │   │       └── bounty-calculations.sql
+│   │   ├── timescaledb/
+│   │   │   ├── schemas/
+│   │   │   │   ├── blockchain_data.sql
+│   │   │   │   ├── surveillance_feeds.sql
+│   │   │   │   ├── communication_logs.sql
+│   │   │   │   ├── sensor_data.sql
+│   │   │   │   ├── audio_surveillance.sql
+│   │   │   │   ├── video_surveillance.sql
+│   │   │   │   ├── transaction_monitoring.sql
+│   │   │   │   ├── voice_recognition_logs.sql
+│   │   │   │   ├── facial_recognition_logs.sql
+│   │   │   │   └── real_time_alerts.sql
+│   │   │   ├── continuous-aggregates/
+│   │   │   │   ├── daily-surveillance-summary.sql
+│   │   │   │   ├── hourly-voice-matches.sql
+│   │   │   │   ├── facial-recognition-stats.sql
+│   │   │   │   ├── blockchain-activity-summary.sql
+│   │   │   │   └── investigation-progress.sql
+│   │   │   └── retention-policies/
+│   │   │       ├── surveillance-data-retention.sql
+│   │   │       ├── audio-logs-retention.sql
+│   │   │       ├── video-logs-retention.sql
+│   │   │       └── blockchain-data-retention.sql
+│   │   ├── neo4j/
+│   │   │   ├── graph-schemas/
+│   │   │   │   ├── criminal-networks.cypher
+│   │   │   │   ├── asset-relationships.cypher
+│   │   │   │   ├── communication-graphs.cypher
+│   │   │   │   ├── infrastructure-maps.cypher
+│   │   │   │   ├── blockchain-connections.cypher
+│   │   │   │   ├── voice-relationship-maps.cypher
+│   │   │   │   ├── facial-recognition-networks.cypher
+│   │   │   │   ├── onecoin-network-map.cypher
+│   │   │   │   ├── ignatova-connections.cypher
+│   │   │   │   └── bounty-hunter-networks.cypher
+│   │   │   ├── constraints/
+│   │   │   │   ├── criminal-identity-constraints.cypher
+│   │   │   │   ├── voice-profile-constraints.cypher
+│   │   │   │   ├── face-profile-constraints.cypher
+│   │   │   │   └── blockchain-address-constraints.cypher
+│   │   │   └── indexes/
+│   │   │       ├── criminal-search-indexes.cypher
+│   │   │       ├── voice-matching-indexes.cypher
+│   │   │       ├── facial-recognition-indexes.cypher
+│   │   │       └── blockchain-analysis-indexes.cypher
+│   │   ├── elasticsearch/
+│   │   │   ├── mappings/
+│   │   │   │   ├── investigations.json
+│   │   │   │   ├── evidence.json
+│   │   │   │   ├── intelligence.json
+│   │   │   │   ├── logs.json
+│   │   │   │   ├── voice-transcriptions.json
+│   │   │   │   ├── facial-recognition-results.json
+│   │   │   │   ├── blockchain-transactions.json
+│   │   │   │   ├── surveillance-data.json
+│   │   │   │   ├── criminal-profiles.json
+│   │   │   │   └── bounty-information.json
+│   │   │   ├── analyzers/
+│   │   │   │   ├── multilingual-analyzer.json
+│   │   │   │   ├── voice-pattern-analyzer.json
+│   │   │   │   ├── criminal-name-analyzer.json
+│   │   │   │   ├── blockchain-address-analyzer.json
+│   │   │   │   └── evidence-content-analyzer.json
+│   │   │   ├── pipelines/
+│   │   │   │   ├── voice-transcription-pipeline.json
+│   │   │   │   ├── facial-recognition-pipeline.json
+│   │   │   │   ├── blockchain-analysis-pipeline.json
+│   │   │   │   ├── evidence-processing-pipeline.json
+│   │   │   │   └── intelligence-fusion-pipeline.json
+│   │   │   └── templates/
+│   │   │       ├── investigation-template.json
+│   │   │       ├── surveillance-template.json
+│   │   │       ├── voice-analysis-template.json
+│   │   │       ├── facial-analysis-template.json
+│   │   │       └── blockchain-forensics-template.json
+│   │   ├── redis/
+│   │   │   ├── config/
+│   │   │   │   ├── redis.conf
+│   │   │   │   ├── cluster-config.conf
+│   │   │   │   ├── sentinel-config.conf
+│   │   │   │   └── security-config.conf
+│   │   │   ├── scripts/
+│   │   │   │   ├── voice-matching-cache.lua
+│   │   │   │   ├── facial-recognition-cache.lua
+│   │   │   │   ├── real-time-alerts.lua
+│   │   │   │   ├── investigation-session-management.lua
+│   │   │   │   └── surveillance-data-cache.lua
+│   │   │   └── lua/
+│   │   │       ├── rate-limiting.lua
+│   │   │       ├── session-management.lua
+│   │   │       ├── real-time-scoring.lua
+│   │   │       └── alert-distribution.lua
+│   │   ├── vector-db/
+│   │   │   ├── weaviate/
+│   │   │   │   ├── voice-embeddings-schema.json
+│   │   │   │   ├── face-embeddings-schema.json
+│   │   │   │   ├── criminal-profile-embeddings.json
+│   │   │   │   ├── evidence-embeddings.json
+│   │   │   │   └── intelligence-embeddings.json
+│   │   │   ├── pinecone/
+│   │   │   │   ├── voice-similarity-index.py
+│   │   │   │   ├── face-similarity-index.py
+│   │   │   │   ├── criminal-behavior-index.py
+│   │   │   │   └── evidence-similarity-index.py
+│   │   │   └── chroma/
+│   │   │       ├── voice-collection.py
+│   │   │       ├── face-collection.py
+│   │   │       ├── criminal-intelligence-collection.py
+│   │   │       └── evidence-collection.py
+│   │   └── specialized-databases/
+│   │       ├── audio-database/
+│   │       │   ├── voice-prints.db
+│   │       │   ├── audio-signatures.db
+│   │       │   ├── speech-patterns.db
+│   │       │   └── accent-profiles.db
+│   │       ├── image-database/
+│   │       │   ├── face-encodings.db
+│   │       │   ├── facial-features.db
+│   │       │   ├── biometric-data.db
+│   │       │   └── surveillance-images.db
+│   │       ├── blockchain-database/
+│   │       │   ├── transaction-graph.db
+│   │       │   ├── address-clusters.db
+│   │       │   ├── wallet-profiles.db
+│   │       │   └── exchange-data.db
+│   │       └── criminal-database/
+│   │           ├── fbi-most-wanted.db
+│   │           ├── interpol-red-notices.db
+│   │           ├── known-associates.db
+│   │           ├── criminal-networks.db
+│   │           └── bounty-targets.db
+│   │
+│   ├── ☁️ kubernetes/
+│   │   ├── namespaces/
+│   │   │   ├── apollo-system.yaml
+│   │   │   ├── apollo-intelligence.yaml
+│   │   │   ├── apollo-operations.yaml
+│   │   │   ├── apollo-analytics.yaml
+│   │   │   ├── apollo-surveillance.yaml
+│   │   │   ├── apollo-voice-processing.yaml
+│   │   │   ├── apollo-facial-recognition.yaml
+│   │   │   └── apollo-blockchain-forensics.yaml
+│   │   ├── deployments/
+│   │   │   ├── ai-engine/
+│   │   │   │   ├── bugtrace-ai-deployment.yaml
+│   │   │   │   ├── cyberspike-villager-deployment.yaml
+│   │   │   │   ├── criminal-behavior-ai-deployment.yaml
+│   │   │   │   └── predictive-analytics-deployment.yaml
+│   │   │   ├── intelligence-services/
+│   │   │   │   ├── osint-engine-deployment.yaml
+│   │   │   │   ├── geoint-engine-deployment.yaml
+│   │   │   │   ├── sigint-engine-deployment.yaml
+│   │   │   │   └── intelligence-fusion-deployment.yaml
+│   │   │   ├── operation-services/
+│   │   │   │   ├── c2-framework-deployment.yaml
+│   │   │   │   ├── reconnaissance-deployment.yaml
+│   │   │   │   ├── exploitation-deployment.yaml
+│   │   │   │   └── operational-security-deployment.yaml
+│   │   │   ├── databases/
+│   │   │   │   ├── postgresql-deployment.yaml
+│   │   │   │   ├── timescaledb-deployment.yaml
+│   │   │   │   ├── neo4j-deployment.yaml
+│   │   │   │   ├── elasticsearch-deployment.yaml
+│   │   │   │   ├── redis-deployment.yaml
+│   │   │   │   └── vector-db-deployment.yaml
+│   │   │   ├── audio-processing/
+│   │   │   │   ├── whisper-service-deployment.yaml
+│   │   │   │   ├── resemblyzer-service-deployment.yaml
+│   │   │   │   ├── speechbrain-service-deployment.yaml
+│   │   │   │   └── voice-matching-deployment.yaml
+│   │   │   ├── facial-recognition/
+│   │   │   │   ├── face-recognition-deployment.yaml
+│   │   │   │   ├── face-encoding-deployment.yaml
+│   │   │   │   ├── surveillance-monitoring-deployment.yaml
+│   │   │   │   └── batch-processing-deployment.yaml
+│   │   │   ├── blockchain-forensics/
+│   │   │   │   ├── bitcoin-analysis-deployment.yaml
+│   │   │   │   ├── ethereum-analysis-deployment.yaml
+│   │   │   │   ├── wallet-clustering-deployment.yaml
+│   │   │   │   └── transaction-tracing-deployment.yaml
+│   │   │   └── frontend/
+│   │   │       ├── web-console-deployment.yaml
+│   │   │       ├── mobile-app-backend-deployment.yaml
+│   │   │       └── desktop-app-services-deployment.yaml
+│   │   ├── services/
+│   │   │   ├── ai-services.yaml
+│   │   │   ├── intelligence-services.yaml
+│   │   │   ├── operation-services.yaml
+│   │   │   ├── database-services.yaml
+│   │   │   ├── audio-services.yaml
+│   │   │   ├── facial-recognition-services.yaml
+│   │   │   ├── blockchain-services.yaml
+│   │   │   └── frontend-services.yaml
+│   │   ├── ingress/
+│   │   │   ├── apollo-main-ingress.yaml
+│   │   │   ├── api-gateway-ingress.yaml
+│   │   │   ├── surveillance-ingress.yaml
+│   │   │   └── secure-access-ingress.yaml
+│   │   ├── configmaps/
+│   │   │   ├── apollo-config.yaml
+│   │   │   ├── surveillance-config.yaml
+│   │   │   ├── voice-processing-config.yaml
+│   │   │   ├── facial-recognition-config.yaml
+│   │   │   ├── blockchain-config.yaml
+│   │   │   └── legal-compliance-config.yaml
+│   │   ├── secrets/
+│   │   │   ├── apollo-secrets.yaml
+│   │   │   ├── database-credentials.yaml
+│   │   │   ├── api-keys.yaml
+│   │   │   ├── encryption-keys.yaml
+│   │   │   ├── surveillance-credentials.yaml
+│   │   │   └── law-enforcement-access.yaml
+│   │   ├── persistent-volumes/
+│   │   │   ├── apollo-data-pv.yaml
+│   │   │   ├── surveillance-storage-pv.yaml
+│   │   │   ├── audio-storage-pv.yaml
+│   │   │   ├── image-storage-pv.yaml
+│   │   │   ├── blockchain-data-pv.yaml
+│   │   │   └── evidence-storage-pv.yaml
+│   │   ├── network-policies/
+│   │   │   ├── apollo-network-policy.yaml
+│   │   │   ├── surveillance-network-policy.yaml
+│   │   │   ├── secure-communications-policy.yaml
+│   │   │   └── law-enforcement-access-policy.yaml
+│   │   ├── rbac/
+│   │   │   ├── apollo-rbac.yaml
+│   │   │   ├── investigation-roles.yaml
+│   │   │   ├── surveillance-roles.yaml
+│   │   │   ├── analyst-roles.yaml
+│   │   │   ├── law-enforcement-roles.yaml
+│   │   │   └── bounty-hunter-roles.yaml
+│   │   └── monitoring/
+│   │       ├── prometheus/
+│   │       │   ├── apollo-prometheus.yaml
+│   │       │   ├── surveillance-metrics.yaml
+│   │       │   ├── voice-processing-metrics.yaml
+│   │       │   ├── facial-recognition-metrics.yaml
+│   │       │   └── blockchain-metrics.yaml
+│   │       ├── grafana/
+│   │       │   ├── apollo-grafana.yaml
+│   │       │   ├── investigation-dashboards.yaml
+│   │       │   ├── surveillance-dashboards.yaml
+│   │       │   ├── performance-dashboards.yaml
+│   │       │   └── compliance-dashboards.yaml
+│   │       ├── jaeger/
+│   │       │   ├── apollo-tracing.yaml
+│   │       │   ├── investigation-tracing.yaml
+│   │       │   └── surveillance-tracing.yaml
+│   │       └── elk-stack/
+│   │           ├── elasticsearch/
+│   │           │   ├── apollo-elasticsearch.yaml
+│   │           │   ├── investigation-logs.yaml
+│   │           │   ├── surveillance-logs.yaml
+│   │           │   └── audit-logs.yaml
+│   │           ├── logstash/
+│   │           │   ├── apollo-logstash.yaml
+│   │           │   ├── log-processing-pipelines.yaml
+│   │           │   ├── surveillance-log-processing.yaml
+│   │           │   └── compliance-log-processing.yaml
+│   │           ├── kibana/
+│   │           │   ├── apollo-kibana.yaml
+│   │           │   ├── investigation-dashboards.yaml
+│   │           │   ├── surveillance-visualization.yaml
+│   │           │   └── compliance-reporting.yaml
+│   │           └── filebeat/
+│   │               ├── apollo-filebeat.yaml
+│   │               ├── surveillance-logs-collection.yaml
+│   │               └── audit-logs-collection.yaml
+│   │
+│   ├── 🐳 docker/
+│   │   ├── base-images/
+│   │   │   ├── node-alpine/
+│   │   │   │   ├── Dockerfile
+│   │   │   │   ├── surveillance-node.Dockerfile
+│   │   │   │   └── ai-processing-node.Dockerfile
+│   │   │   ├── python-slim/
+│   │   │   │   ├── Dockerfile
+│   │   │   │   ├── audio-processing.Dockerfile
+│   │   │   │   ├── facial-recognition.Dockerfile
+│   │   │   │   ├── blockchain-forensics.Dockerfile
+│   │   │   │   └── criminal-analysis.Dockerfile
+│   │   │   ├── golang-alpine/
+│   │   │   │   ├── Dockerfile
+│   │   │   │   ├── high-performance.Dockerfile
+│   │   │   │   └── surveillance-services.Dockerfile
+│   │   │   └── ubuntu-security/
+│   │   │       ├── Dockerfile
+│   │   │       ├── forensics-tools.Dockerfile
+│   │   │       ├── law-enforcement.Dockerfile
+│   │   │       └── compliance-tools.Dockerfile
+│   │   ├── development/
+│   │   │   ├── docker-compose.dev.yml
+│   │   │   ├── docker-compose.test.yml
+│   │   │   ├── docker-compose.debug.yml
+│   │   │   ├── docker-compose.surveillance-dev.yml
+│   │   │   └── docker-compose.ai-dev.yml
+│   │   ├── production/
+│   │   │   ├── docker-compose.prod.yml
+│   │   │   ├── docker-compose.ha.yml
+│   │   │   ├── docker-compose.scaling.yml
+│   │   │   ├── docker-compose.surveillance-prod.yml
+│   │   │   ├── docker-compose.law-enforcement.yml
+│   │   │   └── docker-compose.compliance.yml
+│   │   └── configs/
+│   │       ├── nginx/
+│   │       │   ├── nginx.conf
+│   │       │   ├── apollo-main.conf
+│   │       │   ├── surveillance-proxy.conf
+│   │       │   ├── api-gateway.conf
+│   │       │   └── secure-access.conf
+│   │       ├── postgresql/
+│   │       │   ├── postgresql.conf
+│   │       │   ├── apollo-config.conf
+│   │       │   ├── surveillance-db.conf
+│   │       │   └── compliance-db.conf
+│   │       ├── elasticsearch/
+│   │       │   ├── elasticsearch.yml
+│   │       │   ├── apollo-cluster.yml
+│   │       │   ├── surveillance-cluster.yml
+│   │       │   └── compliance-cluster.yml
+│   │       └── redis/
+│   │           ├── redis.conf
+│   │           ├── apollo-cache.conf
+│   │           ├── surveillance-cache.conf
+│   │           └── real-time-alerts.conf
+│   │
+│   ├── 🔄 ci-cd/
+│   │   ├── github-actions/
+│   │   │   ├── .github/workflows/
+│   │   │   │   ├── ci.yml
+│   │   │   │   ├── security-scan.yml
+│   │   │   │   ├── build-deploy.yml
+│   │   │   │   ├── test-suite.yml
+│   │   │   │   ├── release.yml
+│   │   │   │   ├── surveillance-tests.yml
+│   │   │   │   ├── voice-processing-tests.yml
+│   │   │   │   ├── facial-recognition-tests.yml
+│   │   │   │   ├── blockchain-tests.yml
+│   │   │   │   ├── compliance-checks.yml
+│   │   │   │   └── law-enforcement-approval.yml
+│   │   │   ├── surveillance-pipelines/
+│   │   │   ├── ai-model-pipelines/
+│   │   │   ├── forensics-pipelines/
+│   │   │   └── compliance-pipelines/
+│   │   ├── jenkins/
+│   │   │   ├── Jenkinsfile
+│   │   │   ├── surveillance-pipeline.groovy
+│   │   │   ├── ai-model-pipeline.groovy
+│   │   │   ├── forensics-pipeline.groovy
+│   │   │   ├── pipelines/
+│   │   │   └── shared-libraries/
+│   │   │       ├── apollo-lib.groovy
+│   │   │       ├── surveillance-lib.groovy
+│   │   │       ├── forensics-lib.groovy
+│   │   │       └── compliance-lib.groovy
+│   │   ├── gitlab-ci/
+│   │   │   ├── .gitlab-ci.yml
+│   │   │   ├── surveillance-ci.yml
+│   │   │   ├── ai-processing-ci.yml
+│   │   │   ├── forensics-ci.yml
+│   │   │   ├── stages/
+│   │   │   └── templates/
+│   │   └── scripts/
+│   │       ├── build.sh
+│   │       ├── test.sh
+│   │       ├── deploy.sh
+│   │       ├── security-scan.sh
+│   │       ├── surveillance-tests.sh
+│   │       ├── voice-processing-tests.sh
+│   │       ├── facial-recognition-tests.sh
+│   │       ├── blockchain-tests.sh
+│   │       ├── compliance-checks.sh
+│   │       └── rollback.sh
+│   │
+│   ├── 🌐 terraform/
+│   │   ├── environments/
+│   │   │   ├── development/
+│   │   │   │   ├── main.tf
+│   │   │   │   ├── surveillance-dev.tf
+│   │   │   │   ├── ai-processing-dev.tf
+│   │   │   │   └── variables.tf
+│   │   │   ├── staging/
+│   │   │   │   ├── main.tf
+│   │   │   │   ├── surveillance-staging.tf
+│   │   │   │   ├── ai-processing-staging.tf
+│   │   │   │   └── variables.tf
+│   │   │   ├── production/
+│   │   │   │   ├── main.tf
+│   │   │   │   ├── surveillance-prod.tf
+│   │   │   │   ├── ai-processing-prod.tf
+│   │   │   │   ├── law-enforcement-prod.tf
+│   │   │   │   ├── compliance-prod.tf
+│   │   │   │   └── variables.tf
+│   │   │   └── disaster-recovery/
+│   │   │       ├── main.tf
+│   │   │       ├── backup-systems.tf
+│   │   │       ├── recovery-procedures.tf
+│   │   │       └── variables.tf
+│   │   ├── modules/
+│   │   │   ├── vpc/
+│   │   │   ├── security-groups/
+│   │   │   ├── databases/
+│   │   │   ├── kubernetes/
+│   │   │   ├── monitoring/
+│   │   │   ├── backup/
+│   │   │   ├── surveillance-infrastructure/
+│   │   │   ├── ai-processing-infrastructure/
+│   │   │   ├── voice-processing-infrastructure/
+│   │   │   ├── facial-recognition-infrastructure/
+│   │   │   ├── blockchain-forensics-infrastructure/
+│   │   │   └── compliance-infrastructure/
+│   │   ├── providers/
+│   │   │   ├── aws/
+│   │   │   │   ├── apollo-aws.tf
+│   │   │   │   ├── surveillance-aws.tf
+│   │   │   │   ├── ai-processing-aws.tf
+│   │   │   │   └── compliance-aws.tf
+│   │   │   ├── azure/
+│   │   │   │   ├── apollo-azure.tf
+│   │   │   │   ├── surveillance-azure.tf
+│   │   │   │   └── law-enforcement-azure.tf
+│   │   │   ├── gcp/
+│   │   │   │   ├── apollo-gcp.tf
+│   │   │   │   ├── ai-processing-gcp.tf
+│   │   │   │   └── surveillance-gcp.tf
+│   │   │   └── on-premise/
+│   │   │       ├── apollo-on-prem.tf
+│   │   │       ├── law-enforcement-on-prem.tf
+│   │   │       └── air-gapped-systems.tf
+│   │   └── scripts/
+│   │       ├── deploy-surveillance.sh
+│   │       ├── deploy-ai-processing.sh
+│   │       ├── deploy-forensics.sh
+│   │       ├── setup-compliance.sh
+│   │       └── disaster-recovery-setup.sh
+│   │
+│   ├── 📊 monitoring/
+│   │   ├── prometheus/
+│   │   │   ├── config/
+│   │   │   │   ├── prometheus.yml
+│   │   │   │   ├── apollo-monitoring.yml
+│   │   │   │   ├── surveillance-monitoring.yml
+│   │   │   │   ├── voice-processing-monitoring.yml
+│   │   │   │   ├── facial-recognition-monitoring.yml
+│   │   │   │   └── blockchain-monitoring.yml
+│   │   │   ├── rules/
+│   │   │   │   ├── apollo-rules.yml
+│   │   │   │   ├── surveillance-rules.yml
+│   │   │   │   ├── ai-processing-rules.yml
+│   │   │   │   ├── forensics-rules.yml
+│   │   │   │   └── compliance-rules.yml
+│   │   │   └── alerts/
+│   │   │       ├── apollo-alerts.yml
+│   │   │       ├── surveillance-alerts.yml
+│   │   │       ├── voice-matching-alerts.yml
+│   │   │       ├── facial-recognition-alerts.yml
+│   │   │       ├── blockchain-alerts.yml
+│   │   │       ├── security-alerts.yml
+│   │   │       └── compliance-alerts.yml
+│   │   ├── grafana/
+│   │   │   ├── config/
+│   │   │   │   ├── grafana.ini
+│   │   │   │   ├── apollo-config.ini
+│   │   │   │   ├── surveillance-config.ini
+│   │   │   │   └── law-enforcement-config.ini
+│   │   │   ├── dashboards/
+│   │   │   │   ├── apollo-main-dashboard.json
+│   │   │   │   ├── investigation-dashboard.json
+│   │   │   │   ├── surveillance-dashboard.json
+│   │   │   │   ├── voice-analysis-dashboard.json
+│   │   │   │   ├── facial-recognition-dashboard.json
+│   │   │   │   ├── blockchain-forensics-dashboard.json
+│   │   │   │   ├── bounty-tracking-dashboard.json
+│   │   │   │   ├── performance-dashboard.json
+│   │   │   │   ├── security-dashboard.json
+│   │   │   │   └── compliance-dashboard.json
+│   │   │   ├── datasources/
+│   │   │   │   ├── prometheus-datasource.json
+│   │   │   │   ├── elasticsearch-datasource.json
+│   │   │   │   ├── postgres-datasource.json
+│   │   │   │   └── neo4j-datasource.json
+│   │   │   └── provisioning/
+│   │   │       ├── dashboards.yml
+│   │   │       ├── datasources.yml
+│   │   │       └── plugins.yml
+│   │   ├── jaeger/
+│   │   │   ├── config/
+│   │   │   │   ├── jaeger-config.yml
+│   │   │   │   ├── apollo-tracing.yml
+│   │   │   │   ├── surveillance-tracing.yml
+│   │   │   │   └── ai-processing-tracing.yml
+│   │   │   └── collectors/
+│   │   │       ├── apollo-collector.yml
+│   │   │       ├── surveillance-collector.yml
+│   │   │       └── forensics-collector.yml
+│   │   ├── elk-stack/
+│   │   │   ├── elasticsearch/
+│   │   │   │   ├── elasticsearch.yml
+│   │   │   │   ├── apollo-cluster.yml
+│   │   │   │   ├── surveillance-cluster.yml
+│   │   │   │   └── forensics-cluster.yml
+│   │   │   ├── logstash/
+│   │   │   │   ├── logstash.yml
+│   │   │   │   ├── apollo-pipeline.conf
+│   │   │   │   ├── surveillance-pipeline.conf
+│   │   │   │   ├── voice-processing-pipeline.conf
+│   │   │   │   ├── facial-recognition-pipeline.conf
+│   │   │   │   ├── blockchain-pipeline.conf
+│   │   │   │   └── compliance-pipeline.conf
+│   │   │   ├── kibana/
+│   │   │   │   ├── kibana.yml
+│   │   │   │   ├── apollo-config.yml
+│   │   │   │   ├── surveillance-config.yml
+│   │   │   │   └── forensics-config.yml
+│   │   │   └── filebeat/
+│   │   │       ├── filebeat.yml
+│   │   │       ├── apollo-logs.yml
+│   │   │       ├── surveillance-logs.yml
+│   │   │       ├── voice-processing-logs.yml
+│   │   │       ├── facial-recognition-logs.yml
+│   │   │       └── blockchain-logs.yml
+│   │   └── custom-metrics/
+│   │       ├── apollo-metrics-exporter.py
+│   │       ├── surveillance-metrics.py
+│   │       ├── voice-processing-metrics.py
+│   │       ├── facial-recognition-metrics.py
+│   │       ├── blockchain-metrics.py
+│   │       ├── bounty-tracking-metrics.py
+│   │       └── compliance-metrics.py
+│   │
+│   └── 🔐 security/
+│       ├── certificates/
+│       │   ├── ca/
+│       │   │   ├── apollo-ca.crt
+│       │   │   ├── surveillance-ca.crt
+│       │   │   ├── law-enforcement-ca.crt
+│       │   │   └── compliance-ca.crt
+│       │   ├── server/
+│       │   │   ├── apollo-server.crt
+│       │   │   ├── surveillance-server.crt
+│       │   │   ├── voice-processing-server.crt
+│       │   │   ├── facial-recognition-server.crt
+│       │   │   └── blockchain-server.crt
+│       │   ├── client/
+│       │   │   ├── apollo-client.crt
+│       │   │   ├── law-enforcement-client.crt
+│       │   │   ├── bounty-hunter-client.crt
+│       │   │   └── analyst-client.crt
+│       │   └── scripts/
+│       │       ├── generate-ca.sh
+│       │       ├── generate-server-cert.sh
+│       │       ├── generate-client-cert.sh
+│       │       └── renew-certificates.sh
+│       ├── secrets-management/
+│       │   ├── vault/
+│       │   │   ├── apollo-vault-config.hcl
+│       │   │   ├── surveillance-secrets-policy.hcl
+│       │   │   ├── voice-processing-policy.hcl
+│       │   │   ├── facial-recognition-policy.hcl
+│       │   │   ├── blockchain-policy.hcl
+│       │   │   └── law-enforcement-policy.hcl
+│       │   ├── sealed-secrets/
+│       │   │   ├── apollo-sealed-secrets.yaml
+│       │   │   ├── surveillance-sealed-secrets.yaml
+│       │   │   ├── database-sealed-secrets.yaml
+│       │   │   └── api-sealed-secrets.yaml
+│       │   └── external-secrets/
+│       │       ├── apollo-external-secrets.yaml
+│       │       ├── surveillance-external-secrets.yaml
+│       │       └── compliance-external-secrets.yaml
+│       ├── network-security/
+│       │   ├── firewalls/
+│       │   │   ├── apollo-firewall-rules.conf
+│       │   │   ├── surveillance-firewall.conf
+│       │   │   ├── law-enforcement-firewall.conf
+│       │   │   └── compliance-firewall.conf
+│       │   ├── vpn/
+│       │   │   ├── apollo-vpn-config.conf
+│       │   │   ├── surveillance-vpn.conf
+│       │   │   ├── law-enforcement-vpn.conf
+│       │   │   └── field-agent-vpn.conf
+│       │   ├── zero-trust/
+│       │   │   ├── apollo-zero-trust-policy.yaml
+│       │   │   ├── surveillance-access-policy.yaml
+│       │   │   ├── voice-processing-policy.yaml
+│       │   │   ├── facial-recognition-policy.yaml
+│       │   │   └── blockchain-access-policy.yaml
+│       │   └── network-policies/
+│       │       ├── apollo-network-policy.yaml
+│       │       ├── surveillance-network-policy.yaml
+│       │       ├── ai-processing-network-policy.yaml
+│       │       └── compliance-network-policy.yaml
+│       ├── compliance/
+│       │   ├── soc2/
+│       │   │   ├── apollo-soc2-controls.md
+│       │   │   ├── surveillance-soc2.md
+│       │   │   ├── data-protection-controls.md
+│       │   │   └── audit-procedures.md
+│       │   ├── iso27001/
+│       │   │   ├── apollo-iso27001-framework.md
+│       │   │   ├── information-security-policy.md
+│       │   │   ├── risk-management.md
+│       │   │   └── incident-response.md
+│       │   ├── gdpr/
+│       │   │   ├── apollo-gdpr-compliance.md
+│       │   │   ├── data-processing-agreements.md
+│       │   │   ├── privacy-impact-assessments.md
+│       │   │   └── consent-management.md
+│       │   ├── law-enforcement-compliance/
+│       │   │   ├── fbi-cooperation-framework.md
+│       │   │   ├── international-law-compliance.md
+│       │   │   ├── evidence-handling-procedures.md
+│       │   │   ├── chain-of-custody-protocols.md
+│       │   │   └── jurisdiction-requirements.md
+│       │   └── audit-logs/
+│       │       ├── apollo-audit-config.yml
+│       │       ├── surveillance-audit.yml
+│       │       ├── voice-processing-audit.yml
+│       │       ├── facial-recognition-audit.yml
+│       │       ├── blockchain-audit.yml
+│       │       └── compliance-audit.yml
+│       └── vulnerability-scanning/
+│           ├── container-scanning/
+│           │   ├── apollo-container-scan.yml
+│           │   ├── surveillance-scan.yml
+│           │   ├── ai-processing-scan.yml
+│           │   └── forensics-scan.yml
+│           ├── dependency-scanning/
+│           │   ├── apollo-dependency-scan.yml
+│           │   ├── python-dependencies.yml
+│           │   ├── node-dependencies.yml
+│           │   └── go-dependencies.yml
+│           ├── static-analysis/
+│           │   ├── apollo-sast.yml
+│           │   ├── surveillance-sast.yml
+│           │   ├── voice-processing-sast.yml
+│           │   └── facial-recognition-sast.yml
+│           └── dynamic-analysis/
+│               ├── apollo-dast.yml
+│               ├── surveillance-dast.yml
+│               ├── api-security-testing.yml
+│               └── penetration-testing.yml
+
+---
+
+## **🧪 Enhanced Testing & Quality**
+apollo/
+├── testing/
+│   ├── 🧪 unit-tests/
+│   │   ├── ai-engine/
+│   │   │   ├── bugtrace-ai-tests/
+│   │   │   ├── cyberspike-villager-tests/
+│   │   │   ├── criminal-behavior-ai-tests/
+│   │   │   └── predictive-analytics-tests/
+│   │   ├── intelligence/
+│   │   │   ├── osint-tests/
+│   │   │   ├── geoint-tests/
+│   │   │   ├── sigint-tests/
+│   │   │   ├── voice-recognition-tests/
+│   │   │   ├── facial-recognition-tests/
+│   │   │   └── blockchain-forensics-tests/
+│   │   ├── services/
+│   │   │   ├── authentication-tests/
+│   │   │   ├── operation-management-tests/
+│   │   │   ├── intelligence-fusion-tests/
+│   │   │   ├── audio-processing-tests/
+│   │   │   └── facial-recognition-tests/
+│   │   ├── frontend/
+│   │   │   ├── web-console-tests/
+│   │   │   ├── mobile-app-tests/
+│   │   │   └── desktop-app-tests/
+│   │   └── utils/
+│   │       ├── audio-utils-tests/
+│   │       ├── image-utils-tests/
+│   │       ├── blockchain-utils-tests/
+│   │       └── legal-utils-tests/
+│   │
+│   ├── 🔄 integration-tests/
+│   │   ├── api-tests/
+│   │   │   ├── investigation-api-tests/
+│   │   │   ├── surveillance-api-tests/
+│   │   │   ├── voice-analysis-api-tests/
+│   │   │   ├── facial-recognition-api-tests/
+│   │   │   └── blockchain-api-tests/
+│   │   ├── database-tests/
+│   │   │   ├── postgresql-integration/
+│   │   │   ├── timescaledb-integration/
+│   │   │   ├── neo4j-integration/
+│   │   │   ├── elasticsearch-integration/
+│   │   │   └── vector-db-integration/
+│   │   ├── ai-integration/
+│   │   │   ├── voice-recognition-integration/
+│   │   │   ├── facial-recognition-integration/
+│   │   │   ├── behavioral-analysis-integration/
+│   │   │   └── predictive-modeling-integration/
+│   │   ├── surveillance-integration/
+│   │   │   ├── real-time-monitoring-tests/
+│   │   │   ├── multi-source-correlation-tests/
+│   │   │   ├── alert-system-tests/
+│   │   │   └── evidence-chain-tests/
+│   │   └── workflow-tests/
+│   │       ├── investigation-workflows/
+│   │       ├── surveillance-workflows/
+│   │       ├── evidence-collection-workflows/
+│   │       └── legal-compliance-workflows/
+│   │
+│   ├── 🎭 e2e-tests/
+│   │   ├── investigation-workflows/
+│   │   │   ├── crypto-crime-investigation-e2e/
+│   │   │   ├── predator-hunting-e2e/
+│   │   │   ├── bounty-hunting-e2e/
+│   │   │   └── evidence-collection-e2e/
+│   │   ├── intelligence-collection/
+│   │   │   ├── osint-collection-e2e/
+│   │   │   ├── voice-surveillance-e2e/
+│   │   │   ├── facial-recognition-e2e/
+│   │   │   └── blockchain-forensics-e2e/
+│   │   ├── operation-execution/
+│   │   │   ├── c2-operations-e2e/
+│   │   │   ├── reconnaissance-e2e/
+│   │   │   ├── exploitation-e2e/
+│   │   │   └── evidence-harvesting-e2e/
+│   │   ├── surveillance-operations/
+│   │   │   ├── real-time-monitoring-e2e/
+│   │   │   ├── voice-detection-e2e/
+│   │   │   ├── facial-detection-e2e/
+│   │   │   └── alert-response-e2e/
+│   │   └── user-journeys/
+│   │       ├── law-enforcement-journey/
+│   │       ├── bounty-hunter-journey/
+│   │       ├── analyst-journey/
+│   │       └── investigator-journey/
+│   │
+│   ├── 📈 performance-tests/
+│   │   ├── load-testing/
+│   │   │   ├── investigation-load-tests/
+│   │   │   ├── surveillance-load-tests/
+│   │   │   ├── voice-processing-load-tests/
+│   │   │   ├── facial-recognition-load-tests/
+│   │   │   └── blockchain-analysis-load-tests/
+│   │   ├── stress-testing/
+│   │   │   ├── system-stress-tests/
+│   │   │   ├── database-stress-tests/
+│   │   │   ├── real-time-processing-stress/
+│   │   │   └── concurrent-surveillance-stress/
+│   │   ├── scalability-testing/
+│   │   │   ├── horizontal-scaling-tests/
+│   │   │   ├── vertical-scaling-tests/
+│   │   │   ├── multi-region-scaling/
+│   │   │   └── surveillance-network-scaling/
+│   │   └── ai-performance/
+│   │       ├── voice-recognition-performance/
+│   │       ├── facial-recognition-performance/
+│   │       ├── behavioral-analysis-performance/
+│   │       └── predictive-modeling-performance/
+│   │
+│   ├── 🔐 security-tests/
+│   │   ├── penetration-testing/
+│   │   │   ├── web-application-pentests/
+│   │   │   ├── api-penetration-tests/
+│   │   │   ├── network-penetration-tests/
+│   │   │   ├── surveillance-security-tests/
+│   │   │   └── evidence-integrity-tests/
+│   │   ├── vulnerability-assessment/
+│   │   │   ├── application-vulnerability-scans/
+│   │   │   ├── infrastructure-vulnerability-scans/
+│   │   │   ├── surveillance-system-scans/
+│   │   │   └── compliance-vulnerability-assessment/
+│   │   ├── compliance-testing/
+│   │   │   ├── law-enforcement-compliance-tests/
+│   │   │   ├── privacy-compliance-tests/
+│   │   │   ├── data-protection-tests/
+│   │   │   ├── chain-of-custody-tests/
+│   │   │   └── audit-trail-tests/
+│   │   └── red-team-exercises/
+│   │       ├── internal-red-team-tests/
+│   │       ├── surveillance-evasion-tests/
+│   │       ├── evidence-tampering-tests/
+│   │       └── operational-security-tests/
+│   │
+│   ├── 🤖 ai-testing/
+│   │   ├── model-validation/
+│   │   │   ├── voice-recognition-validation/
+│   │   │   ├── facial-recognition-validation/
+│   │   │   ├── behavioral-analysis-validation/
+│   │   │   ├── predictive-modeling-validation/
+│   │   │   └── criminal-profiling-validation/
+│   │   ├── prompt-testing/
+│   │   │   ├── bugtrace-ai-prompt-tests/
+│   │   │   ├── criminal-analysis-prompt-tests/
+│   │   │   ├── investigation-prompt-tests/
+│   │   │   └── surveillance-prompt-tests/
+│   │   ├── accuracy-metrics/
+│   │   │   ├── voice-matching-accuracy/
+│   │   │   ├── facial-recognition-accuracy/
+│   │   │   ├── behavioral-prediction-accuracy/
+│   │   │   ├── criminal-profiling-accuracy/
+│   │   │   └── investigation-success-rates/
+│   │   ├── bias-detection/
+│   │   │   ├── voice-recognition-bias-tests/
+│   │   │   ├── facial-recognition-bias-tests/
+│   │   │   ├── demographic-bias-analysis/
+│   │   │   ├── geographic-bias-analysis/
+│   │   │   └── investigative-bias-detection/
+│   │   └── adversarial-testing/
+│   │       ├── voice-spoofing-tests/
+│   │       ├── facial-spoofing-tests/
+│   │       ├── ai-evasion-tests/
+│   │       └── deepfake-detection-tests/
+│   │
+│   ├── 📊 test-data/
+│   │   ├── synthetic-datasets/
+│   │   │   ├── synthetic-voice-data/
+│   │   │   ├── synthetic-face-data/
+│   │   │   ├── synthetic-blockchain-data/
+│   │   │   ├── synthetic-criminal-networks/
+│   │   │   └── synthetic-investigation-data/
+│   │   ├── mock-intelligence/
+│   │   │   ├── mock-osint-data/
+│   │   │   ├── mock-surveillance-feeds/
+│   │   │   ├── mock-voice-samples/
+│   │   │   ├── mock-facial-data/
+│   │   │   └── mock-blockchain-transactions/
+│   │   ├── test-scenarios/
+│   │   │   ├── crypto-crime-scenarios/
+│   │   │   ├── predator-hunting-scenarios/
+│   │   │   ├── bounty-hunting-scenarios/
+│   │   │   ├── surveillance-scenarios/
+│   │   │   └── evidence-collection-scenarios/
+│   │   ├── compliance-datasets/
+│   │   │   ├── legal-compliance-test-data/
+│   │   │   ├── privacy-protection-data/
+│   │   │   ├── chain-of-custody-data/
+│   │   │   └── audit-trail-data/
+│   │   └── performance-datasets/
+│   │       ├── high-volume-surveillance-data/
+│   │       ├── concurrent-processing-data/
+│   │       ├── stress-test-data/
+│   │       └── scalability-test-data/
+│   │
+│   └── 🔧 test-utilities/
+│       ├── fixtures/
+│       │   ├── investigation-fixtures/
+│       │   ├── surveillance-fixtures/
+│       │   ├── voice-analysis-fixtures/
+│       │   ├── facial-recognition-fixtures/
+│       │   └── blockchain-fixtures/
+│       ├── mocks/
+│       │   ├── ai-service-mocks/
+│       │   ├── surveillance-service-mocks/
+│       │   ├── database-mocks/
+│       │   ├── external-api-mocks/
+│       │   └── law-enforcement-mocks/
+│       ├── helpers/
+│       │   ├── test-data-generators/
+│       │   ├── assertion-helpers/
+│       │   ├── surveillance-test-helpers/
+│       │   ├── voice-test-helpers/
+│       │   ├── facial-test-helpers/
+│       │   └── blockchain-test-helpers/
+│       └── generators/
+│           ├── investigation-data-generator/
+│           ├── surveillance-data-generator/
+│           ├── criminal-network-generator/
+│           ├── evidence-generator/
+│           └── compliance-data-generator/
+
+---
+
+## **📚 Enhanced Documentation & Tools**
+apollo/
+├── docs/
+│   ├── 📖 user-guides/
+│   │   ├── getting-started/
+│   │   │   ├── installation.md
+│   │   │   ├── quick-start.md
+│   │   │   ├── first-investigation.md
+│   │   │   ├── basic-concepts.md
+│   │   │   ├── voice-recognition-setup.md
+│   │   │   ├── facial-recognition-setup.md
+│   │   │   └── legal-compliance-overview.md
+│   │   ├── crypto-investigations/
+│   │   │   ├── blockchain-analysis.md
+│   │   │   ├── wallet-tracking.md
+│   │   │   ├── exchange-investigation.md
+│   │   │   ├── money-laundering-detection.md
+│   │   │   ├── onecoin-specific-analysis.md
+│   │   │   ├── ignatova-hunting-guide.md
+│   │   │   └── crypto-bounty-hunting.md
+│   │   ├── predator-hunting/
+│   │   │   ├── osint-techniques.md
+│   │   │   ├── social-media-analysis.md
+│   │   │   ├── communication-monitoring.md
+│   │   │   ├── evidence-preservation.md
+│   │   │   ├── trafficking-network-analysis.md
+│   │   │   └── victim-identification.md
+│   │   ├── intelligence-collection/
+│   │   │   ├── osint-guide.md
+│   │   │   ├── geoint-operations.md
+│   │   │   ├── sigint-analysis.md
+│   │   │   ├── data-fusion.md
+│   │   │   ├── voice-intelligence-gathering.md
+│   │   │   ├── facial-intelligence-operations.md
+│   │   │   ├── surveillance-network-setup.md
+│   │   │   └── multi-source-correlation.md
+│   │   ├── red-team-operations/
+│   │   │   ├── c2-operations.md
+│   │   │   ├── payload-development.md
+│   │   │   ├── evasion-techniques.md
+│   │   │   ├── operational-security.md
+│   │   │   ├── cyberspike-villager-guide.md
+│   │   │   ├── criminal-infiltration.md
+│   │   │   └── evidence-harvesting.md
+│   │   ├── ai-tools/
+│   │   │   ├── bugtrace-ai-guide.md
+│   │   │   ├── villager-operations.md
+│   │   │   ├── behavioral-analysis.md
+│   │   │   ├── predictive-analytics.md
+│   │   │   ├── voice-recognition-guide.md
+│   │   │   ├── facial-recognition-guide.md
+│   │   │   ├── criminal-profiling-ai.md
+│   │   │   └── investigation-assistant-ai.md
+│   │   ├── surveillance-operations/
+│   │   │   ├── real-time-monitoring.md
+│   │   │   ├── voice-surveillance.md
+│   │   │   ├── facial-surveillance.md
+│   │   │   ├── communication-interception.md
+│   │   │   ├── multi-modal-surveillance.md
+│   │   │   ├── global-surveillance-networks.md
+│   │   │   └── surveillance-ethics-guidelines.md
+│   │   ├── bounty-hunting/
+│   │   │   ├── fbi-most-wanted-guide.md
+│   │   │   ├── reward-calculation.md
+│   │   │   ├── evidence-requirements.md
+│   │   │   ├── legal-claim-process.md
+│   │   │   ├── international-cooperation.md
+│   │   │   └── success-strategies.md
+│   │   └── legal-compliance/
+│   │       ├── law-enforcement-cooperation.md
+│   │       ├── evidence-handling-procedures.md
+│   │       ├── chain-of-custody-protocols.md
+│   │       ├── privacy-protection-guidelines.md
+│   │       ├── international-law-compliance.md
+│   │       ├── jurisdiction-requirements.md
+│   │       └── court-admissible-evidence.md
+│   │
+│   ├── 🔧 technical-docs/
+│   │   ├── architecture/
+│   │   │   ├── system-overview.md
+│   │   │   ├── microservices.md
+│   │   │   ├── data-flow.md
+│   │   │   ├── security-architecture.md
+│   │   │   ├── scalability.md
+│   │   │   ├── ai-architecture.md
+│   │   │   ├── surveillance-architecture.md
+│   │   │   ├── voice-processing-architecture.md
+│   │   │   ├── facial-recognition-architecture.md
+│   │   │   └── blockchain-forensics-architecture.md
+│   │   ├── api-reference/
+│   │   │   ├── authentication-api.md
+│   │   │   ├── investigation-api.md
+│   │   │   ├── intelligence-api.md
+│   │   │   ├── operations-api.md
+│   │   │   ├── analytics-api.md
+│   │   │   ├── voice-analysis-api.md
+│   │   │   ├── facial-recognition-api.md
+│   │   │   ├── blockchain-forensics-api.md
+│   │   │   ├── surveillance-api.md
+│   │   │   └── bounty-tracking-api.md
+│   │   ├── integration-guides/
+│   │   │   ├── third-party-tools.md
+│   │   │   ├── custom-modules.md
+│   │   │   ├── webhook-integration.md
+│   │   │   ├── api-integration.md
+│   │   │   ├── law-enforcement-integration.md
+│   │   │   ├── voice-recognition-integration.md
+│   │   │   ├── facial-recognition-integration.md
+│   │   │   └── blockchain-analysis-integration.md
+│   │   ├── deployment/
+│   │   │   ├── production-deployment.md
+│   │   │   ├── kubernetes-setup.md
+│   │   │   ├── docker-deployment.md
+│   │   │   ├── cloud-deployment.md
+│   │   │   ├── on-premise-setup.md
+│   │   │   ├── law-enforcement-deployment.md
+│   │   │   ├── surveillance-network-deployment.md
+│   │   │   └── high-availability-setup.md
+│   │   ├── ai-models/
+│   │   │   ├── voice-recognition-models.md
+│   │   │   ├── facial-recognition-models.md
+│   │   │   ├── behavioral-analysis-models.md
+│   │   │   ├── predictive-modeling.md
+│   │   │   ├── criminal-profiling-models.md
+│   │   │   ├── model-training-procedures.md
+│   │   │   └── model-performance-optimization.md
+│   │   └── troubleshooting/
+│   │       ├── common-issues.md
+│   │       ├── performance-tuning.md
+│   │       ├── debugging-guide.md
+│   │       ├── support.md
+│   │       ├── surveillance-troubleshooting.md
+│   │       ├── voice-processing-issues.md
+│   │       ├── facial-recognition-issues.md
+│   │       └── blockchain-analysis-issues.md
+│   │
+│   ├── 👨‍💻 developer-docs/
+│   │   ├── contributing/
+│   │   │   ├── code-standards.md
+│   │   │   ├── pull-request-process.md
+│   │   │   ├── testing-guidelines.md
+│   │   │   ├── security-review.md
+│   │   │   ├── ai-model-contributions.md
+│   │   │   ├── surveillance-module-development.md
+│   │   │   └── compliance-requirements.md
+│   │   ├── development-setup/
+│   │   │   ├── local-environment.md
+│   │   │   ├── ide-setup.md
+│   │   │   ├── debugging.md
+│   │   │   ├── hot-reload.md
+│   │   │   ├── surveillance-dev-environment.md
+│   │   │   ├── ai-development-setup.md
+│   │   │   └── testing-environment-setup.md
+│   │   ├── architecture-decisions/
+│   │   │   ├── adr-001-microservices.md
+│   │   │   ├── adr-002-ai-integration.md
+│   │   │   ├── adr-003-database-choice.md
+│   │   │   ├── adr-004-security-model.md
+│   │   │   ├── adr-005-voice-recognition-framework.md
+│   │   │   ├── adr-006-facial-recognition-architecture.md
+│   │   │   ├── adr-007-surveillance-network-design.md
+│   │   │   ├── adr-008-blockchain-forensics-approach.md
+│   │   │   └── adr-009-legal-compliance-framework.md
+│   │   ├── code-examples/
+│   │   │   ├── custom-analyzers.md
+│   │   │   ├── intelligence-plugins.md
+│   │   │   ├── ai-model-integration.md
+│   │   │   ├── workflow-extensions.md
+│   │   │   ├── voice-processing-examples.md
+│   │   │   ├── facial-recognition-examples.md
+│   │   │   ├── surveillance-module-examples.md
+│   │   │   └── blockchain-analysis-examples.md
+│   │   └── advanced-topics/
+│   │       ├── custom-ai-models.md
+│   │       ├── surveillance-network-expansion.md
+│   │       ├── advanced-correlation-algorithms.md
+│   │       ├── real-time-processing-optimization.md
+│   │       └── multi-jurisdiction-compliance.md
+│   │
+│   ├── 📋 admin-guides/
+│   │   ├── system-administration/
+│   │   │   ├── user-management.md
+│   │   │   ├── role-configuration.md
+│   │   │   ├── system-monitoring.md
+│   │   │   ├── backup-recovery.md
+│   │   │   ├── surveillance-system-administration.md
+│   │   │   ├── voice-processing-administration.md
+│   │   │   ├── facial-recognition-administration.md
+│   │   │   └── blockchain-system-administration.md
+│   │   ├── security-administration/
+│   │   │   ├── access-control.md
+│   │   │   ├── audit-logging.md
+│   │   │   ├── compliance-setup.md
+│   │   │   ├── incident-response.md
+│   │   │   ├── surveillance-security.md
+│   │   │   ├── evidence-security.md
+│   │   │   ├── multi-jurisdiction-security.md
+│   │   │   └── law-enforcement-access-control.md
+│   │   ├── operational-procedures/
+│   │   │   ├── maintenance-procedures.md
+│   │   │   ├── upgrade-procedures.md
+│   │   │   ├── disaster-recovery.md
+│   │   │   ├── performance-monitoring.md
+│   │   │   ├── surveillance-operations-procedures.md
+│   │   │   ├── investigation-procedures.md
+│   │   │   ├── evidence-handling-procedures.md
+│   │   │   └── emergency-response-procedures.md
+│   │   └── compliance-administration/
+│   │       ├── legal-compliance-management.md
+│   │       ├── privacy-protection-administration.md
+│   │       ├── audit-trail-management.md
+│   │       ├── jurisdiction-compliance.md
+│   │       └── international-cooperation-setup.md
+│   │
+│   ├── ⚖️ legal-compliance/
+│   │   ├── privacy-policy.md
+│   │   ├── terms-of-service.md
+│   │   ├── data-protection.md
+│   │   ├── law-enforcement-guidelines.md
+│   │   ├── evidence-handling.md
+│   │   ├── international-compliance.md
+│   │   ├── audit-requirements.md
+│   │   ├── surveillance-legal-framework.md
+│   │   ├── voice-recognition-legal-guidelines.md
+│   │   ├── facial-recognition-legal-framework.md
+│   │   ├── blockchain-forensics-legal-guidelines.md
+│   │   ├── bounty-hunting-legal-framework.md
+│   │   ├── cross-border-investigation-law.md
+│   │   └── court-admissibility-standards.md
+│   │
+│   ├── 🏢 business-docs/
+│   │   ├── product-overview.md
+│   │   ├── feature-comparison.md
+│   │   ├── pricing-tiers.md
+│   │   ├── competitive-analysis.md
+│   │   ├── case-studies.md
+│   │   ├── roi-analysis.md
+│   │   ├── market-positioning.md
+│   │   ├── law-enforcement-value-proposition.md
+│   │   ├── bounty-hunter-business-model.md
+│   │   ├── success-metrics.md
+│   │   └── partnership-opportunities.md
+│   │
+│   └── 📚 research-papers/
+│       ├── ai-criminal-behavior-analysis.md
+│       ├── voice-recognition-forensics.md
+│       ├── facial-recognition-investigation.md
+│       ├── blockchain-forensics-methodologies.md
+│       ├── multi-modal-surveillance-research.md
+│       ├── predictive-criminal-modeling.md
+│       ├── investigation-success-optimization.md
+│       └── ethical-surveillance-frameworks.md
+├── tools/
+│   ├── 🔧 development/
+│   │   ├── code-generators/
+│   │   │   ├── service-generator.js
+│   │   │   ├── component-generator.js
+│   │   │   ├── api-generator.js
+│   │   │   ├── test-generator.js
+│   │   │   ├── surveillance-module-generator.js
+│   │   │   ├── ai-model-generator.js
+│   │   │   └── compliance-template-generator.js
+│   │   ├── build-tools/
+│   │   │   ├── webpack-config.js
+│   │   │   ├── babel-config.js
+│   │   │   ├── typescript-config.js
+│   │   │   ├── optimization.js
+│   │   │   ├── surveillance-build-tools.js
+│   │   │   └── ai-model-build-tools.js
+│   │   ├── linting/
+│   │   │   ├── eslint-config.js
+│   │   │   ├── prettier-config.js
+│   │   │   ├── stylelint-config.js
+│   │   │   ├── surveillance-linting-rules.js
+│   │   │   ├── ai-code-linting.js
+│   │   │   └── custom-rules/
+│   │   │       ├── apollo-security-rules.js
+│   │   │       ├── surveillance-coding-standards.js
+│   │   │       ├── ai-model-standards.js
+│   │   │       └── legal-compliance-rules.js
+│   │   └── testing/
+│   │       ├── jest-config.js
+│   │       ├── cypress-config.js
+│   │       ├── playwright-config.js
+│   │       ├── surveillance-test-config.js
+│   │       ├── ai-model-test-config.js
+│   │       └── test-utilities/
+│   │           ├── investigation-test-utils.js
+│   │           ├── surveillance-test-utils.js
+│   │           ├── voice-test-utils.js
+│   │           ├── facial-test-utils.js
+│   │           └── blockchain-test-utils.js
+│   │
+│   ├── 📦 deployment/
+│   │   ├── docker-compose-generator.js
+│   │   ├── kubernetes-manifest-generator.js
+│   │   ├── terraform-config-generator.js
+│   │   ├── environment-setup.sh
+│   │   ├── surveillance-deployment-tools.js
+│   │   ├── ai-model-deployment-tools.js
+│   │   ├── compliance-deployment-tools.js
+│   │   └── migration-tools/
+│   │       ├── database-migration-tool.js
+│   │       ├── ai-model-migration-tool.js
+│   │       ├── surveillance-data-migration.js
+│   │       └── compliance-data-migration.js
+│   │
+│   ├── 📊 analytics/
+│   │   ├── performance-monitoring/
+│   │   │   ├── surveillance-performance-monitor.js
+│   │   │   ├── voice-processing-monitor.js
+│   │   │   ├── facial-recognition-monitor.js
+│   │   │   └── blockchain-analysis-monitor.js
+│   │   ├── usage-analytics/
+│   │   │   ├── investigation-analytics.js
+│   │   │   ├── surveillance-usage-analytics.js
+│   │   │   ├── bounty-hunting-analytics.js
+│   │   │   └── success-rate-analytics.js
+│   │   ├── error-tracking/
+│   │   │   ├── apollo-error-tracker.js
+│   │   │   ├── surveillance-error-tracker.js
+│   │   │   ├── ai-processing-error-tracker.js
+│   │   │   └── compliance-error-tracker.js
+│   │   └── custom-metrics/
+│   │       ├── investigation-metrics.js
+│   │       ├── surveillance-metrics.js
+│   │       ├── voice-analysis-metrics.js
+│   │       ├── facial-recognition-metrics.js
+│   │       └── bounty-success-metrics.js
+│   │
+│   ├── 🔐 security/
+│   │   ├── vulnerability-scanner.js
+│   │   ├── dependency-checker.js
+│   │   ├── secrets-scanner.js
+│   │   ├── compliance-checker.js
+│   │   ├── surveillance-security-scanner.js
+│   │   ├── ai-model-security-checker.js
+│   │   ├── evidence-integrity-checker.js
+│   │   └── security-audit/
+│   │       ├── apollo-security-audit.js
+│   │       ├── surveillance-security-audit.js
+│   │       ├── legal-compliance-audit.js
+│   │       └── chain-of-custody-audit.js
+│   │
+│   ├── 🤖 ai-tools/
+│   │   ├── model-training/
+│   │   │   ├── voice-recognition-trainer.py
+│   │   │   ├── facial-recognition-trainer.py
+│   │   │   ├── behavioral-analysis-trainer.py
+│   │   │   ├── criminal-profiling-trainer.py
+│   │   │   └── predictive-modeling-trainer.py
+│   │   ├── prompt-optimization/
+│   │   │   ├── bugtrace-ai-optimizer.py
+│   │   │   ├── investigation-prompt-optimizer.py
+│   │   │   ├── surveillance-prompt-optimizer.py
+│   │   │   └── criminal-analysis-optimizer.py
+│   │   ├── performance-evaluation/
+│   │   │   ├── voice-recognition-evaluator.py
+│   │   │   ├── facial-recognition-evaluator.py
+│   │   │   ├── behavioral-analysis-evaluator.py
+│   │   │   └── investigation-success-evaluator.py
+│   │   ├── bias-detection/
+│   │   │   ├── voice-bias-detector.py
+│   │   │   ├── facial-bias-detector.py
+│   │   │   ├── demographic-bias-analyzer.py
+│   │   │   └── investigation-bias-detector.py
+│   │   └── data-preprocessing/
+│   │       ├── voice-data-preprocessor.py
+│   │       ├── facial-data-preprocessor.py
+│   │       ├── surveillance-data-preprocessor.py
+│   │       ├── blockchain-data-preprocessor.py
+│   │       └── criminal-network-preprocessor.py
+│   │
+│   └── 🕵️ investigation-tools/
+│       ├── evidence-analysis/
+│       │   ├── voice-evidence-analyzer.py
+│       │   ├── facial-evidence-analyzer.py
+│       │   ├── blockchain-evidence-analyzer.py
+│       │   └── multimedia-evidence-processor.py
+│       ├── network-analysis/
+│       │   ├── criminal-network-mapper.py
+│       │   ├── communication-pattern-analyzer.py
+│       │   ├── relationship-graph-builder.py
+│       │   └── network-evolution-tracker.py
+│       ├── bounty-hunting/
+│       │   ├── target-prioritizer.py
+│       │   ├── reward-calculator.py
+│       │   ├── success-probability-estimator.py
+│       │   └── evidence-quality-assessor.py
+│       └── compliance-tools/
+│           ├── chain-of-custody-tracker.py
+│           ├── legal-requirement-checker.py
+│           ├── privacy-protection-validator.py
+│           └── court-admissibility-assessor.py
+└── scripts/
+├── 🚀 setup/
+│   ├── install.sh
+│   ├── configure.sh
+│   ├── init-database.sh
+│   ├── setup-ai-models.sh
+│   ├── setup-surveillance-network.sh
+│   ├── setup-voice-recognition.sh
+│   ├── setup-facial-recognition.sh
+│   ├── setup-blockchain-forensics.sh
+│   ├── setup-compliance-framework.sh
+│   └── verify-installation.sh
+│
+├── 🔄 maintenance/
+│   ├── backup.sh
+│   ├── cleanup.sh
+│   ├── update.sh
+│   ├── health-check.sh
+│   ├── performance-tune.sh
+│   ├── surveillance-maintenance.sh
+│   ├── ai-model-maintenance.sh
+│   ├── evidence-maintenance.sh
+│   └── compliance-maintenance.sh
+│
+├── 🐛 debugging/
+│   ├── collect-logs.sh
+│   ├── system-diagnostics.sh
+│   ├── network-test.sh
+│   ├── ai-model-test.sh
+│   ├── surveillance-diagnostics.sh
+│   ├── voice-processing-debug.sh
+│   ├── facial-recognition-debug.sh
+│   ├── blockchain-analysis-debug.sh
+│   └── generate-debug-report.sh
+│
+├── 📊 monitoring/
+│   ├── surveillance-monitor.sh
+│   ├── voice-processing-monitor.sh
+│   ├── facial-recognition-monitor.sh
+│   ├── blockchain-monitor.sh
+│   ├── investigation-progress-monitor.sh
+│   └── bounty-tracking-monitor.sh
+│
+└── 🔧 utilities/
+├── data-migration.sh
+├── config-validator.js
+├── environment-checker.sh
+├── resource-monitor.sh
+├── batch-operations.sh
+├── evidence-processor.sh
+├── voice-batch-processor.sh
+├── facial-batch-processor.sh
+├── blockchain-batch-analyzer.sh
+└── compliance-batch-checker.sh
+
+---
+
+## **🎯 Enhanced Configuration Files**
+apollo/
+├── 📋 configs/
+│   ├── environments/
+│   │   ├── development.env
+│   │   ├── staging.env
+│   │   ├── production.env
+│   │   ├── testing.env
+│   │   ├── law-enforcement.env
+│   │   ├── surveillance.env
+│   │   ├── voice-processing.env
+│   │   ├── facial-recognition.env
+│   │   └── blockchain-forensics.env
+│   │
+│   ├── services/
+│   │   ├── ai-engine.yaml
+│   │   ├── intelligence-services.yaml
+│   │   ├── operation-services.yaml
+│   │   ├── databases.yaml
+│   │   ├── monitoring.yaml
+│   │   ├── voice-processing.yaml
+│   │   ├── facial-recognition.yaml
+│   │   ├── blockchain-forensics.yaml
+│   │   ├── surveillance-network.yaml
+│   │   └── legal-compliance.yaml
+│   │
+│   ├── security/
+│   │   ├── rbac-policies.yaml
+│   │   ├── network-policies.yaml
+│   │   ├── security-policies.yaml
+│   │   ├── compliance-rules.yaml
+│   │   ├── surveillance-security.yaml
+│   │   ├── evidence-security.yaml
+│   │   ├── voice-processing-security.yaml
+│   │   ├── facial-recognition-security.yaml
+│   │   └── law-enforcement-access.yaml
+│   │
+│   ├── integrations/
+│   │   ├── third-party-apis.yaml
+│   │   ├── webhook-configs.yaml
+│   │   ├── notification-configs.yaml
+│   │   ├── ai-model-configs.yaml
+│   │   ├── surveillance-integrations.yaml
+│   │   ├── voice-recognition-integrations.yaml
+│   │   ├── facial-recognition-integrations.yaml
+│   │   ├── blockchain-integrations.yaml
+│   │   └── law-enforcement-integrations.yaml
+│   │
+│   └── ai-models/
+│       ├── voice-recognition-models.yaml
+│       ├── facial-recognition-models.yaml
+│       ├── behavioral-analysis-models.yaml
+│       ├── criminal-profiling-models.yaml
+│       ├── predictive-modeling-config.yaml
+│       └── investigation-assistant-config.yaml
+│
+├── 📝 data/
+│   ├── samples/
+│   │   ├── investigation-templates/
+│   │   ├── intelligence-samples/
+│   │   ├── test-datasets/
+│   │   ├── demo-scenarios/
+│   │   ├── voice-samples/
+│   │   ├── facial-samples/
+│   │   ├── blockchain-samples/
+│   │   ├── surveillance-samples/
+│   │   └── bounty-templates/
+│   │
+│   ├── schemas/
+│   │   ├── api-schemas/
+│   │   ├── database-schemas/
+│   │   ├── message-schemas/
+│   │   ├── config-schemas/
+│   │   ├── voice-analysis-schemas/
+│   │   ├── facial-recognition-schemas/
+│   │   ├── blockchain-schemas/
+│   │   ├── surveillance-schemas/
+│   │   └── legal-compliance-schemas/
+│   │
+│   ├── migrations/
+│   │   ├── database-migrations/
+│   │   ├── data-migrations/
+│   │   ├── schema-migrations/
+│   │   ├── configuration-migrations/
+│   │   ├── voice-data-migrations/
+│   │   ├── facial-data-migrations/
+│   │   └── blockchain-data-migrations/
+│   │
+│   └── reference-data/
+│       ├── fbi-most-wanted/
+│       ├── criminal-databases/
+│       ├── voice-profiles/
+│       ├── facial-profiles/
+│       ├── blockchain-addresses/
+│       ├── surveillance-targets/
+│       └── legal-precedents/
+│
+└── 🔐 secrets/
+├── certificates/
+│   ├── apollo-certificates/
+│   ├── surveillance-certificates/
+│   ├── law-enforcement-certificates/
+│   └── compliance-certificates/
+├── private-keys/
+│   ├── apollo-keys/
+│   ├── surveillance-keys/
+│   ├── voice-processing-keys/
+│   ├── facial-recognition-keys/
+│   └── blockchain-keys/
+├── api-keys/
+│   ├── apollo-api-keys/
+│   ├── third-party-apis/
+│   ├── surveillance-apis/
+│   ├── ai-model-apis/
+│   └── law-enforcement-apis/
+├── database-credentials/
+│   ├── postgresql-credentials/
+│   ├── timescaledb-credentials/
+│   ├── neo4j-credentials/
+│   ├── elasticsearch-credentials/
+│   └── vector-db-credentials/
+└── encryption-keys/
+├── apollo-encryption/
+├── evidence-encryption/
+├── voice-data-encryption/
+├── facial-data-encryption/
+├── blockchain-encryption/
+└── compliance-encryption/
+
+---
+
+## **📊 Final Summary Statistics**
+
+**Complete Enhanced Directory Structure:**
+- **Main Directories**: 25+
+- **Subdirectories**: 500+
+- **Configuration Categories**: 100+
+- **Service Components**: 200+
+- **Frontend Components**: 300+
+- **Documentation Pages**: 150+
+- **Testing Suites**: 50+
+- **AI & Audio Components**: 100+
+- **Facial Recognition Components**: 50+
+- **Blockchain Forensics Components**: 40+
+- **Surveillance Components**: 80+
+- **Legal Compliance Components**: 30+
+
+**Enhanced Architecture Principles:**
+- ✅ **AI-Native Criminal Investigation**
+- ✅ **Multi-Modal Surveillance Integration**
+- ✅ **Advanced Voice Recognition**
+- ✅ **Professional Facial Recognition**
+- ✅ **Blockchain Forensics**
+- ✅ **Real-Time Intelligence Fusion**
+- ✅ **Legal Compliance Framework**
+- ✅ **Bounty Hunting Optimization**
+- ✅ **International Law Enforcement Cooperation**
+- ✅ **Evidence Chain of Custody**
+- ✅ **Predictive Criminal Modeling**
+- ✅ **Operational Security Excellence**
+
+This **complete enhanced directory architecture** provides the foundation for building Apollo as the world's most advanced criminal investigation platform, specifically designed to hunt high-value targets like Ruja Ignatova while maintaining the highest standards of legal compliance, operational security, and investigative excellence.
+
+**The platform now includes every tool, capability, and framework needed to successfully locate and capture the most sophisticated cybercriminals and predators while maintaining full legal compliance and providing maximum return on investment for bounty hunters and law enforcement agencies.**

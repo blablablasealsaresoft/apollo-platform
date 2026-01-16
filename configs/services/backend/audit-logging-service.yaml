@@ -1,0 +1,185 @@
+service:
+  name: audit-logging-service
+  port: 4007
+  version: 1.0.0
+  description: Comprehensive audit logging and compliance tracking
+
+runtime:
+  workers: 4
+  max_memory: 3GB
+  timeout: 30s
+  restart_policy: always
+  graceful_shutdown_timeout: 10s
+
+features:
+  audit_logging: true
+  compliance_tracking: true
+  event_correlation: true
+  tamper_detection: true
+  retention_management: true
+  export_reports: true
+
+audit_events:
+  authentication:
+    - login_success
+    - login_failure
+    - logout
+    - password_change
+    - mfa_enabled
+    - mfa_disabled
+
+  authorization:
+    - access_granted
+    - access_denied
+    - role_assigned
+    - role_revoked
+    - permission_change
+
+  investigation:
+    - investigation_created
+    - investigation_updated
+    - investigation_closed
+    - investigation_deleted
+    - target_added
+    - target_removed
+
+  evidence:
+    - evidence_uploaded
+    - evidence_accessed
+    - evidence_downloaded
+    - evidence_deleted
+    - evidence_modified
+
+  system:
+    - configuration_change
+    - service_started
+    - service_stopped
+    - backup_created
+    - restore_performed
+
+  surveillance:
+    - feed_accessed
+    - match_triggered
+    - recording_started
+    - recording_stopped
+
+storage:
+  type: multi_tier
+
+  hot_storage:
+    type: elasticsearch
+    url: ${ELASTICSEARCH_URL}
+    index_prefix: apollo-audit
+    retention_days: 30
+    shards: 5
+    replicas: 2
+
+  warm_storage:
+    type: elasticsearch
+    retention_days: 180
+    compression: true
+
+  cold_storage:
+    type: s3
+    bucket: ${S3_AUDIT_BUCKET}
+    retention_days: 2555  # 7 years
+    encryption: AES256
+
+database:
+  postgresql:
+    connection: ${DATABASE_URL}
+    pool_size: 20
+
+  redis:
+    connection: ${REDIS_URL}
+    max_connections: 30
+
+compliance:
+  standards:
+    - gdpr
+    - hipaa
+    - sox
+    - pci_dss
+
+  retention_policies:
+    authentication_events: 1y
+    authorization_events: 2y
+    investigation_events: 7y
+    evidence_events: 7y
+    system_events: 1y
+
+  data_residency: EU  # or US, APAC, etc.
+
+tamper_detection:
+  enabled: true
+  checksum_algorithm: sha256
+  chain_validation: true
+  integrity_checks: hourly
+
+indexing:
+  fields:
+    - timestamp
+    - user_id
+    - event_type
+    - resource_id
+    - investigation_id
+    - ip_address
+    - user_agent
+  full_text_search: true
+
+search:
+  elasticsearch_enabled: true
+  query_timeout: 30s
+  max_results: 10000
+
+export:
+  formats:
+    - json
+    - csv
+    - pdf
+  max_export_size: 100MB
+  async_export: true
+
+monitoring:
+  metrics: true
+  health_check: /health
+  readiness_check: /ready
+  prometheus_endpoint: /metrics
+  custom_metrics:
+    - audit_events_total
+    - audit_events_by_type
+    - storage_usage_bytes
+    - query_duration_seconds
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - stdout
+    - file: /var/log/apollo/audit-logging.log
+
+api:
+  version: v1
+  base_path: /api/v1
+  authentication: jwt
+  authorization: rbac
+  required_roles: [admin, auditor]
+  rate_limiting: 200/minute
+
+performance:
+  batch_ingestion: true
+  batch_size: 1000
+  flush_interval: 5s
+  async_writes: true
+
+security:
+  encryption_at_rest: true
+  encryption_in_transit: true
+  access_logging: true
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: audit-logging-service
+    health_check_interval: 10s

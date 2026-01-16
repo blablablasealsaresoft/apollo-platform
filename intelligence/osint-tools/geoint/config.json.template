@@ -1,0 +1,63 @@
+{
+  "max_workers": 5,
+  "timeout": 30,
+  "enable_caching": true,
+  "cache_ttl": 3600,
+  "confidence_threshold": 0.7,
+  "correlation_enabled": true,
+
+  "ip_config": {
+    "maxmind_db_path": "./GeoLite2-City.mmdb",
+    "ipinfo_token": "YOUR_IPINFO_TOKEN_HERE",
+    "ipgeolocation_key": "YOUR_IPGEOLOCATION_KEY_HERE",
+    "ip2location_key": "YOUR_IP2LOCATION_KEY_HERE",
+    "abuseipdb_key": "YOUR_ABUSEIPDB_KEY_HERE",
+    "cache_ttl": 3600
+  },
+
+  "phone_config": {
+    "numverify_key": "YOUR_NUMVERIFY_KEY_HERE",
+    "numlookup_key": "YOUR_NUMLOOKUP_KEY_HERE",
+    "twilio_sid": "YOUR_TWILIO_SID_HERE",
+    "twilio_token": "YOUR_TWILIO_TOKEN_HERE",
+    "enable_hlr": false,
+    "hlr_api_key": "YOUR_HLR_API_KEY_HERE",
+    "lnp_api_key": "YOUR_LNP_API_KEY_HERE"
+  },
+
+  "photo_config": {
+    "geospy_key": "YOUR_GEOSPY_KEY_HERE",
+    "google_vision_key": "YOUR_GOOGLE_VISION_KEY_HERE"
+  },
+
+  "address_config": {
+    "google_maps_key": "YOUR_GOOGLE_MAPS_KEY_HERE",
+    "bing_maps_key": "YOUR_BING_MAPS_KEY_HERE",
+    "here_api_key": "YOUR_HERE_API_KEY_HERE",
+    "zillow_key": "YOUR_ZILLOW_KEY_HERE",
+    "census_key": "YOUR_CENSUS_KEY_HERE"
+  },
+
+  "whois_config": {
+    "whoisxml_key": "YOUR_WHOISXML_KEY_HERE",
+    "domaintools_key": "YOUR_DOMAINTOOLS_KEY_HERE"
+  },
+
+  "dns_config": {
+    "securitytrails_key": "YOUR_SECURITYTRAILS_KEY_HERE",
+    "virustotal_key": "YOUR_VIRUSTOTAL_KEY_HERE",
+    "dns_servers": ["8.8.8.8", "1.1.1.1"]
+  },
+
+  "wifi_config": {
+    "wigle_key": "YOUR_WIGLE_KEY_HERE",
+    "wigle_token": "YOUR_WIGLE_TOKEN_HERE",
+    "google_geolocation_key": "YOUR_GOOGLE_GEOLOCATION_KEY_HERE",
+    "mozilla_location_key": "YOUR_MOZILLA_LOCATION_KEY_HERE"
+  },
+
+  "geofence_config": {
+    "storage_path": "./geofences.json",
+    "max_events": 10000
+  }
+}

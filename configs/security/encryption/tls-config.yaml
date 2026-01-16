@@ -1,0 +1,136 @@
+# TLS Configuration for Apollo Platform
+# Secure communication encryption for all network traffic
+
+tls:
+  # TLS Protocol Configuration
+  protocol:
+    # TLS version
+    version: 1.3
+
+    # Minimum TLS version
+    min_version: 1.2
+
+    # Maximum TLS version
+    max_version: 1.3
+
+    # Disable SSLv3, TLSv1.0, TLSv1.1
+    disabled_versions:
+      - SSLv2
+      - SSLv3
+      - TLSv1.0
+      - TLSv1.1
+
+  # Cipher Suites
+  cipher_suites:
+    # TLS 1.3 cipher suites (in preference order)
+    tls_1_3:
+      - TLS_AES_256_GCM_SHA384
+      - TLS_CHACHA20_POLY1305_SHA256
+      - TLS_AES_128_GCM_SHA256
+
+    # TLS 1.2 cipher suites (in preference order)
+    tls_1_2:
+      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+
+    # Disabled weak ciphers
+    disabled:
+      - TLS_RSA_WITH_AES_128_CBC_SHA
+      - TLS_RSA_WITH_AES_256_CBC_SHA
+      - TLS_RSA_WITH_3DES_EDE_CBC_SHA
+      - TLS_RSA_WITH_RC4_128_SHA
+      - TLS_RSA_WITH_RC4_128_MD5
+
+  # Certificate Configuration
+  certificates:
+    # Server certificate
+    server:
+      cert_file: ${TLS_CERT_PATH}
+      key_file: ${TLS_KEY_PATH}
+      key_size: 4096
+      algorithm: RSA
+      validity_period: 365d
+
+    # Intermediate CA
+    intermediate_ca:
+      cert_file: ${TLS_INTERMEDIATE_CA_PATH}
+
+    # Root CA
+    root_ca:
+      cert_file: ${TLS_ROOT_CA_PATH}
+
+    # Certificate chain
+    chain_file: ${TLS_CHAIN_PATH}
+
+    # Certificate auto-renewal
+    auto_renewal:
+      enabled: true
+      renewal_before_expiry: 30d
+      provider: lets_encrypt
+
+  # Mutual TLS (mTLS)
+  mutual_tls:
+    enabled: true
+    require_client_cert: true
+    client_ca_file: ${CLIENT_CA_PATH}
+    verify_client_cert: true
+
+  # Perfect Forward Secrecy
+  perfect_forward_secrecy:
+    enabled: true
+    required: true
+
+  # Session Resumption
+  session_resumption:
+    enabled: true
+    session_cache: shared
+    session_cache_size: 10MB
+    session_timeout: 5m
+
+  # OCSP Stapling
+  ocsp_stapling:
+    enabled: true
+    cache_timeout: 1h
+    responder_url: ${OCSP_RESPONDER_URL}
+
+  # Certificate Transparency
+  certificate_transparency:
+    enabled: true
+    require_sct: true
+
+  # HSTS Configuration
+  hsts:
+    enabled: true
+    max_age: 31536000
+    include_subdomains: true
+    preload: true
+
+  # Client-specific settings
+  client_tls:
+    verify_server_cert: true
+    verify_hostname: true
+    min_tls_version: 1.2
+
+# Per-service TLS Configuration
+services:
+  api_gateway:
+    port: 443
+    tls_version: 1.3
+    mutual_tls: true
+
+  database:
+    postgresql:
+      ssl_mode: verify-full
+      ssl_cert: ${PG_SSL_CERT}
+      ssl_key: ${PG_SSL_KEY}
+      ssl_root_cert: ${PG_SSL_ROOT_CERT}
+
+    redis:
+      tls_enabled: true
+      tls_cert: ${REDIS_TLS_CERT}
+      tls_key: ${REDIS_TLS_KEY}
+
+  internal_services:
+    mutual_tls: required
+    cipher_suites: strong_only

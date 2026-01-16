@@ -1,0 +1,9 @@
+global:
+  image:
+    tag: staging
+apolloApi:
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 1
+      memory: 512Mi

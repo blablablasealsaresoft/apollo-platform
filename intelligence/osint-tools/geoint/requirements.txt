@@ -1,0 +1,36 @@
+# GEOINT Requirements
+# Install with: pip install -r requirements.txt
+
+# Core dependencies
+requests>=2.31.0
+python-dateutil>=2.8.2
+
+# IP Geolocation
+geoip2>=4.7.0
+maxminddb>=2.6.0
+
+# Phone Geolocation
+phonenumbers>=8.13.0
+
+# Photo Geolocation
+Pillow>=10.0.0
+piexif>=1.1.3
+
+# WHOIS Intelligence
+python-whois>=0.8.0
+
+# DNS Intelligence
+dnspython>=2.4.0
+
+# Address Intelligence
+geopy>=2.4.0
+
+# WiFi Geolocation
+# (uses requests for API calls)
+
+# Geofencing
+# (uses built-in math library)
+
+# Optional API integrations
+twilio>=8.10.0  # Phone lookup
+google-cloud-vision>=3.4.0  # Image analysis

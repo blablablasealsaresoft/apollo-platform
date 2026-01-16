@@ -1,0 +1,126 @@
+service:
+  name: authentication-service
+  port: 4001
+  version: 1.0.0
+  description: Enterprise authentication and authorization service
+
+runtime:
+  workers: 4
+  threads_per_worker: 2
+  max_memory: 2GB
+  timeout: 30s
+  restart_policy: always
+  graceful_shutdown_timeout: 10s
+
+features:
+  jwt: true
+  oauth: true
+  mfa: true
+  session_management: true
+  rbac: true
+  api_key_management: true
+
+jwt:
+  access_token_expiry: 15m
+  refresh_token_expiry: 7d
+  algorithm: HS256
+  issuer: apollo-platform
+  audience: apollo-services
+
+oauth_providers:
+  google:
+    enabled: true
+    client_id: ${GOOGLE_CLIENT_ID}
+    client_secret: ${GOOGLE_CLIENT_SECRET}
+    redirect_uri: /auth/google/callback
+    scopes:
+      - openid
+      - profile
+      - email
+
+  microsoft:
+    enabled: true
+    client_id: ${MICROSOFT_CLIENT_ID}
+    client_secret: ${MICROSOFT_CLIENT_SECRET}
+    redirect_uri: /auth/microsoft/callback
+    scopes:
+      - openid
+      - profile
+      - email
+
+  github:
+    enabled: true
+    client_id: ${GITHUB_CLIENT_ID}
+    client_secret: ${GITHUB_CLIENT_SECRET}
+    redirect_uri: /auth/github/callback
+    scopes:
+      - read:user
+      - user:email
+
+mfa:
+  required_for_roles: [admin, investigator, analyst]
+  totp_enabled: true
+  backup_codes: 10
+  recovery_email: true
+  sms_enabled: false  # Requires additional service
+
+password_policy:
+  min_length: 16
+  require_uppercase: true
+  require_lowercase: true
+  require_numbers: true
+  require_special: true
+  expiry_days: 90
+  history: 5
+  lockout_threshold: 5
+  lockout_duration: 30m
+
+rate_limiting:
+  login_attempts: 5/minute
+  password_reset: 3/hour
+  registration: 3/hour
+  api_calls: 100/minute
+
+database:
+  connection: ${DATABASE_URL}
+  pool_size: 20
+  pool_timeout: 30s
+  ssl_mode: require
+  migrations: true
+
+redis:
+  connection: ${REDIS_URL}
+  session_ttl: 24h
+  cache_ttl: 1h
+  max_connections: 50
+
+monitoring:
+  metrics: true
+  health_check: /health
+  readiness_check: /ready
+  liveness_check: /live
+  prometheus_endpoint: /metrics
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - stdout
+    - file: /var/log/apollo/authentication.log
+  sensitive_fields_masked: true
+  audit_logging: true
+
+security:
+  cors_enabled: true
+  cors_origins:
+    - https://apollo.local
+    - https://console.apollo.local
+  csrf_protection: true
+  helmet_enabled: true
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: authentication-service
+    health_check_interval: 10s

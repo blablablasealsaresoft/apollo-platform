@@ -1,0 +1,16 @@
+listeners:
+  - name: http-edge
+    bind: 0.0.0.0:8443
+    protocol: https
+    certificate: certs/edge.pem
+    key: certs/edge.key
+    upstream: grpc://localhost:7001
+  - name: dns-fallback
+    bind: 0.0.0.0:5353
+    protocol: dns
+    upstream: grpc://localhost:7001
+secrets:
+  api_token: CHANGE_ME
+  allowed_agents:
+    - villager-scout
+    - villager-sentinel

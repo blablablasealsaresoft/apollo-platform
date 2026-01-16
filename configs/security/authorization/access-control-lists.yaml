@@ -1,0 +1,462 @@
+# Access Control Lists (ACLs) for Apollo Platform
+# Granular access control entries for resources
+
+access_control_lists:
+  # ACL Entry Structure
+  entry_structure:
+    # Unique ACL entry ID
+    id: uuid
+
+    # Resource identification
+    resource:
+      type: string  # investigation, evidence, intelligence, etc.
+      id: uuid
+      path: string  # Optional hierarchical path
+
+    # Principal (who gets access)
+    principal:
+      type: string  # user, role, group, service
+      id: uuid
+      name: string
+
+    # Access permissions
+    permissions:
+      - permission_name
+
+    # Access type (allow/deny)
+    access_type: allow  # allow or deny
+
+    # Conditions for access
+    conditions: {}
+
+    # Inheritance
+    inherit: boolean
+
+    # Priority (higher = evaluated first)
+    priority: integer
+
+    # Expiry
+    expires_at: datetime
+
+  # Default ACL Templates
+  templates:
+    # Investigation ACL template
+    investigation_default:
+      description: Default ACL for new investigations
+      entries:
+        - principal:
+            type: user
+            id: ${creator_id}
+          permissions:
+            - read
+            - write
+            - delete
+            - share
+            - manage
+          access_type: allow
+          inherit: true
+
+        - principal:
+            type: role
+            id: admin
+          permissions: all
+          access_type: allow
+          inherit: true
+
+        - principal:
+            type: role
+            id: supervisor
+          permissions:
+            - read
+            - write
+            - approve
+          access_type: allow
+          conditions:
+            team_match: true
+
+        - principal:
+            type: group
+            id: ${team_id}
+          permissions:
+            - read
+            - write
+            - comment
+          access_type: allow
+          inherit: false
+
+    # Evidence ACL template
+    evidence_default:
+      description: Default ACL for evidence
+      entries:
+        - principal:
+            type: user
+            id: ${uploader_id}
+          permissions:
+            - read
+            - write
+            - update_metadata
+          access_type: allow
+
+        - principal:
+            type: role
+            id: admin
+          permissions: all
+          access_type: allow
+
+        - principal:
+            type: role
+            id: forensic_specialist
+          permissions:
+            - read
+            - write:analysis
+            - download
+          access_type: allow
+          conditions:
+            investigation_assigned: true
+
+        - principal:
+            type: group
+            id: ${investigation_team}
+          permissions:
+            - read
+            - download
+          access_type: allow
+
+    # Classified intelligence ACL template
+    classified_intelligence:
+      description: ACL for classified intelligence
+      entries:
+        - principal:
+            type: role
+            id: admin
+          permissions: all
+          access_type: allow
+
+        - principal:
+            type: role
+            id: senior_investigator
+          permissions:
+            - read
+            - write
+          access_type: allow
+          conditions:
+            clearance_level: top_secret
+            need_to_know: true
+
+        - principal:
+            type: role
+            id: intelligence_analyst
+          permissions:
+            - read
+          access_type: allow
+          conditions:
+            clearance_level: top_secret
+            compartment_access: true
+
+        # Explicit deny for all others
+        - principal:
+            type: role
+            id: "*"
+          permissions: all
+          access_type: deny
+          priority: 1000
+
+    # Red team operations ACL
+    redteam_operations:
+      description: ACL for red team operations
+      entries:
+        - principal:
+            type: role
+            id: admin
+          permissions: all
+          access_type: allow
+
+        - principal:
+            type: role
+            id: senior_investigator
+          permissions:
+            - read
+            - approve
+            - manage
+          access_type: allow
+
+        - principal:
+            type: role
+            id: redteam_operator
+          permissions:
+            - read
+            - write
+            - execute
+          access_type: allow
+          conditions:
+            operation_authorized: true
+            target_approved: true
+
+        # Deny for all others
+        - principal:
+            type: role
+            id: "*"
+          permissions: all
+          access_type: deny
+          priority: 1000
+
+  # Hierarchical ACL Inheritance
+  inheritance:
+    # Enable ACL inheritance
+    enabled: true
+
+    # Inheritance strategy
+    strategy: accumulative  # accumulative, override, merge
+
+    # Propagate changes to children
+    propagate_changes: true
+
+    # Inherit from parent by default
+    inherit_by_default: true
+
+  # ACL Evaluation Rules
+  evaluation:
+    # Evaluation order
+    order:
+      - explicit_deny  # Explicit denies are evaluated first
+      - explicit_allow
+      - inherited_deny
+      - inherited_allow
+      - default_deny
+
+    # Conflict resolution
+    conflict_resolution: deny_wins
+
+    # Short-circuit evaluation
+    short_circuit: true
+
+    # Cache evaluation results
+    cache:
+      enabled: true
+      ttl: 5m
+
+  # Dynamic ACLs
+  dynamic_acls:
+    # Time-based ACLs
+    time_based:
+      enabled: true
+      examples:
+        - name: Business hours access
+          conditions:
+            time_range:
+              start: "08:00"
+              end: "18:00"
+            days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+          applies_to:
+            - classified_intelligence
+            - sensitive_evidence
+
+    # Attribute-based ACLs
+    attribute_based:
+      enabled: true
+      attributes:
+        - user.clearance_level
+        - user.department
+        - user.agency
+        - resource.classification
+        - resource.sensitivity
+        - context.location
+        - context.device_trust
+
+      example_rules:
+        - name: Clearance-based access
+          condition: user.clearance_level >= resource.classification_level
+          permission: read
+
+        - name: Department access
+          condition: user.department == resource.owning_department
+          permission: read
+
+    # Context-based ACLs
+    context_based:
+      enabled: true
+      context_factors:
+        - network_location
+        - device_trust_score
+        - threat_intelligence_score
+        - user_behavior_score
+
+  # ACL Management
+  management:
+    # Who can modify ACLs
+    modify_permissions:
+      - admin
+      - resource_owner
+      - supervisor
+
+    # Require approval for ACL changes
+    require_approval:
+      resources:
+        - classified_intelligence
+        - sensitive_evidence
+        - redteam_operations
+      approvers:
+        - admin
+        - senior_investigator
+
+    # ACL change auditing
+    audit_changes: true
+
+    # ACL version control
+    versioning:
+      enabled: true
+      retain_versions: 100
+
+  # ACL Groups
+  groups:
+    # Investigation teams
+    investigation_teams:
+      type: dynamic
+      membership_criteria:
+        investigation_id: ${investigation_id}
+        role: [investigator, analyst]
+        status: active
+
+    # Forensic team
+    forensic_team:
+      type: static
+      members:
+        - role: forensic_specialist
+        - user: specific_user_ids
+
+    # Intelligence analysts
+    intelligence_analysts:
+      type: role_based
+      roles:
+        - intelligence_analyst
+        - senior_investigator
+
+    # Red team
+    red_team:
+      type: static
+      members:
+        - role: redteam_operator
+        - role: senior_investigator
+      clearance_required: top_secret
+
+  # Special Access Programs (SAP)
+  special_access:
+    # Compartmented information
+    compartments:
+      - name: HUMINT_SOURCES
+        description: Human intelligence sources
+        clearance_required: top_secret
+        additional_clearance: humint_sap
+        need_to_know: true
+        access_list: explicit
+
+      - name: SIGINT_PROGRAMS
+        description: Signals intelligence programs
+        clearance_required: top_secret
+        additional_clearance: sigint_sap
+        need_to_know: true
+        access_list: explicit
+
+      - name: UNDERCOVER_OPS
+        description: Undercover operations
+        clearance_required: secret
+        additional_clearance: uc_ops
+        need_to_know: true
+        access_list: explicit
+
+    # Access request process
+    access_request:
+      enabled: true
+      require_justification: true
+      approvers_required: 2
+      approval_expiry: 90d
+
+  # Emergency Access
+  emergency_access:
+    # Break-glass access
+    break_glass:
+      enabled: true
+      allowed_roles:
+        - admin
+        - senior_investigator
+      audit_required: mandatory
+      notification_required: immediate
+      auto_revoke: 4h
+      justification_required: true
+
+    # Temporary elevated access
+    temporary_elevation:
+      enabled: true
+      max_duration: 8h
+      require_approval: true
+      mfa_required: true
+
+  # ACL Monitoring
+  monitoring:
+    # Monitor access patterns
+    monitor_access: true
+
+    # Alert on anomalies
+    anomaly_detection:
+      enabled: true
+      alerts:
+        - unusual_access_time
+        - unusual_resource_access
+        - excessive_permissions
+        - privilege_escalation
+        - access_from_unusual_location
+
+    # Access analytics
+    analytics:
+      enabled: true
+      metrics:
+        - access_frequency
+        - permission_usage
+        - denied_access_attempts
+        - acl_effectiveness
+
+  # ACL Compliance
+  compliance:
+    # Least privilege enforcement
+    least_privilege:
+      enabled: true
+      review_period: 90d
+      auto_revoke_unused: true
+      unused_threshold: 60d
+
+    # Segregation of duties
+    segregation_of_duties:
+      enabled: true
+      incompatible_permissions:
+        - [write:evidence, approve:evidence]
+        - [create:investigation, close:investigation]
+        - [deploy:exploit, approve:exploit]
+
+    # Access certification
+    access_certification:
+      enabled: true
+      frequency: quarterly
+      require_manager_approval: true
+      auto_revoke_uncertified: true
+
+  # ACL Optimization
+  optimization:
+    # Consolidate redundant ACLs
+    consolidate_acls: true
+
+    # Remove obsolete ACLs
+    remove_obsolete: true
+
+    # Suggest improvements
+    suggest_improvements: true
+
+# Default Deny Policy
+default_policy:
+  # Deny all access by default
+  default_access: deny
+
+  # Explicit allow required
+  require_explicit_allow: true
+
+  # Log denied access
+  log_denied_access: true

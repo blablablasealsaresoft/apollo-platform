@@ -1,0 +1,19 @@
+groups:
+  - name: availability
+    rules:
+      - alert: DatabaseDown
+        expr: up{job="postgresql"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: PostgreSQL exporter not reachable
+          description: Prometheus cannot scrape the PostgreSQL exporter endpoint.
+      - alert: RedisConnFlood
+        expr: rate(redis_connected_clients[5m]) > 500
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Redis connections spiking
+          description: Investigate possible brute force or runaway jobs.

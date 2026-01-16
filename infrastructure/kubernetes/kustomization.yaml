@@ -1,0 +1,14 @@
+resources:
+  - namespaces
+  - deployments
+  - services
+  - configmaps
+  - secrets
+  - ingress
+  - network-policies
+  - rbac
+  - persistent-volumes
+  - monitoring
+  - authentication-service.yaml
+  - namespace.yaml
+  - configmap.yaml

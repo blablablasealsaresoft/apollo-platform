@@ -1,0 +1,374 @@
+# Encryption Configuration for Apollo Platform
+# CJIS-compliant encryption for data at rest and in transit
+
+encryption:
+  # Data at Rest Encryption
+  at_rest:
+    # Primary encryption algorithm
+    algorithm: AES-256-GCM
+
+    # Key size in bits
+    key_size: 256
+
+    # Encryption mode
+    mode: GCM
+
+    # Authenticated encryption
+    authenticated: true
+
+    # Key derivation function
+    key_derivation:
+      algorithm: PBKDF2
+      iterations: 100000
+      salt_length: 32
+      hash_function: SHA256
+
+    # Additional algorithms supported
+    supported_algorithms:
+      - AES-256-GCM
+      - AES-256-CBC
+      - ChaCha20-Poly1305
+
+  # Data in Transit Encryption
+  in_transit:
+    # TLS protocol version
+    protocol: TLS 1.3
+
+    # Minimum TLS version accepted
+    min_version: TLS 1.2
+
+    # Cipher suites (in preference order)
+    ciphers:
+      - TLS_AES_256_GCM_SHA384
+      - TLS_CHACHA20_POLY1305_SHA256
+      - TLS_AES_128_GCM_SHA256
+
+    # Disable weak ciphers
+    disabled_ciphers:
+      - TLS_RSA_WITH_AES_128_CBC_SHA
+      - TLS_RSA_WITH_AES_256_CBC_SHA
+      - TLS_RSA_WITH_3DES_EDE_CBC_SHA
+
+    # Perfect Forward Secrecy
+    pfs:
+      enabled: true
+      required: true
+
+    # HSTS (HTTP Strict Transport Security)
+    hsts:
+      enabled: true
+      max_age: 31536000  # 1 year
+      include_subdomains: true
+      preload: true
+
+  # Database Encryption
+  database:
+    # PostgreSQL encryption
+    postgresql:
+      encryption_method: transparent_data_encryption
+      algorithm: AES-256-GCM
+      key_rotation: enabled
+      backup_encryption: enabled
+
+      # Column-level encryption for sensitive fields
+      column_encryption:
+        enabled: true
+        encrypted_columns:
+          - users.password_hash
+          - users.ssn
+          - users.badge_number
+          - evidence.file_path
+          - intelligence.source_info
+
+    # Neo4j encryption
+    neo4j:
+      encryption_method: application_level_encryption
+      algorithm: AES-256-GCM
+      encrypted_properties:
+        - Person.ssn
+        - Person.dob
+        - Person.phone
+        - Person.email
+        - Location.coordinates
+
+    # Redis encryption
+    redis:
+      encryption_method: ssl_encryption
+      tls_version: 1.3
+      require_ssl: true
+      ssl_cert_reqs: required
+
+    # MongoDB encryption
+    mongodb:
+      encryption_method: field_level_encryption
+      algorithm: AES-256-GCM
+      encrypted_fields:
+        - users.credentials
+        - evidence.metadata
+        - intelligence.raw_data
+
+    # Elasticsearch encryption
+    elasticsearch:
+      encryption_method: node_to_node_encryption
+      ssl_enabled: true
+      tls_version: 1.3
+
+  # Evidence Encryption
+  evidence:
+    # Evidence file encryption
+    algorithm: AES-256-CBC
+    key_size: 256
+
+    # Integrity verification
+    integrity:
+      algorithm: SHA-256
+      verify_on_access: true
+
+    # Digital signatures
+    signing:
+      enabled: true
+      algorithm: RSA-4096
+      hash_function: SHA-256
+
+    # Metadata encryption
+    metadata_encryption:
+      enabled: true
+      algorithm: AES-256-GCM
+
+    # Chain of custody encryption
+    chain_of_custody:
+      encrypted: true
+      signed: true
+      tamper_evident: true
+
+  # Intelligence Data Encryption
+  intelligence:
+    # Classification-based encryption
+    classified:
+      algorithm: AES-256-GCM
+      key_management: hsm
+      access_logging: mandatory
+
+    unclassified:
+      algorithm: AES-256-GCM
+      key_management: kms
+
+    # Source protection
+    source_protection:
+      encrypt_source_info: true
+      algorithm: AES-256-GCM
+      compartmentalized: true
+
+  # Communication Encryption
+  communication:
+    # API encryption
+    api:
+      require_tls: true
+      min_tls_version: 1.2
+      mutual_tls: true
+
+    # WebSocket encryption
+    websocket:
+      require_wss: true
+      tls_version: 1.3
+
+    # Message queue encryption
+    message_queue:
+      encryption: enabled
+      algorithm: AES-256-GCM
+
+  # File System Encryption
+  filesystem:
+    # Encrypted directories
+    encrypted_paths:
+      - /var/apollo/evidence
+      - /var/apollo/intelligence
+      - /var/apollo/backups
+      - /var/apollo/logs
+
+    # Encryption method
+    method: dm-crypt
+    algorithm: AES-256-XTS
+
+    # Key management
+    key_storage: luks
+
+  # Backup Encryption
+  backup:
+    # Encrypt all backups
+    encryption_required: true
+
+    # Backup encryption algorithm
+    algorithm: AES-256-GCM
+
+    # Compress before encryption
+    compress_first: true
+
+    # Separate backup encryption keys
+    separate_keys: true
+
+    # Backup verification
+    verify_after_backup: true
+
+  # Key Rotation
+  key_rotation:
+    # Enable automatic key rotation
+    enabled: true
+
+    # Rotation frequency
+    frequency: quarterly
+
+    # Grace period for old keys
+    grace_period: 30d
+
+    # Rotation schedule
+    schedule:
+      - resource: database_encryption_keys
+        frequency: 90d
+      - resource: evidence_encryption_keys
+        frequency: 180d
+      - resource: api_keys
+        frequency: 90d
+      - resource: certificate_keys
+        frequency: 365d
+
+    # Automatic re-encryption
+    auto_reencrypt:
+      enabled: true
+      background_process: true
+
+  # Hardware Security Module (HSM)
+  hsm:
+    # Use HSM for key management
+    enabled: true
+
+    # HSM provider
+    provider: aws_cloudhsm
+
+    # HSM configuration
+    config:
+      cluster_id: ${HSM_CLUSTER_ID}
+      hsm_ca_cert: ${HSM_CA_CERT_PATH}
+      customer_ca_cert: ${CUSTOMER_CA_CERT_PATH}
+
+    # Keys stored in HSM
+    hsm_keys:
+      - master_encryption_key
+      - classified_intelligence_key
+      - evidence_signing_key
+      - certificate_signing_key
+
+  # Key Management Service (KMS)
+  kms:
+    # KMS provider
+    provider: aws_kms
+
+    # KMS configuration
+    config:
+      region: ${AWS_REGION}
+      key_id: ${KMS_KEY_ID}
+
+    # Envelope encryption
+    envelope_encryption:
+      enabled: true
+      data_key_caching:
+        enabled: true
+        max_age: 300  # 5 minutes
+        max_messages: 100
+
+  # Encryption Performance
+  performance:
+    # Hardware acceleration
+    hardware_acceleration:
+      enabled: true
+      aes_ni: true
+
+    # Parallel encryption
+    parallel_processing:
+      enabled: true
+      max_threads: 4
+
+    # Caching
+    cache_decrypted_data:
+      enabled: false  # Disabled for security
+
+  # Quantum-Resistant Encryption
+  quantum_resistant:
+    # Prepare for post-quantum cryptography
+    enabled: false  # Future implementation
+
+    # Hybrid approach (classical + quantum-resistant)
+    hybrid_mode: planned
+
+    # Algorithms under evaluation
+    evaluated_algorithms:
+      - CRYSTALS-Kyber
+      - NTRU
+      - SABER
+
+  # Encryption Auditing
+  auditing:
+    # Log all encryption operations
+    log_operations: true
+
+    # Log key access
+    log_key_access: true
+
+    # Log decryption operations
+    log_decryption: true
+
+    # Alert on anomalies
+    anomaly_detection:
+      enabled: true
+      alerts:
+        - unusual_decryption_volume
+        - unauthorized_key_access
+        - encryption_failures
+
+  # Compliance
+  compliance:
+    # CJIS compliance
+    cjis:
+      compliant: true
+      encryption_level: advanced
+      key_management: controlled
+
+    # FIPS 140-2 compliance
+    fips_140_2:
+      compliant: true
+      level: 2
+      validated_modules: true
+
+    # NIST guidelines
+    nist:
+      compliant: true
+      standards:
+        - NIST SP 800-52
+        - NIST SP 800-57
+        - NIST SP 800-111
+
+  # Encryption Testing
+  testing:
+    # Regular encryption testing
+    enabled: true
+
+    # Test frequency
+    frequency: weekly
+
+    # Tests to perform
+    tests:
+      - key_strength
+      - algorithm_correctness
+      - performance_benchmarks
+      - vulnerability_scanning
+
+  # Development Settings
+  development:
+    # Use weaker encryption in development (NOT RECOMMENDED)
+    weaker_encryption: ${DEV_WEAKER_ENCRYPTION:-false}
+
+    # Skip encryption for certain resources
+    skip_encryption: []
+
+    # Debug encryption operations
+    debug_mode: ${ENCRYPTION_DEBUG:-false}

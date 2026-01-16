@@ -1,0 +1,181 @@
+service:
+  name: alert-orchestration-service
+  port: 4006
+  version: 1.0.0
+  description: Intelligent alert routing, correlation, and orchestration
+
+runtime:
+  workers: 6
+  max_memory: 4GB
+  timeout: 60s
+  restart_policy: always
+  graceful_shutdown_timeout: 15s
+
+features:
+  alert_routing: true
+  alert_correlation: true
+  alert_deduplication: true
+  priority_escalation: true
+  automated_response: true
+  notification_orchestration: true
+
+alert_sources:
+  surveillance_system: http://surveillance:5000
+  intelligence_fusion: http://intelligence-fusion:4003
+  blockchain_forensics: http://blockchain-forensics:6000
+  osint_engine: http://osint-engine:5001
+  bugtrace_ai: http://bugtrace-ai:8001
+  cyberspike_villager: http://cyberspike-villager:37695
+
+alert_types:
+  surveillance_match:
+    priority: critical
+    auto_escalate: true
+    notify_immediately: true
+
+  blockchain_transaction:
+    priority: high
+    threshold: 10000_USD
+    auto_escalate: false
+
+  osint_discovery:
+    priority: medium
+    correlation_required: true
+
+  threat_indicator:
+    priority: high
+    correlation_required: true
+
+  system_anomaly:
+    priority: medium
+    auto_escalate: false
+
+correlation:
+  enabled: true
+  window: 5m
+  algorithms:
+    - temporal_correlation
+    - entity_correlation
+    - pattern_matching
+  confidence_threshold: 0.75
+
+deduplication:
+  enabled: true
+  window: 15m
+  similarity_threshold: 0.9
+  hash_algorithm: sha256
+
+routing:
+  rules:
+    - condition: priority == 'critical'
+      actions:
+        - notify: [email, slack, webhook]
+        - escalate: true
+        - create_investigation: true
+
+    - condition: priority == 'high' AND type == 'surveillance_match'
+      actions:
+        - notify: [email, slack]
+        - escalate: true
+
+    - condition: priority == 'medium'
+      actions:
+        - notify: [in_app]
+        - queue_for_review: true
+
+    - condition: priority == 'low'
+      actions:
+        - notify: [in_app]
+        - auto_archive_after: 7d
+
+escalation:
+  enabled: true
+  rules:
+    - trigger: alert.priority == 'critical' AND alert.age > 5m
+      action: escalate_to_manager
+
+    - trigger: alert.priority == 'high' AND alert.age > 15m
+      action: escalate_to_manager
+
+    - trigger: alert.unacknowledged AND alert.age > 30m
+      action: escalate_to_senior
+
+automated_response:
+  enabled: true
+  actions:
+    surveillance_match:
+      - create_investigation
+      - snapshot_surveillance_feed
+      - notify_team
+
+    blockchain_transaction:
+      - track_wallet
+      - correlate_transactions
+      - update_investigation
+
+database:
+  postgresql:
+    connection: ${DATABASE_URL}
+    pool_size: 25
+
+  redis:
+    connection: ${REDIS_URL}
+    max_connections: 50
+    pubsub_enabled: true
+
+  elasticsearch:
+    url: ${ELASTICSEARCH_URL}
+    index_prefix: apollo-alerts
+    retention_days: 90
+
+queue:
+  type: redis
+  queues:
+    critical: alerts_critical
+    high: alerts_high
+    medium: alerts_medium
+    low: alerts_low
+  processing_concurrency: 20
+
+integration:
+  notifications_service: http://notifications:4005
+  operations_service: http://operations:4002
+  intelligence_fusion: http://intelligence-fusion:4003
+
+monitoring:
+  metrics: true
+  health_check: /health
+  readiness_check: /ready
+  prometheus_endpoint: /metrics
+  custom_metrics:
+    - alerts_received_total
+    - alerts_correlated_total
+    - alerts_deduplicated_total
+    - alerts_escalated_total
+    - response_time_seconds
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - stdout
+    - file: /var/log/apollo/alert-orchestration.log
+  alert_logging: true
+
+api:
+  version: v1
+  base_path: /api/v1
+  authentication: jwt
+  rate_limiting: 1000/minute
+
+performance:
+  processing_timeout: 10s
+  batch_processing: true
+  batch_size: 100
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: alert-orchestration-service
+    health_check_interval: 10s

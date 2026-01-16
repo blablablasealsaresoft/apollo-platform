@@ -414,3 +414,112 @@ class BreachDatabaseEngine:
 
         else:
             raise ValueError(f"Unsupported format: {format}")
+
+    async def monitor_credentials(
+        self,
+        identifiers: List[str],
+        check_interval: int = 3600,
+        callback: Optional[callable] = None
+    ):
+        """
+        Continuously monitor credentials for new breaches
+
+        Args:
+            identifiers: List of emails/usernames to monitor
+            check_interval: Check interval in seconds
+            callback: Optional callback for new findings
+        """
+        logger.info(f"Starting credential monitoring for {len(identifiers)} identifiers")
+
+        # Track previous results
+        previous_results: Dict[str, BreachSummary] = {}
+
+        while True:
+            for identifier in identifiers:
+                try:
+                    # Check for breaches
+                    current = await self.search_email(identifier)
+
+                    # Compare with previous results
+                    if identifier in previous_results:
+                        prev = previous_results[identifier]
+
+                        # Find new breaches
+                        prev_dbs = prev.databases_found
+                        new_dbs = current.databases_found - prev_dbs
+
+                        if new_dbs:
+                            logger.warning(
+                                f"New breach detected for {identifier}: {new_dbs}"
+                            )
+
+                            if callback:
+                                await callback(identifier, new_dbs, current)
+
+                    previous_results[identifier] = current
+
+                except Exception as e:
+                    logger.error(f"Error monitoring {identifier}: {e}")
+
+            # Wait for next check
+            await asyncio.sleep(check_interval)
+
+    async def check_password_exposure(
+        self,
+        password: str,
+        use_k_anonymity: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Check if password has been exposed using HIBP Pwned Passwords
+
+        Uses k-anonymity model - only sends first 5 chars of SHA1 hash
+
+        Args:
+            password: Password to check
+            use_k_anonymity: Use k-anonymity (recommended)
+
+        Returns:
+            Exposure information
+        """
+        import hashlib
+
+        sha1_hash = hashlib.sha1(password.encode()).hexdigest().upper()
+
+        if use_k_anonymity:
+            prefix = sha1_hash[:5]
+            suffix = sha1_hash[5:]
+
+            try:
+                async with aiohttp.ClientSession() as session:
+                    url = f"https://api.pwnedpasswords.com/range/{prefix}"
+
+                    async with session.get(url, timeout=15) as response:
+                        if response.status == 200:
+                            text = await response.text()
+
+                            for line in text.splitlines():
+                                parts = line.split(':')
+                                if len(parts) == 2:
+                                    hash_suffix, count = parts
+                                    if hash_suffix == suffix:
+                                        return {
+                                            'compromised': True,
+                                            'exposure_count': int(count),
+                                            'sha1_hash': sha1_hash,
+                                            'message': f"Password found in {count} breaches"
+                                        }
+
+                            return {
+                                'compromised': False,
+                                'exposure_count': 0,
+                                'sha1_hash': sha1_hash,
+                                'message': "Password not found in breach database"
+                            }
+
+            except Exception as e:
+                logger.error(f"Password check error: {e}")
+
+        return {
+            'compromised': None,
+            'error': 'Check failed'
+        }

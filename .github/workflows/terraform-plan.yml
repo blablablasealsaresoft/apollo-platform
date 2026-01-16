@@ -1,0 +1,425 @@
+name: Terraform Plan
+
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+    paths:
+      - 'infrastructure/terraform/**'
+      - '.github/workflows/terraform-*.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      workspace:
+        description: 'Terraform workspace'
+        required: false
+        type: string
+
+env:
+  TF_VERSION: '1.6.0'
+  TF_IN_AUTOMATION: 'true'
+  TF_INPUT: 'false'
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+jobs:
+  # Validate Terraform configuration
+  validate:
+    name: Validate Configuration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive -diff
+        working-directory: infrastructure/terraform
+        continue-on-error: true
+
+      - name: Terraform Init (validation only)
+        id: init
+        run: terraform init -backend=false
+        working-directory: infrastructure/terraform
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+        working-directory: infrastructure/terraform
+
+      - name: Run tfsec security scan
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          working_directory: infrastructure/terraform
+          soft_fail: true
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: infrastructure/terraform
+          framework: terraform
+          output_format: cli
+          soft_fail: true
+
+      - name: Comment validation results on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `### Terraform Validation Results
+
+            #### Format Check: \`${{ steps.fmt.outcome }}\`
+            #### Initialization: \`${{ steps.init.outcome }}\`
+            #### Validation: \`${{ steps.validate.outcome }}\`
+
+            *Workflow: \`${{ github.workflow }}\` - Run: \`${{ github.run_id }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+  # Plan for staging
+  plan-staging:
+    name: Plan Staging
+    runs-on: ubuntu-latest
+    needs: [validate]
+    if: inputs.environment == 'staging' || inputs.environment == '' || github.event_name == 'pull_request'
+    environment:
+      name: terraform-staging
+
+    outputs:
+      plan_exitcode: ${{ steps.plan.outputs.exitcode }}
+      has_changes: ${{ steps.plan.outputs.has_changes }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: true
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_STAGING }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Terraform Init
+        id: init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="key=apollo/staging/terraform.tfstate" \
+            -backend-config="region=${{ secrets.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ secrets.TF_LOCK_TABLE }}" \
+            -backend-config="encrypt=true"
+        working-directory: infrastructure/terraform
+
+      - name: Select workspace
+        run: |
+          terraform workspace select staging || terraform workspace new staging
+        working-directory: infrastructure/terraform
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan \
+            -var-file="environments/staging.tfvars" \
+            -out=staging.tfplan \
+            -detailed-exitcode \
+            -no-color 2>&1 | tee plan_output.txt
+
+          EXITCODE=${PIPESTATUS[0]}
+          echo "exitcode=$EXITCODE" >> $GITHUB_OUTPUT
+
+          if [ $EXITCODE -eq 2 ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+        working-directory: infrastructure/terraform
+        continue-on-error: true
+
+      - name: Generate plan summary
+        id: summary
+        run: |
+          if [ -f staging.tfplan ]; then
+            terraform show -no-color staging.tfplan > plan_summary.txt
+          fi
+        working-directory: infrastructure/terraform
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-tfplan
+          path: infrastructure/terraform/staging.tfplan
+          retention-days: 5
+
+      - name: Comment plan on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let planOutput = 'No plan output available';
+            try {
+              planOutput = fs.readFileSync('infrastructure/terraform/plan_output.txt', 'utf8');
+              // Truncate if too long
+              if (planOutput.length > 60000) {
+                planOutput = planOutput.substring(0, 60000) + '\n... (truncated)';
+              }
+            } catch (e) {
+              console.log('Could not read plan output');
+            }
+
+            const hasChanges = '${{ steps.plan.outputs.has_changes }}' === 'true';
+            const exitCode = '${{ steps.plan.outputs.exitcode }}';
+
+            let statusEmoji = '✅';
+            let statusText = 'No changes required';
+
+            if (exitCode === '1') {
+              statusEmoji = '❌';
+              statusText = 'Plan failed';
+            } else if (hasChanges) {
+              statusEmoji = '📝';
+              statusText = 'Changes detected';
+            }
+
+            const output = `### Terraform Plan - Staging ${statusEmoji}
+
+            **Status:** ${statusText}
+
+            <details>
+            <summary>Show Plan Output</summary>
+
+            \`\`\`hcl
+            ${planOutput}
+            \`\`\`
+
+            </details>
+
+            *Workflow: \`${{ github.workflow }}\` - Run: \`${{ github.run_id }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+  # Plan for production
+  plan-production:
+    name: Plan Production
+    runs-on: ubuntu-latest
+    needs: [validate]
+    if: inputs.environment == 'production' || github.event_name == 'pull_request'
+    environment:
+      name: terraform-production
+
+    outputs:
+      plan_exitcode: ${{ steps.plan.outputs.exitcode }}
+      has_changes: ${{ steps.plan.outputs.has_changes }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: true
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_PRODUCTION }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Terraform Init
+        id: init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="key=apollo/production/terraform.tfstate" \
+            -backend-config="region=${{ secrets.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ secrets.TF_LOCK_TABLE }}" \
+            -backend-config="encrypt=true"
+        working-directory: infrastructure/terraform
+
+      - name: Select workspace
+        run: |
+          terraform workspace select production || terraform workspace new production
+        working-directory: infrastructure/terraform
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan \
+            -var-file="environments/production.tfvars" \
+            -out=production.tfplan \
+            -detailed-exitcode \
+            -no-color 2>&1 | tee plan_output.txt
+
+          EXITCODE=${PIPESTATUS[0]}
+          echo "exitcode=$EXITCODE" >> $GITHUB_OUTPUT
+
+          if [ $EXITCODE -eq 2 ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+        working-directory: infrastructure/terraform
+        continue-on-error: true
+
+      - name: Generate plan summary
+        id: summary
+        run: |
+          if [ -f production.tfplan ]; then
+            terraform show -no-color production.tfplan > plan_summary.txt
+          fi
+        working-directory: infrastructure/terraform
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-tfplan
+          path: infrastructure/terraform/production.tfplan
+          retention-days: 5
+
+      - name: Comment plan on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let planOutput = 'No plan output available';
+            try {
+              planOutput = fs.readFileSync('infrastructure/terraform/plan_output.txt', 'utf8');
+              if (planOutput.length > 60000) {
+                planOutput = planOutput.substring(0, 60000) + '\n... (truncated)';
+              }
+            } catch (e) {
+              console.log('Could not read plan output');
+            }
+
+            const hasChanges = '${{ steps.plan.outputs.has_changes }}' === 'true';
+            const exitCode = '${{ steps.plan.outputs.exitcode }}';
+
+            let statusEmoji = '✅';
+            let statusText = 'No changes required';
+
+            if (exitCode === '1') {
+              statusEmoji = '❌';
+              statusText = 'Plan failed';
+            } else if (hasChanges) {
+              statusEmoji = '📝';
+              statusText = 'Changes detected';
+            }
+
+            const output = `### Terraform Plan - Production ${statusEmoji}
+
+            **Status:** ${statusText}
+
+            <details>
+            <summary>Show Plan Output</summary>
+
+            \`\`\`hcl
+            ${planOutput}
+            \`\`\`
+
+            </details>
+
+            *Workflow: \`${{ github.workflow }}\` - Run: \`${{ github.run_id }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+  # Cost estimation
+  cost-estimate:
+    name: Cost Estimation
+    runs-on: ubuntu-latest
+    needs: [plan-staging, plan-production]
+    if: always() && github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v3
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      - name: Generate Infracost report
+        run: |
+          infracost breakdown \
+            --path infrastructure/terraform \
+            --format json \
+            --out-file infracost.json || true
+
+      - name: Post Infracost comment
+        uses: infracost/actions/comment@v1
+        with:
+          path: infracost.json
+          behavior: update
+        continue-on-error: true
+
+  # Summary
+  summary:
+    name: Plan Summary
+    runs-on: ubuntu-latest
+    needs: [validate, plan-staging, plan-production]
+    if: always()
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# 🏗️ Terraform Plan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Date:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | Status | Changes |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|--------|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Staging | ${{ needs.plan-staging.result }} | ${{ needs.plan-staging.outputs.has_changes == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Production | ${{ needs.plan-production.result }} | ${{ needs.plan-production.outputs.has_changes == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review the plan outputs in PR comments" >> $GITHUB_STEP_SUMMARY
+          echo "2. Ensure changes are expected" >> $GITHUB_STEP_SUMMARY
+          echo "3. Get required approvals" >> $GITHUB_STEP_SUMMARY
+          echo "4. Run terraform-apply workflow to apply changes" >> $GITHUB_STEP_SUMMARY

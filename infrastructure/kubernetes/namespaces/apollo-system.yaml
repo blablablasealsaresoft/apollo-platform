@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: apollo-system
+  labels:
+    mesh: apollo
+    workload: control-plane
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: apollo-intelligence
+  labels:
+    mesh: apollo
+    workload: analytics
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: apollo-surveillance
+  labels:
+    mesh: apollo
+    workload: surveillance

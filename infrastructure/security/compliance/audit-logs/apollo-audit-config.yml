@@ -1,0 +1,9 @@
+collector:
+  type: fluentbit
+  path: /var/log/audit/*.log
+  tags:
+    system: apollo
+shipping:
+  destination: elk
+  index: audit-%Y.%m.%d
+retention_days: 2555

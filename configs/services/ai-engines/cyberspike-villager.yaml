@@ -1,0 +1,294 @@
+service:
+  name: cyberspike-villager
+  version: 0.1.0
+  port: 37695
+  description: AI-native C2 server with autonomous multi-agent orchestration
+
+type: ai-native-c2
+
+ai_models:
+  primary: claude-3-opus
+  fallback: deepseek-v3
+
+  models:
+    deepseek-v3:
+      provider: deepseek
+      model: deepseek-chat
+      api_key: ${DEEPSEEK_API_KEY}
+      temperature: 0.7
+      max_tokens: 8000
+      context_window: 64000
+      timeout: 120s
+      cost_per_1m_tokens: 0.27  # $0.27/1M tokens
+
+    claude-opus:
+      provider: anthropic
+      model: claude-3-opus-20240229
+      api_key: ${ANTHROPIC_API_KEY}
+      temperature: 0.7
+      max_tokens: 4000
+      context_window: 200000
+      timeout: 120s
+
+    gemini-flash:
+      provider: google
+      model: gemini-flash
+      api_key: ${GOOGLE_API_KEY}
+      temperature: 0.7
+      max_tokens: 8000
+      context_window: 128000
+      timeout: 120s
+
+    gpt-4:
+      provider: openai
+      model: gpt-4-turbo-preview
+      api_key: ${OPENAI_API_KEY}
+      temperature: 0.7
+      max_tokens: 8000
+      timeout: 120s
+
+orchestration:
+  mcp_integration: true
+  available_tools: 1686+  # 686 OSINT tools + 1000 public APIs
+  autonomous_planning: true
+  failure_recovery: true
+  parallel_execution: true
+  context_management: true
+
+mcp_servers:
+  osint_tools:
+    total: 686
+    categories:
+      - reconnaissance
+      - social_media
+      - blockchain
+      - dark_web
+      - email
+      - phone
+      - domain
+      - image
+      - others
+
+  public_apis:
+    total: 1000+
+    categories:
+      - cryptocurrency
+      - geolocation
+      - government
+      - social_media
+      - finance
+      - weather
+      - telecommunications
+      - blockchain
+      - open_data
+      - others
+
+  kali_tools:
+    enabled: true
+    tools_available: 600+
+    categories:
+      - information_gathering
+      - vulnerability_analysis
+      - wireless_attacks
+      - web_applications
+      - exploitation
+      - forensics
+      - sniffing_spoofing
+      - password_attacks
+      - maintaining_access
+      - reverse_engineering
+
+task_management:
+  dependency_tracking: true
+  context_passing: true
+  verification: true
+  max_concurrent_tasks: 10
+  retry_strategy: exponential_backoff
+  max_retries: 3
+
+  task_types:
+    - osint_collection
+    - reconnaissance
+    - exploitation
+    - post_exploitation
+    - evidence_collection
+    - data_exfiltration
+    - persistence
+    - lateral_movement
+
+operation_modes:
+  supervised:
+    enabled: true
+    description: Human operator approves each action
+    approval_required: true
+
+  autonomous:
+    enabled: true
+    description: Full autonomous operation within parameters
+    approval_required: false
+    safety_checks: true
+
+  collaborative:
+    enabled: true
+    description: AI and human work together
+    approval_threshold: high_risk_actions
+
+c2_server:
+  port: 37695
+  protocol: fastapi
+  ssl: true
+  ssl_cert: ${SSL_CERT_PATH}
+  ssl_key: ${SSL_KEY_PATH}
+  authentication: jwt
+  session_management: true
+
+drivers:
+  kali:
+    enabled: true
+    shell_access: true
+    tool_execution: true
+    script_deployment: true
+
+  browser_automation:
+    enabled: true
+    engines:
+      - playwright
+      - selenium
+    headless: true
+    proxy_support: true
+
+  direct_execution:
+    enabled: true
+    sandbox: true
+    timeout: 600s
+
+missions:
+  crypto_crime:
+    enabled: true
+    objectives:
+      - wallet_tracking
+      - transaction_analysis
+      - exchange_monitoring
+      - mixer_detection
+      - entity_clustering
+
+  predator_hunting:
+    enabled: true
+    objectives:
+      - social_media_osint
+      - image_analysis
+      - geolocation
+      - pattern_detection
+      - evidence_collection
+
+  network_mapping:
+    enabled: true
+    objectives:
+      - infrastructure_discovery
+      - service_enumeration
+      - vulnerability_scanning
+      - relationship_mapping
+
+  evidence_collection:
+    enabled: true
+    objectives:
+      - data_extraction
+      - screenshot_capture
+      - log_collection
+      - chain_of_custody
+
+planning:
+  algorithm: hierarchical_task_network
+  depth: 5
+  branching_factor: 3
+  optimization: true
+
+execution:
+  parallel_tasks: 10
+  sequential_fallback: true
+  checkpoint_interval: 5m
+  state_persistence: true
+
+monitoring:
+  task_status: real_time
+  progress_tracking: true
+  resource_monitoring: true
+  error_detection: true
+
+safety:
+  action_validation: true
+  destructive_action_prevention: true
+  data_loss_prevention: true
+  ethical_guidelines: enforced
+
+runtime:
+  workers: 4
+  max_memory: 16GB
+  timeout: 3600s
+  restart_policy: always
+
+database:
+  postgresql:
+    connection: ${DATABASE_URL}
+    pool_size: 30
+
+  redis:
+    connection: ${REDIS_URL}
+    task_queue: true
+    cache_ttl: 30m
+
+  mongodb:
+    uri: ${MONGODB_URI}
+    database: cyberspike_villager
+    collections:
+      - missions
+      - tasks
+      - results
+      - context
+
+integration:
+  osint_engine: http://osint-engine:5001
+  intelligence_fusion: http://intelligence-fusion:4003
+  operations: http://operations:4002
+  bugtrace_ai: http://bugtrace-ai:8001
+
+api:
+  version: v1
+  base_path: /api/v1
+  authentication: jwt
+  authorization: rbac
+  rate_limiting: 500/minute
+
+websocket:
+  enabled: true
+  port: 37696
+  channels:
+    - task_updates
+    - mission_status
+    - agent_communications
+
+monitoring:
+  metrics: true
+  prometheus_endpoint: /metrics
+  health_check: /health
+  custom_metrics:
+    - missions_active
+    - tasks_completed
+    - tools_executed
+    - success_rate
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - stdout
+    - file: /var/log/apollo/cyberspike-villager.log
+  task_logging: detailed
+  audit_logging: true
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: cyberspike-villager
+    health_check_interval: 10s

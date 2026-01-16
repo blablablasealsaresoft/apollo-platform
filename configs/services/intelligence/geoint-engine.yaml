@@ -1,0 +1,145 @@
+service:
+  name: geoint-engine
+  version: 1.0.0
+  port: 5002
+  description: Geospatial intelligence and location analysis
+
+runtime:
+  workers: 6
+  max_memory: 8GB
+  timeout: 120s
+  restart_policy: always
+
+features:
+  geolocation: true
+  reverse_geocoding: true
+  proximity_analysis: true
+  route_analysis: true
+  pattern_detection: true
+  heatmap_generation: true
+
+data_sources:
+  ip_geolocation:
+    - maxmind
+    - ipapi
+    - ipgeolocation
+    - ipstack
+
+  coordinates:
+    - google_maps
+    - openstreetmap
+    - mapbox
+    - here_maps
+
+  satellite:
+    - google_earth
+    - sentinel_hub
+    - planet_labs
+
+  cell_towers:
+    - opencellid
+    - unwired_labs
+
+  wifi:
+    - wigle
+    - mylnikov
+
+geolocation:
+  ip_based: true
+  cell_tower_based: true
+  wifi_based: true
+  gps_based: true
+
+  accuracy_levels:
+    country: 100%
+    region: 95%
+    city: 90%
+    neighborhood: 75%
+    street: 60%
+
+analysis:
+  proximity_search:
+    enabled: true
+    max_radius: 100km
+    algorithms:
+      - haversine
+      - vincenty
+
+  route_analysis:
+    enabled: true
+    routing_engines:
+      - osrm
+      - graphhopper
+      - valhalla
+
+  pattern_detection:
+    enabled: true
+    patterns:
+      - frequent_locations
+      - travel_patterns
+      - unusual_movements
+      - location_clustering
+
+  geofencing:
+    enabled: true
+    alert_on_entry: true
+    alert_on_exit: true
+
+visualization:
+  map_providers:
+    - leaflet
+    - mapbox
+    - google_maps
+    - openstreetmap
+
+  layers:
+    - markers
+    - heatmaps
+    - routes
+    - polygons
+    - circles
+
+database:
+  postgresql_postgis:
+    connection: ${DATABASE_URL}
+    pool_size: 30
+    spatial_index: true
+
+  redis:
+    connection: ${REDIS_URL}
+    cache_ttl: 30m
+
+  elasticsearch:
+    url: ${ELASTICSEARCH_URL}
+    index_prefix: apollo-geoint
+    geo_queries: true
+
+integration:
+  intelligence_fusion: http://intelligence-fusion:4003
+  surveillance: http://surveillance:5000
+  operations: http://operations:4002
+
+api:
+  version: v1
+  base_path: /api/v1
+  authentication: jwt
+  rate_limiting: 300/minute
+
+monitoring:
+  metrics: true
+  prometheus_endpoint: /metrics
+  health_check: /health
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - stdout
+    - file: /var/log/apollo/geoint-engine.log
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: geoint-engine
+    health_check_interval: 10s

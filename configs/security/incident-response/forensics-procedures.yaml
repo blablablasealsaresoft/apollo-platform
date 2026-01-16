@@ -1,0 +1,156 @@
+# Digital Forensics Procedures
+
+forensics_procedures:
+  # Evidence Collection
+  evidence_collection:
+    # Order of Volatility (RFC 3227)
+    collection_order:
+      1: registers_cache
+      2: routing_tables_arp_cache
+      3: process_table_kernel_stats
+      4: memory_ram
+      5: temporary_file_systems
+      6: disk_drives
+      7: remote_logging
+      8: physical_configuration
+      9: network_topology
+
+    # Live System Collection
+    live_system:
+      tools:
+        - volatility
+        - rekall
+        - lime
+        - ftk_imager
+
+      data_to_collect:
+        - running_processes
+        - open_network_connections
+        - logged_in_users
+        - clipboard_contents
+        - system_time
+        - loaded_kernel_modules
+
+    # Disk Imaging
+    disk_imaging:
+      method: bit_by_bit_copy
+      verification: hash_verification
+      tools:
+        - dd
+        - dcfldd
+        - ftk_imager
+      hash_algorithms:
+        - sha256
+        - md5
+
+  # Chain of Custody
+  chain_of_custody:
+    required: true
+
+    documentation:
+      - evidence_description
+      - collection_date_time
+      - collector_name_signature
+      - storage_location
+      - transfer_records
+      - access_log
+
+    digital_signatures: required
+    tamper_evident_bags: required
+
+  # Analysis Procedures
+  analysis:
+    # Timeline Analysis
+    timeline:
+      super_timeline: true
+      tools:
+        - plaso
+        - log2timeline
+      sources:
+        - file_system_metadata
+        - application_logs
+        - system_logs
+        - registry_changes
+
+    # Memory Analysis
+    memory:
+      tools:
+        - volatility
+        - rekall
+      analysis_steps:
+        - process_list
+        - network_connections
+        - dll_list
+        - malware_scan
+        - rootkit_detection
+
+    # Malware Analysis
+    malware:
+      static_analysis:
+        - file_type_identification
+        - string_extraction
+        - pe_analysis
+        - signature_matching
+
+      dynamic_analysis:
+        - sandbox_execution
+        - behavior_monitoring
+        - network_traffic_analysis
+
+      tools:
+        - ida_pro
+        - ghidra
+        - cuckoo_sandbox
+        - remnux
+
+    # Network Forensics
+    network:
+      packet_capture: true
+      tools:
+        - wireshark
+        - tcpdump
+        - zeek
+      analysis:
+        - protocol_analysis
+        - traffic_reconstruction
+        - malicious_traffic_identification
+
+  # Documentation
+  documentation:
+    required_reports:
+      - executive_summary
+      - technical_findings
+      - timeline_of_events
+      - evidence_inventory
+      - chain_of_custody
+      - recommendations
+
+    report_format: formal_forensic_report
+    retention: indefinite
+
+  # Legal Considerations
+  legal:
+    admissibility: court_ready
+    expert_witness: available
+    defensible_process: documented
+
+  # Tools and Environment
+  tools:
+    forensic_workstation:
+      os: forensic_linux
+      write_blockers: required
+      isolated_network: true
+
+    software:
+      - autopsy
+      - sleuth_kit
+      - encase
+      - ftk
+      - x_ways
+      - cellebrite
+
+  # Quality Assurance
+  quality_assurance:
+    peer_review: required
+    tool_validation: documented
+    process_verification: mandatory

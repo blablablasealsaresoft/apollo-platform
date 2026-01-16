@@ -1,0 +1,93 @@
+# Alert Rules for Security Events
+
+alert_rules:
+  # Critical Alerts (Immediate Response)
+  critical:
+    - rule: unauthorized_access_attempt
+      threshold: 1
+      window: immediate
+      action: [notify_security_team, create_incident, lock_account]
+      severity: critical
+
+    - rule: privilege_escalation_attempt
+      threshold: 1
+      window: immediate
+      action: [notify_ciso, create_incident, terminate_session]
+      severity: critical
+
+    - rule: data_exfiltration
+      threshold: 100MB
+      window: 5m
+      action: [block_connection, notify_security_team, create_incident]
+      severity: critical
+
+    - rule: malware_detected
+      threshold: 1
+      window: immediate
+      action: [quarantine_system, notify_security_team, create_incident]
+      severity: critical
+
+    - rule: ransomware_behavior
+      threshold: 1
+      window: immediate
+      action: [isolate_system, notify_security_team, create_incident]
+      severity: critical
+
+  # High Priority Alerts
+  high:
+    - rule: multiple_failed_logins
+      threshold: 5
+      window: 5m
+      action: [lockout_account, notify_user, notify_security_team]
+      severity: high
+
+    - rule: unusual_data_access
+      threshold: anomaly_detected
+      window: 1h
+      action: [notify_security_team, require_mfa]
+      severity: high
+
+    - rule: configuration_change
+      threshold: 1
+      window: immediate
+      action: [notify_security_team, log_change]
+      severity: high
+
+  # Medium Priority Alerts
+  medium:
+    - rule: failed_mfa
+      threshold: 3
+      window: 15m
+      action: [notify_user, log_event]
+      severity: medium
+
+    - rule: unusual_login_location
+      threshold: 1
+      window: immediate
+      action: [require_additional_auth, notify_user]
+      severity: medium
+
+  # Alert Destinations
+  destinations:
+    email: ${SECURITY_EMAIL}
+    slack: ${SECURITY_SLACK}
+    pagerduty: ${PAGERDUTY_KEY}
+    siem: ${SIEM_ENDPOINT}
+    ticketing: ${JIRA_ENDPOINT}
+
+  # Alert Suppression
+  suppression:
+    enabled: true
+    duplicate_window: 5m
+    max_alerts_per_hour: 100
+
+  # Escalation
+  escalation:
+    critical:
+      immediate: security_team
+      15m: ciso
+      30m: executive_team
+
+    high:
+      immediate: security_team
+      1h: security_manager

@@ -1,0 +1,43 @@
+{
+  "_comment": "Breach Database API Configuration Template",
+  "_instructions": "Copy this file to breach_config.json and add your API keys",
+
+  "dehashed_email": "your-email@example.com",
+  "dehashed_api_key": "your-dehashed-api-key-here",
+
+  "hibp_api_key": "your-haveibeenpwned-api-key-here",
+
+  "snusbase_api_key": "your-snusbase-api-key-here",
+
+  "intelx_api_key": "your-intelx-api-key-here",
+
+  "leakcheck_api_key": "your-leakcheck-api-key-here",
+
+  "_api_providers": {
+    "DeHashed": {
+      "website": "https://dehashed.com",
+      "pricing": "$0.0006 per record searched",
+      "features": "11B+ records, comprehensive search fields"
+    },
+    "HaveIBeenPwned": {
+      "website": "https://haveibeenpwned.com/API/Key",
+      "pricing": "$3.50/month",
+      "features": "Verified breach data, password checking"
+    },
+    "Snusbase": {
+      "website": "https://snusbase.com",
+      "pricing": "Subscription-based",
+      "features": "Hash cracking, combo checking"
+    },
+    "IntelX": {
+      "website": "https://intelx.io",
+      "pricing": "Varies",
+      "features": "Historical data, dark web"
+    },
+    "LeakCheck": {
+      "website": "https://leakcheck.io",
+      "pricing": "API credits",
+      "features": "Fast lookups, API access"
+    }
+  }
+}

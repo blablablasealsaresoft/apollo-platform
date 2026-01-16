@@ -1,0 +1,207 @@
+# Criminal Behavior AI - Training Configuration
+# Apollo Platform v0.1.0
+
+datasets:
+  crypto_criminal_patterns:
+    path: training/datasets/crypto-criminal-patterns/
+    format: parquet
+    features:
+      - transaction_frequency
+      - transaction_amounts
+      - wallet_diversity
+      - mixing_service_usage
+      - exchange_patterns
+      - withdrawal_timing
+      - geographic_dispersion
+      - counterparty_risk
+    labels:
+      - is_criminal
+      - crime_type
+      - confidence_level
+
+  predator_behavior:
+    path: training/datasets/predator-behavior/
+    format: parquet
+    features:
+      - message_frequency
+      - message_content_embeddings
+      - progressive_intimacy_score
+      - gift_giving_patterns
+      - isolation_attempts
+      - secrecy_requests
+      - age_gap
+      - time_of_day_patterns
+      - platform_behavior
+      - social_engineering_indicators
+    labels:
+      - confirmed_grooming
+      - grooming_stage
+      - urgency_level
+
+  trafficking_networks:
+    path: training/datasets/trafficking-networks/
+    format: graph_json
+    node_features:
+      - centrality_score
+      - connection_count
+      - activity_frequency
+      - geographic_location
+      - role_indicators
+    edge_features:
+      - communication_frequency
+      - transaction_amount
+      - relationship_type
+    labels:
+      - network_role
+      - trafficking_confirmed
+
+  financial_crime:
+    path: training/datasets/financial-crime/
+    format: parquet
+    features:
+      - transaction_patterns
+      - structuring_indicators
+      - layering_complexity
+      - integration_methods
+      - velocity_of_funds
+      - shell_company_usage
+      - jurisdictional_arbitrage
+    labels:
+      - money_laundering
+      - fraud_type
+
+preprocessing:
+  data_cleaning:
+    remove_duplicates: true
+    handle_missing:
+      strategy: intelligent_imputation
+      max_missing_percent: 10
+    outlier_detection:
+      method: isolation_forest
+      contamination: 0.05
+
+  anonymization:
+    pii_removal: true
+    pseudonymization: true
+    differential_privacy:
+      enabled: true
+      epsilon: 1.0
+
+  feature_scaling:
+    method: standard_scaler
+    per_feature: true
+
+feature_engineering:
+  temporal_features:
+    - hour_of_day
+    - day_of_week
+    - month_of_year
+    - time_since_last_action
+    - action_frequency
+    - seasonal_patterns
+
+  behavioral_features:
+    - behavior_consistency_score
+    - anomaly_score
+    - risk_progression
+    - pattern_complexity
+
+  network_features:
+    - degree_centrality
+    - betweenness_centrality
+    - clustering_coefficient
+    - community_membership
+
+  transaction_features:
+    - amount_volatility
+    - velocity_score
+    - structuring_indicators
+    - geographic_dispersion
+
+augmentation:
+  enabled: true
+  techniques:
+    - synthetic_minority_oversampling
+    - data_perturbation
+    - adversarial_examples
+  balance_classes: true
+
+validation:
+  strategy: stratified_k_fold
+  k_folds: 5
+  shuffle: true
+  random_state: 42
+
+model_selection:
+  hyperparameter_tuning:
+    method: bayesian_optimization
+    iterations: 50
+    scoring: f1_score
+
+  model_comparison:
+    enabled: true
+    models_to_compare:
+      - lstm
+      - transformer
+      - gradient_boosting
+      - random_forest
+      - ensemble
+
+training_pipeline:
+  stages:
+    - data_loading
+    - preprocessing
+    - feature_engineering
+    - augmentation
+    - model_training
+    - evaluation
+    - deployment
+
+  checkpointing:
+    enabled: true
+    save_best_only: true
+    monitor: val_f1_score
+    frequency: epoch
+
+  logging:
+    level: info
+    log_metrics: true
+    log_gradients: false
+    log_model_architecture: true
+
+compute:
+  device: auto  # auto-detect GPU/CPU
+  mixed_precision: true
+  distributed_training:
+    enabled: false
+    strategy: mirrored
+
+  resources:
+    gpu_memory_limit_gb: 8
+    cpu_cores: 4
+    batch_queue_size: 100
+
+ethical_guidelines:
+  bias_mitigation:
+    enabled: true
+    protected_attributes:
+      - race
+      - gender
+      - age
+      - nationality
+    fairness_metrics:
+      - demographic_parity
+      - equal_opportunity
+      - equalized_odds
+
+  explainability:
+    required: true
+    methods:
+      - shap_values
+      - attention_weights
+      - feature_importance
+
+  human_oversight:
+    required: true
+    review_threshold: 0.95
+    escalation_policy: immediate

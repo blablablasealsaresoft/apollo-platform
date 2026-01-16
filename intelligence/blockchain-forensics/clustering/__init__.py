@@ -10,20 +10,24 @@ Advanced algorithms for clustering blockchain addresses:
 - Cluster labeling
 """
 
-from .clustering_engine import WalletClusteringEngine
-from .heuristics import (
-    CommonInputHeuristic,
-    ChangeAddressDetector,
-    CoSpendingAnalyzer,
-    PeelChainDetector,
+from .clustering_engine import WalletClusteringEngine, WalletCluster, Cluster
+from .real_clustering_engine import (
+    RealWalletClusteringEngine,
+    AddressCluster,
+    ClusterEvidence,
+    ClusteringResult,
+    QuickClusterer,
 )
-from .labeler import ClusterLabeler
 
 __all__ = [
+    # Original engine
     "WalletClusteringEngine",
-    "CommonInputHeuristic",
-    "ChangeAddressDetector",
-    "CoSpendingAnalyzer",
-    "PeelChainDetector",
-    "ClusterLabeler",
+    "WalletCluster",
+    "Cluster",
+    # Real clustering engine
+    "RealWalletClusteringEngine",
+    "AddressCluster",
+    "ClusterEvidence",
+    "ClusteringResult",
+    "QuickClusterer",
 ]

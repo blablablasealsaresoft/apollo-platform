@@ -1,0 +1,13 @@
+pipelines:
+  - name: blockchain_insights
+    schedule: "*/15 * * * *"
+    steps:
+      - source: kafka:blockchain-tx
+      - transform: scripts/chain_normalizer.py
+      - load: postgres://analytics/chain_activity
+  - name: surveillance_insights
+    schedule: "*/5 * * * *"
+    steps:
+      - source: s3://apollo-surveillance/events
+      - transform: scripts/vision_enricher.py
+      - load: timescale://surveillance_events

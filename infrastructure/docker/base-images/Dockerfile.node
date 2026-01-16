@@ -1,0 +1,9 @@
+FROM node:20-alpine
+
+RUN addgroup -S apollo && adduser -S apollo -G apollo \
+    && apk add --no-cache dumb-init python3 make g++ \
+    && npm install -g pnpm@9
+
+USER apollo
+WORKDIR /workspace
+ENTRYPOINT ["dumb-init", "node"]

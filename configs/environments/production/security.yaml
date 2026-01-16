@@ -1,0 +1,607 @@
+# Apollo Platform - Production Security Configuration
+# ===========================================================
+
+environment: production
+
+# Encryption Configuration
+encryption:
+  # Encryption at rest
+  at_rest:
+    enabled: true
+    algorithm: aes-256-gcm
+    key_length: 256
+    key_derivation: pbkdf2
+    iterations: 100000
+
+    # Key management
+    key_management:
+      provider: kubernetes-secrets  # Or: vault, aws-kms, azure-keyvault
+      rotation: quarterly
+      automatic_rotation: false  # Manual rotation for safety
+      versioned: true
+
+    # Database encryption
+    databases:
+      postgresql: true
+      neo4j: true
+      mongodb: true
+      timescaledb: true
+      elasticsearch: true
+
+    # File encryption
+    files:
+      evidence: true
+      documents: true
+      backups: true
+      logs: true
+
+  # Encryption in transit
+  in_transit:
+    enabled: true
+    protocol: tls-1.3
+    min_version: tls-1.2  # For compatibility
+
+    # Cipher suites
+    cipher_suites:
+      - TLS_AES_256_GCM_SHA384
+      - TLS_CHACHA20_POLY1305_SHA256
+      - TLS_AES_128_GCM_SHA256
+
+    # Certificate management
+    certificates:
+      provider: cert-manager
+      auto_renewal: true
+      renewal_threshold: 30d
+      validity_period: 90d
+
+    # mTLS (mutual TLS)
+    mtls:
+      enabled: true
+      require_client_cert: true
+      verify_peer: true
+
+# Authentication Configuration
+authentication:
+  # Multi-Factor Authentication
+  mfa:
+    enabled: true
+    required: true
+    methods:
+      - totp
+      - webauthn
+      - sms  # Backup method
+    grace_period: 0  # No grace period in production
+
+  # Password Policy
+  password_policy:
+    min_length: 16
+    max_length: 128
+    require_uppercase: true
+    require_lowercase: true
+    require_numbers: true
+    require_special: true
+    special_characters: "!@#$%^&*()_+-=[]{}|;:,.<>?"
+    disallow_common: true
+    disallow_username: true
+    expiry_days: 90
+    history: 10  # Remember last 10 passwords
+    complexity_score: 80  # zxcvbn score
+
+  # Session Management
+  session:
+    timeout: 15m
+    absolute_timeout: 8h
+    sliding_window: true
+    single_session: false
+    max_concurrent_sessions: 3
+
+    # Session security
+    secure_cookies: true
+    httponly_cookies: true
+    samesite: strict
+    cookie_domain: .yourdomain.com
+
+  # JWT Configuration
+  jwt:
+    algorithm: RS256  # RSA signature
+    key_size: 4096
+    issuer: apollo-platform
+    audience: apollo-api
+    access_token_expiry: 15m
+    refresh_token_expiry: 7d
+    rotation: true
+
+  # API Keys
+  api_keys:
+    enabled: true
+    prefix: apollo_
+    length: 64
+    hashing: sha256
+    expiry: 90d
+    rate_limit: 10000  # requests per day
+
+  # OAuth2
+  oauth2:
+    enabled: false  # Enable if needed
+    providers:
+      - google
+      - microsoft
+    pkce_required: true
+
+# Authorization Configuration
+authorization:
+  # Role-Based Access Control
+  rbac:
+    enabled: true
+
+    roles:
+      admin:
+        description: Full system access
+        permissions: ["*"]
+        max_users: 5
+
+      investigator:
+        description: Case management and investigation
+        permissions:
+          - cases:*
+          - evidence:*
+          - intelligence:read
+          - surveillance:read
+          - reports:*
+
+      analyst:
+        description: Intelligence analysis
+        permissions:
+          - intelligence:*
+          - cases:read
+          - evidence:read
+          - surveillance:read
+          - reports:create
+
+      operator:
+        description: System monitoring and operations
+        permissions:
+          - monitoring:*
+          - logs:read
+          - metrics:*
+          - alerts:*
+
+      viewer:
+        description: Read-only access
+        permissions:
+          - cases:read
+          - evidence:read
+          - intelligence:read
+          - reports:read
+
+    # Role hierarchy
+    hierarchy:
+      admin: [investigator, analyst, operator, viewer]
+      investigator: [analyst, viewer]
+      analyst: [viewer]
+      operator: [viewer]
+
+  # Attribute-Based Access Control
+  abac:
+    enabled: true
+    attributes:
+      - user.role
+      - user.department
+      - user.clearance_level
+      - resource.classification
+      - environment.time
+      - environment.location
+
+  # Principle of Least Privilege
+  least_privilege:
+    enabled: true
+    default_deny: true
+    explicit_grant: true
+
+# Network Security
+network:
+  # Firewall
+  firewall:
+    enabled: true
+    default_policy: deny
+
+    # Allowed IP ranges
+    allowed_ips:
+      - 10.0.0.0/8      # Internal network
+      - 172.16.0.0/12   # Private network
+      - 192.168.0.0/16  # Local network
+
+    # IP whitelist (specific IPs)
+    whitelist:
+      - 203.0.113.0/24  # Example: Office network
+
+    # IP blacklist
+    blacklist: []
+
+  # DDoS Protection
+  ddos_protection:
+    enabled: true
+    provider: cloudflare
+    rate_limiting: true
+    challenge_pages: true
+
+  # WAF (Web Application Firewall)
+  waf:
+    enabled: true
+    provider: cloudflare
+    rule_sets:
+      - owasp_core
+      - sql_injection
+      - xss
+      - rce
+      - lfi
+
+  # VPN
+  vpn:
+    required: true
+    type: wireguard
+    networks:
+      - 10.8.0.0/24
+
+  # Zero Trust Network
+  zero_trust:
+    enabled: true
+    verify_all_connections: true
+    least_privilege_access: true
+    assume_breach: true
+
+# Intrusion Detection & Prevention
+intrusion:
+  # IDS/IPS
+  ids:
+    enabled: true
+    provider: suricata
+    rule_sets:
+      - emerging_threats
+      - custom_rules
+    alert_threshold: medium
+
+  # File Integrity Monitoring
+  fim:
+    enabled: true
+    directories:
+      - /etc/apollo
+      - /var/apollo
+      - /usr/local/apollo
+    check_interval: 1h
+
+  # Anomaly Detection
+  anomaly_detection:
+    enabled: true
+    ai_powered: true
+    baseline_period: 30d
+    sensitivity: high
+
+    monitored_metrics:
+      - api_request_patterns
+      - database_queries
+      - authentication_attempts
+      - data_access_patterns
+      - network_traffic
+
+# Monitoring & Logging
+monitoring:
+  # Security Information and Event Management
+  siem:
+    enabled: true
+    provider: splunk  # Or: elasticsearch, datadog
+    real_time_correlation: true
+    retention: 2555d  # 7 years
+
+  # Audit Logging
+  audit_logging:
+    enabled: true
+    level: comprehensive
+    events:
+      - authentication
+      - authorization
+      - data_access
+      - data_modification
+      - administrative_actions
+      - security_events
+      - system_changes
+
+    format: json
+    integrity: cryptographic_hash
+    immutable: true
+    retention: 2555d  # 7 years
+
+  # Security Monitoring
+  security_monitoring:
+    enabled: true
+
+    monitors:
+      - failed_login_attempts
+      - privilege_escalation
+      - suspicious_queries
+      - data_exfiltration
+      - malware_detection
+      - vulnerability_exploitation
+
+    thresholds:
+      failed_logins: 5
+      privilege_escalation: 1
+      suspicious_queries: 10
+      data_exfiltration: 1
+
+# Compliance
+compliance:
+  # CJIS (Criminal Justice Information Services)
+  cjis:
+    enabled: true
+    requirements:
+      - advanced_authentication
+      - audit_logging
+      - encryption_at_rest
+      - encryption_in_transit
+      - physical_security
+      - personnel_security
+
+  # GDPR (General Data Protection Regulation)
+  gdpr:
+    enabled: true
+    requirements:
+      - data_minimization
+      - purpose_limitation
+      - right_to_erasure
+      - data_portability
+      - privacy_by_design
+      - dpia_required: true
+
+  # CCPA (California Consumer Privacy Act)
+  ccpa:
+    enabled: true
+    requirements:
+      - data_inventory
+      - opt_out_mechanism
+      - data_deletion
+      - disclosure_requirements
+
+  # SOC 2
+  soc2:
+    enabled: true
+    trust_principles:
+      - security
+      - availability
+      - processing_integrity
+      - confidentiality
+      - privacy
+
+  # ISO 27001
+  iso27001:
+    enabled: true
+    controls:
+      - information_security_policies
+      - organization_of_information_security
+      - human_resource_security
+      - asset_management
+      - access_control
+      - cryptography
+      - physical_security
+      - operations_security
+      - communications_security
+      - system_acquisition
+      - supplier_relationships
+      - incident_management
+      - business_continuity
+      - compliance
+
+# Data Protection
+data_protection:
+  # Data Classification
+  classification:
+    enabled: true
+    levels:
+      - public
+      - internal
+      - confidential
+      - restricted
+      - top_secret
+
+    default: confidential
+
+  # Data Loss Prevention
+  dlp:
+    enabled: true
+    scan_outbound: true
+    scan_storage: true
+    block_sensitive_data: true
+
+    patterns:
+      - credit_cards
+      - ssn
+      - passport_numbers
+      - api_keys
+      - passwords
+      - private_keys
+
+  # Data Masking
+  masking:
+    enabled: true
+    methods:
+      - redaction
+      - tokenization
+      - anonymization
+      - pseudonymization
+
+    fields:
+      - ssn
+      - credit_card
+      - email
+      - phone_number
+      - address
+
+  # Data Retention
+  retention:
+    policy: strict
+    schedules:
+      audit_logs: 2555d  # 7 years
+      case_data: permanent
+      surveillance_data: 365d
+      system_logs: 90d
+      temp_data: 7d
+
+    # Secure deletion
+    deletion:
+      method: cryptographic_erasure
+      verification: true
+      certificate: true
+
+# Incident Response
+incident_response:
+  # Automated Response
+  automated:
+    enabled: true
+
+    actions:
+      - isolate_compromised_system
+      - block_malicious_ip
+      - disable_compromised_account
+      - backup_evidence
+      - alert_security_team
+
+  # Manual Response
+  manual:
+    escalation_chain:
+      - security_team
+      - incident_commander
+      - ciso
+      - legal
+      - executive_leadership
+
+    playbooks:
+      - data_breach
+      - ransomware
+      - insider_threat
+      - ddos_attack
+      - account_compromise
+      - privilege_escalation
+
+  # Forensics
+  forensics:
+    enabled: true
+    preserve_evidence: true
+    chain_of_custody: true
+    disk_imaging: true
+    memory_capture: true
+    network_capture: true
+
+# Vulnerability Management
+vulnerability_management:
+  # Scanning
+  scanning:
+    enabled: true
+    frequency: daily
+    tools:
+      - trivy
+      - clair
+      - grype
+
+    targets:
+      - containers
+      - dependencies
+      - infrastructure
+      - code
+
+  # Patch Management
+  patching:
+    enabled: true
+    automatic: false  # Manual approval in production
+    testing_required: true
+    rollback_plan: true
+
+    schedule:
+      critical: 24h
+      high: 7d
+      medium: 30d
+      low: 90d
+
+  # Penetration Testing
+  pentesting:
+    frequency: quarterly
+    external: true
+    internal: true
+    report_required: true
+
+# Secrets Management
+secrets:
+  # Vault
+  vault:
+    enabled: true
+    provider: hashicorp_vault  # Or: aws-secrets-manager, azure-keyvault
+
+    # Secret rotation
+    rotation:
+      enabled: true
+      frequency: 90d
+      automatic: false  # Manual rotation for safety
+
+  # Secret Scanning
+  scanning:
+    enabled: true
+    repositories: true
+    containers: true
+    logs: true
+
+    action_on_detection: alert_and_revoke
+
+# Security Hardening
+hardening:
+  # Operating System
+  os:
+    minimal_install: true
+    disable_unused_services: true
+    kernel_hardening: true
+    selinux: enforcing
+
+  # Container Security
+  containers:
+    run_as_non_root: true
+    read_only_root_filesystem: true
+    drop_capabilities: true
+    no_privileged_containers: true
+    image_scanning: true
+    image_signing: true
+
+  # Network Hardening
+  network:
+    disable_icmp: false
+    syn_cookies: true
+    ip_forwarding: false
+    reverse_path_filtering: true
+
+# Security Training
+security_training:
+  required: true
+  frequency: quarterly
+  topics:
+    - security_awareness
+    - phishing_prevention
+    - data_protection
+    - incident_reporting
+    - secure_coding
+    - compliance
+
+# Security Metrics
+metrics:
+  kpis:
+    - mean_time_to_detect
+    - mean_time_to_respond
+    - vulnerability_remediation_time
+    - patch_compliance_rate
+    - security_incident_count
+    - false_positive_rate
+    - security_training_completion
+
+  reporting:
+    frequency: monthly
+    recipients:
+      - security_team
+      - ciso
+      - executive_leadership
+      - board_of_directors

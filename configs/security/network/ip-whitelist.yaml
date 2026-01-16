@@ -1,0 +1,86 @@
+# IP Whitelist Configuration for Apollo Platform
+
+ip_whitelist:
+  enabled: true
+
+  # Law Enforcement Agency IPs
+  agency_networks:
+    - name: FBI HQ
+      cidr: ${FBI_HQ_CIDR}
+      access_level: full
+
+    - name: DEA Office
+      cidr: ${DEA_OFFICE_CIDR}
+      access_level: full
+
+    - name: ATF Network
+      cidr: ${ATF_NETWORK_CIDR}
+      access_level: full
+
+    - name: DHS Network
+      cidr: ${DHS_NETWORK_CIDR}
+      access_level: full
+
+  # Office Networks
+  office_networks:
+    - name: Primary Office
+      cidr: 10.1.0.0/16
+      access_level: full
+
+    - name: Branch Office 1
+      cidr: 10.2.0.0/16
+      access_level: full
+
+  # VPN Networks
+  vpn_networks:
+    - name: Corporate VPN
+      cidr: 10.100.0.0/16
+      access_level: full
+
+    - name: Field Agent VPN
+      cidr: 10.200.0.0/16
+      access_level: restricted
+
+  # Cloud Provider IPs
+  cloud_providers:
+    - name: AWS CloudFront
+      cidr: ${AWS_CLOUDFRONT_IPS}
+      access_level: cdn_only
+
+  # Partner Organizations
+  partners:
+    - name: Forensic Lab
+      cidr: ${FORENSIC_LAB_CIDR}
+      access_level: evidence_only
+
+  # Access Levels
+  access_levels:
+    full:
+      - all_endpoints
+      - no_rate_limiting
+
+    restricted:
+      - public_endpoints
+      - standard_rate_limiting
+
+    evidence_only:
+      - evidence_upload
+      - evidence_download
+      - strict_rate_limiting
+
+    cdn_only:
+      - static_assets
+      - public_content
+
+  # Dynamic Whitelist
+  dynamic:
+    enabled: true
+    approval_required: true
+    max_duration: 24h
+    auto_expire: true
+
+  # Enforcement
+  enforcement:
+    mode: strict
+    log_violations: true
+    block_non_whitelisted: true

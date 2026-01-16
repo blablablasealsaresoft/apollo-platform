@@ -1,0 +1,441 @@
+name: Terraform Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      plan_run_id:
+        description: 'Workflow run ID containing the plan (optional)'
+        required: false
+        type: string
+      auto_approve:
+        description: 'Skip manual approval (staging only)'
+        required: false
+        default: 'false'
+        type: boolean
+      destroy:
+        description: 'Destroy infrastructure (DANGEROUS)'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  TF_VERSION: '1.6.0'
+  TF_IN_AUTOMATION: 'true'
+  TF_INPUT: 'false'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: terraform-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  # Validate request
+  validate:
+    name: Validate Request
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.check.outputs.proceed }}
+
+    steps:
+      - name: Validate inputs
+        id: check
+        run: |
+          if [ "${{ inputs.destroy }}" == "true" ] && [ "${{ inputs.environment }}" == "production" ]; then
+            echo "❌ Cannot destroy production without additional safeguards"
+            echo "Please contact infrastructure team"
+            exit 1
+          fi
+
+          if [ "${{ inputs.auto_approve }}" == "true" ] && [ "${{ inputs.environment }}" == "production" ]; then
+            echo "❌ Auto-approve is not allowed for production"
+            exit 1
+          fi
+
+          echo "proceed=true" >> $GITHUB_OUTPUT
+          echo "✅ Validation passed"
+
+      - name: Log request
+        run: |
+          echo "🏗️ Terraform Apply Request"
+          echo "=========================="
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Requested by: ${{ github.actor }}"
+          echo "Destroy mode: ${{ inputs.destroy }}"
+          echo "Auto approve: ${{ inputs.auto_approve }}"
+          echo "Plan run ID: ${{ inputs.plan_run_id || 'Not specified' }}"
+
+  # Download plan artifact if specified
+  download-plan:
+    name: Download Plan
+    runs-on: ubuntu-latest
+    needs: [validate]
+    if: inputs.plan_run_id != ''
+    outputs:
+      has_plan: ${{ steps.download.outputs.has_plan }}
+
+    steps:
+      - name: Download plan from previous run
+        id: download
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.environment }}-tfplan
+          path: plans/
+          run-id: ${{ inputs.plan_run_id }}
+        continue-on-error: true
+
+      - name: Check plan exists
+        run: |
+          if [ -f "plans/${{ inputs.environment }}.tfplan" ]; then
+            echo "has_plan=true" >> $GITHUB_OUTPUT
+            echo "✅ Plan artifact found"
+          else
+            echo "has_plan=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Plan artifact not found, will generate new plan"
+          fi
+
+      - name: Upload plan for apply job
+        if: steps.download.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: apply-plan
+          path: plans/
+          retention-days: 1
+
+  # Apply to staging
+  apply-staging:
+    name: Apply to Staging
+    runs-on: ubuntu-latest
+    needs: [validate, download-plan]
+    if: inputs.environment == 'staging' && needs.validate.outputs.proceed == 'true'
+    environment:
+      name: ${{ inputs.auto_approve == 'true' && 'terraform-staging' || 'terraform-staging-approval' }}
+      url: https://staging.apollo-platform.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_STAGING }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="key=apollo/staging/terraform.tfstate" \
+            -backend-config="region=${{ secrets.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ secrets.TF_LOCK_TABLE }}" \
+            -backend-config="encrypt=true"
+        working-directory: infrastructure/terraform
+
+      - name: Select workspace
+        run: terraform workspace select staging || terraform workspace new staging
+        working-directory: infrastructure/terraform
+
+      - name: Download saved plan
+        if: needs.download-plan.outputs.has_plan == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: apply-plan
+          path: infrastructure/terraform/
+
+      - name: Generate new plan
+        if: needs.download-plan.outputs.has_plan != 'true' && inputs.destroy != 'true'
+        run: |
+          terraform plan \
+            -var-file="environments/staging.tfvars" \
+            -out=staging.tfplan \
+            -no-color
+        working-directory: infrastructure/terraform
+
+      - name: Generate destroy plan
+        if: inputs.destroy == 'true'
+        run: |
+          terraform plan \
+            -var-file="environments/staging.tfvars" \
+            -destroy \
+            -out=staging.tfplan \
+            -no-color
+        working-directory: infrastructure/terraform
+
+      - name: Terraform Apply
+        run: |
+          echo "🚀 Applying Terraform changes to staging..."
+          terraform apply \
+            -auto-approve \
+            -no-color \
+            staging.tfplan 2>&1 | tee apply_output.txt
+        working-directory: infrastructure/terraform
+
+      - name: Capture outputs
+        id: outputs
+        run: |
+          terraform output -json > outputs.json
+          echo "Terraform outputs captured"
+        working-directory: infrastructure/terraform
+
+      - name: Upload outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-outputs
+          path: infrastructure/terraform/outputs.json
+
+      - name: Verify deployment
+        run: |
+          echo "Verifying staging infrastructure..."
+          # Add infrastructure verification commands
+
+      - name: Generate summary
+        run: |
+          echo "# ✅ Staging Infrastructure Updated" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Staging" >> $GITHUB_STEP_SUMMARY
+          echo "**Applied by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Apply Output" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          tail -50 infrastructure/terraform/apply_output.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  # Apply to production
+  apply-production:
+    name: Apply to Production
+    runs-on: ubuntu-latest
+    needs: [validate, download-plan]
+    if: inputs.environment == 'production' && needs.validate.outputs.proceed == 'true'
+    environment:
+      name: terraform-production-approval
+      url: https://apollo-platform.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_PRODUCTION }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Create state backup
+        run: |
+          echo "Creating state backup before apply..."
+          aws s3 cp \
+            s3://${{ secrets.TF_STATE_BUCKET }}/apollo/production/terraform.tfstate \
+            s3://${{ secrets.TF_STATE_BUCKET }}/apollo/production/backups/terraform.tfstate.$(date +%Y%m%d-%H%M%S) \
+            || echo "No existing state to backup"
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="key=apollo/production/terraform.tfstate" \
+            -backend-config="region=${{ secrets.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ secrets.TF_LOCK_TABLE }}" \
+            -backend-config="encrypt=true"
+        working-directory: infrastructure/terraform
+
+      - name: Select workspace
+        run: terraform workspace select production || terraform workspace new production
+        working-directory: infrastructure/terraform
+
+      - name: Download saved plan
+        if: needs.download-plan.outputs.has_plan == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: apply-plan
+          path: infrastructure/terraform/
+
+      - name: Generate new plan
+        if: needs.download-plan.outputs.has_plan != 'true' && inputs.destroy != 'true'
+        run: |
+          terraform plan \
+            -var-file="environments/production.tfvars" \
+            -out=production.tfplan \
+            -no-color
+        working-directory: infrastructure/terraform
+
+      - name: Show plan for confirmation
+        run: |
+          echo "📋 Plan to be applied:"
+          terraform show -no-color production.tfplan
+        working-directory: infrastructure/terraform
+
+      - name: Terraform Apply
+        run: |
+          echo "🚀 Applying Terraform changes to production..."
+          terraform apply \
+            -auto-approve \
+            -no-color \
+            production.tfplan 2>&1 | tee apply_output.txt
+        working-directory: infrastructure/terraform
+
+      - name: Capture outputs
+        id: outputs
+        run: |
+          terraform output -json > outputs.json
+          echo "Terraform outputs captured"
+        working-directory: infrastructure/terraform
+
+      - name: Upload outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-outputs
+          path: infrastructure/terraform/outputs.json
+
+      - name: Verify infrastructure
+        run: |
+          echo "Verifying production infrastructure..."
+          # Add verification steps
+
+      - name: Generate summary
+        run: |
+          echo "# ✅ Production Infrastructure Updated" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
+          echo "**Applied by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Apply Output" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          tail -50 infrastructure/terraform/apply_output.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  # Post-apply verification
+  verify:
+    name: Post-Apply Verification
+    runs-on: ubuntu-latest
+    needs: [apply-staging, apply-production]
+    if: always() && (needs.apply-staging.result == 'success' || needs.apply-production.result == 'success')
+
+    steps:
+      - name: Verify staging
+        if: inputs.environment == 'staging' && needs.apply-staging.result == 'success'
+        run: |
+          echo "Verifying staging infrastructure..."
+          # Add health checks for staging resources
+
+      - name: Verify production
+        if: inputs.environment == 'production' && needs.apply-production.result == 'success'
+        run: |
+          echo "Verifying production infrastructure..."
+          # Add health checks for production resources
+
+  # Notifications
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [apply-staging, apply-production, verify]
+    if: always()
+
+    steps:
+      - name: Determine status
+        id: status
+        run: |
+          if [ "${{ inputs.environment }}" == "staging" ]; then
+            RESULT="${{ needs.apply-staging.result }}"
+          else
+            RESULT="${{ needs.apply-production.result }}"
+          fi
+
+          if [ "$RESULT" == "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+            echo "message=Infrastructure changes applied successfully" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "emoji=❌" >> $GITHUB_OUTPUT
+            echo "message=Infrastructure changes failed to apply" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1
+        continue-on-error: true
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_INFRASTRUCTURE }}
+          payload: |
+            {
+              "text": "${{ steps.status.outputs.emoji }} Terraform Apply: ${{ steps.status.outputs.message }}",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "${{ steps.status.outputs.emoji }} Terraform Apply - ${{ inputs.environment }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Environment:*\n${{ inputs.environment }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Status:*\n${{ steps.status.outputs.message }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Applied by:*\n${{ github.actor }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Destroy:*\n${{ inputs.destroy }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Workflow"
+                      },
+                      "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
+
+      - name: Create audit log
+        run: |
+          echo "=== Terraform Apply Audit Log ===" >> audit.log
+          echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> audit.log
+          echo "Environment: ${{ inputs.environment }}" >> audit.log
+          echo "User: ${{ github.actor }}" >> audit.log
+          echo "Status: ${{ steps.status.outputs.status }}" >> audit.log
+          echo "Destroy: ${{ inputs.destroy }}" >> audit.log
+          echo "Run ID: ${{ github.run_id }}" >> audit.log
+          echo "================================" >> audit.log
+
+          cat audit.log

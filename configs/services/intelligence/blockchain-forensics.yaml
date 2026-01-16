@@ -1,0 +1,247 @@
+service:
+  name: blockchain-forensics
+  version: 1.0.0
+  port: 6000
+  description: Cryptocurrency tracking and blockchain forensics
+
+runtime:
+  workers: 8
+  max_memory: 12GB
+  timeout: 180s
+  restart_policy: always
+
+supported_blockchains:
+  bitcoin:
+    enabled: true
+    node_url: ${BITCOIN_NODE_URL}
+    explorer_api: blockchain.com
+    clustering: true
+
+  ethereum:
+    enabled: true
+    node_url: ${ETHEREUM_NODE_URL}
+    explorer_api: etherscan.io
+    smart_contracts: true
+    defi_tracking: true
+
+  monero:
+    enabled: true
+    node_url: ${MONERO_NODE_URL}
+    privacy_analysis: true
+
+  litecoin:
+    enabled: true
+    node_url: ${LITECOIN_NODE_URL}
+
+  ripple:
+    enabled: true
+    node_url: ${RIPPLE_NODE_URL}
+
+  cardano:
+    enabled: true
+    node_url: ${CARDANO_NODE_URL}
+
+  binance_chain:
+    enabled: true
+    node_url: ${BSC_NODE_URL}
+    defi_tracking: true
+
+  others:
+    - polkadot
+    - solana
+    - tezos
+    - stellar
+
+capabilities:
+  wallet_tracking: true
+  transaction_analysis: true
+  exchange_monitoring: true
+  mixer_detection: true
+  entity_clustering: true
+  attribution: true
+  smart_contract_analysis: true
+  defi_analysis: true
+  nft_tracking: true
+
+wallet_tracking:
+  real_time_monitoring: true
+  historical_analysis: true
+  balance_tracking: true
+  transaction_alerts: true
+
+  alert_thresholds:
+    large_transaction: 100000_USD
+    unusual_activity: true
+    mixing_detected: true
+    exchange_deposit: true
+
+transaction_analysis:
+  graph_analysis: true
+  flow_tracking: true
+  taint_analysis: true
+  pattern_recognition: true
+
+  features:
+    - transaction_clustering
+    - chain_hopping_detection
+    - circular_transactions
+    - dust_attacks
+    - consolidation_detection
+
+exchange_monitoring:
+  exchanges:
+    - binance
+    - coinbase
+    - kraken
+    - huobi
+    - okex
+    - bitfinex
+    - and_others: 50+
+
+  features:
+    - deposit_detection
+    - withdrawal_tracking
+    - kyc_correlation
+    - volume_analysis
+
+mixer_detection:
+  types:
+    - centralized_mixers
+    - decentralized_mixers
+    - coinjoin
+    - tumbler_services
+
+  known_mixers:
+    - tornado_cash
+    - wasabi_wallet
+    - samourai_whirlpool
+    - and_others: 20+
+
+entity_clustering:
+  algorithms:
+    - common_input_ownership
+    - change_address_detection
+    - behavioral_clustering
+    - temporal_clustering
+
+  confidence_scoring: true
+  manual_override: true
+
+attribution:
+  techniques:
+    - exchange_attribution
+    - service_attribution
+    - geographic_attribution
+    - entity_linking
+
+  data_sources:
+    - public_labels
+    - exchange_data
+    - law_enforcement_data
+    - osint_data
+
+smart_contract_analysis:
+  decompilation: true
+  vulnerability_scanning: true
+  interaction_tracking: true
+  token_analysis: true
+
+defi_analysis:
+  protocols:
+    - uniswap
+    - compound
+    - aave
+    - makerdao
+    - curve
+    - and_others: 100+
+
+  features:
+    - liquidity_tracking
+    - yield_farming
+    - flash_loan_detection
+    - arbitrage_detection
+
+visualization:
+  transaction_graphs: true
+  flow_diagrams: true
+  cluster_visualization: true
+  timeline_view: true
+
+database:
+  postgresql:
+    connection: ${DATABASE_URL}
+    pool_size: 40
+
+  neo4j:
+    uri: ${NEO4J_URI}
+    user: ${NEO4J_USER}
+    password: ${NEO4J_PASSWORD}
+    max_connections: 100
+
+  redis:
+    connection: ${REDIS_URL}
+    cache_ttl: 15m
+    max_connections: 100
+
+  elasticsearch:
+    url: ${ELASTICSEARCH_URL}
+    index_prefix: apollo-blockchain
+
+  timescaledb:
+    enabled: true
+    hypertables:
+      - transactions
+      - wallet_balances
+      - exchange_flows
+
+external_apis:
+  blockchain_explorers:
+    - blockchain.com
+    - etherscan.io
+    - blockchair.com
+    - blockcypher.com
+
+  pricing:
+    - coinmarketcap
+    - coingecko
+    - cryptocompare
+
+  exchanges:
+    - binance_api
+    - coinbase_api
+    - kraken_api
+
+integration:
+  intelligence_fusion: http://intelligence-fusion:4003
+  operations: http://operations:4002
+  alert_orchestration: http://alert-orchestration:4006
+
+api:
+  version: v1
+  base_path: /api/v1
+  authentication: jwt
+  rate_limiting: 500/minute
+
+monitoring:
+  metrics: true
+  prometheus_endpoint: /metrics
+  health_check: /health
+  custom_metrics:
+    - wallets_tracked_total
+    - transactions_analyzed_total
+    - alerts_generated_total
+    - processing_duration_seconds
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - stdout
+    - file: /var/log/apollo/blockchain-forensics.log
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: blockchain-forensics
+    health_check_interval: 10s

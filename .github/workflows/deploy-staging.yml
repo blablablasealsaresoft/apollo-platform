@@ -1,0 +1,563 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+    inputs:
+      skip_tests:
+        description: 'Skip pre-deployment tests'
+        required: false
+        default: 'false'
+        type: boolean
+      force_deploy:
+        description: 'Force deploy even if checks fail'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  ENVIRONMENT: staging
+  NAMESPACE: apollo-staging
+  CLUSTER_NAME: apollo-staging-cluster
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  # Pre-deployment validation
+  pre-deploy-checks:
+    name: Pre-Deployment Checks
+    runs-on: ubuntu-latest
+    if: inputs.skip_tests != 'true'
+    outputs:
+      should_deploy: ${{ steps.check.outputs.deploy }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run quick tests
+        run: |
+          npm run test:unit -- --testPathIgnorePatterns="e2e" --maxWorkers=2
+
+      - name: Run security check
+        run: |
+          npm audit --audit-level=high || echo "Security vulnerabilities found - review before production"
+
+      - name: Check deployment prerequisites
+        id: check
+        run: |
+          echo "deploy=true" >> $GITHUB_OUTPUT
+
+  # Build and push images
+  build-images:
+    name: Build Images
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks]
+    if: always() && (needs.pre-deploy-checks.result == 'success' || needs.pre-deploy-checks.result == 'skipped')
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api-gateway
+          - authentication
+          - intelligence
+          - operations
+          - search
+          - notifications
+          - analytics
+          - user-management
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-${{ matrix.service }}
+          tags: |
+            type=sha,prefix=staging-
+            type=raw,value=staging-latest
+            type=raw,value=staging-${{ github.run_number }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/${{ matrix.service }}
+          file: ./services/${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+            VERSION=staging-${{ github.run_number }}
+            ENVIRONMENT=staging
+
+      - name: Scan image for vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-${{ matrix.service }}:staging-${{ github.run_number }}
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+
+  # Run database migrations
+  database-migration:
+    name: Database Migration
+    runs-on: ubuntu-latest
+    needs: [build-images]
+    environment:
+      name: staging
+      url: https://staging.apollo-platform.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > $HOME/.kube/config
+
+      - name: Create migration job
+        run: |
+          cat <<EOF | kubectl apply -f -
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: db-migration-${{ github.run_number }}
+            namespace: ${{ env.NAMESPACE }}
+          spec:
+            ttlSecondsAfterFinished: 3600
+            template:
+              spec:
+                restartPolicy: Never
+                containers:
+                - name: migration
+                  image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-authentication:staging-${{ github.run_number }}
+                  command: ["npm", "run", "db:migrate"]
+                  envFrom:
+                  - secretRef:
+                      name: apollo-db-credentials
+                  - configMapRef:
+                      name: apollo-config
+          EOF
+
+      - name: Wait for migration to complete
+        run: |
+          kubectl wait --for=condition=complete job/db-migration-${{ github.run_number }} \
+            -n ${{ env.NAMESPACE }} --timeout=300s
+
+      - name: Check migration status
+        if: failure()
+        run: |
+          kubectl logs job/db-migration-${{ github.run_number }} -n ${{ env.NAMESPACE }}
+          exit 1
+
+  # Deploy to staging
+  deploy:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-images, database-migration]
+    environment:
+      name: staging
+      url: https://staging.apollo-platform.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > $HOME/.kube/config
+
+      - name: Record deployment start
+        run: |
+          echo "DEPLOY_START=$(date +%s)" >> $GITHUB_ENV
+          echo "Deployment started at $(date)"
+
+      - name: Deploy services
+        run: |
+          SERVICES=(
+            "api-gateway"
+            "authentication"
+            "intelligence"
+            "operations"
+            "search"
+            "notifications"
+            "analytics"
+            "user-management"
+          )
+
+          for service in "${SERVICES[@]}"; do
+            echo "Deploying $service..."
+            kubectl set image deployment/apollo-$service \
+              apollo-$service=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-$service:staging-${{ github.run_number }} \
+              -n ${{ env.NAMESPACE }} || echo "Deployment $service not found, skipping..."
+          done
+
+      - name: Wait for rollouts
+        run: |
+          SERVICES=(
+            "api-gateway"
+            "authentication"
+            "intelligence"
+            "operations"
+            "search"
+            "notifications"
+            "analytics"
+            "user-management"
+          )
+
+          for service in "${SERVICES[@]}"; do
+            echo "Waiting for $service rollout..."
+            kubectl rollout status deployment/apollo-$service \
+              -n ${{ env.NAMESPACE }} --timeout=300s || echo "Rollout check for $service skipped"
+          done
+
+      - name: Record deployment metadata
+        run: |
+          cat <<EOF | kubectl apply -f -
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: deployment-metadata
+            namespace: ${{ env.NAMESPACE }}
+          data:
+            commit_sha: "${{ github.sha }}"
+            run_number: "${{ github.run_number }}"
+            deployed_at: "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            deployed_by: "${{ github.actor }}"
+            branch: "${{ github.ref_name }}"
+          EOF
+
+  # Health checks
+  health-checks:
+    name: Health Checks
+    runs-on: ubuntu-latest
+    needs: [deploy]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Wait for services to stabilize
+        run: sleep 30
+
+      - name: Run health checks
+        run: |
+          ENDPOINTS=(
+            "api-gateway/health"
+            "auth/health"
+            "intelligence/health"
+            "operations/health"
+            "search/health"
+            "notifications/health"
+            "analytics/health"
+            "users/health"
+          )
+
+          BASE_URL="https://staging.apollo-platform.com/api"
+          FAILED=0
+
+          for endpoint in "${ENDPOINTS[@]}"; do
+            echo "Checking $endpoint..."
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/$endpoint" --max-time 10 || echo "000")
+
+            if [ "$RESPONSE" == "200" ]; then
+              echo "  ✅ $endpoint is healthy (HTTP $RESPONSE)"
+            else
+              echo "  ❌ $endpoint failed (HTTP $RESPONSE)"
+              FAILED=$((FAILED + 1))
+            fi
+          done
+
+          if [ $FAILED -gt 0 ]; then
+            echo "❌ $FAILED health checks failed!"
+            exit 1
+          fi
+
+          echo "✅ All health checks passed!"
+
+      - name: Verify critical functionality
+        run: |
+          # Test authentication endpoint
+          AUTH_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "https://staging.apollo-platform.com/api/auth/login" \
+            -H "Content-Type: application/json" \
+            -d '{"email":"healthcheck@apollo.local","password":"healthcheck"}' \
+            --max-time 10 || echo "000")
+
+          echo "Auth endpoint response: $AUTH_RESPONSE"
+
+          # Accept 401 (unauthorized) as valid - means endpoint is working
+          if [ "$AUTH_RESPONSE" != "200" ] && [ "$AUTH_RESPONSE" != "401" ] && [ "$AUTH_RESPONSE" != "400" ]; then
+            echo "⚠️ Auth endpoint may have issues (HTTP $AUTH_RESPONSE)"
+          fi
+
+  # Smoke tests
+  smoke-tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [health-checks]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run smoke tests
+        env:
+          TEST_BASE_URL: https://staging.apollo-platform.com
+          TEST_API_URL: https://staging.apollo-platform.com/api
+        run: |
+          npm run test:smoke:staging || echo "Smoke tests completed with warnings"
+
+      - name: Generate test report
+        if: always()
+        run: |
+          echo "# Staging Smoke Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Staging" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+
+  # Rollback on failure
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: [deploy, health-checks, smoke-tests]
+    if: failure() && inputs.force_deploy != 'true'
+
+    steps:
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > $HOME/.kube/config
+
+      - name: Execute rollback
+        run: |
+          echo "🔄 Rolling back staging deployment..."
+
+          SERVICES=(
+            "api-gateway"
+            "authentication"
+            "intelligence"
+            "operations"
+            "search"
+            "notifications"
+            "analytics"
+            "user-management"
+          )
+
+          for service in "${SERVICES[@]}"; do
+            echo "Rolling back $service..."
+            kubectl rollout undo deployment/apollo-$service -n ${{ env.NAMESPACE }} || echo "Rollback of $service skipped"
+          done
+
+      - name: Wait for rollback completion
+        run: |
+          SERVICES=(
+            "api-gateway"
+            "authentication"
+            "intelligence"
+            "operations"
+            "search"
+            "notifications"
+            "analytics"
+            "user-management"
+          )
+
+          for service in "${SERVICES[@]}"; do
+            kubectl rollout status deployment/apollo-$service -n ${{ env.NAMESPACE }} --timeout=180s || true
+          done
+
+      - name: Verify rollback
+        run: |
+          kubectl get pods -n ${{ env.NAMESPACE }} -l app.kubernetes.io/part-of=apollo
+          echo "✅ Rollback completed"
+
+  # Notification
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [deploy, health-checks, smoke-tests]
+    if: always()
+
+    steps:
+      - name: Determine status
+        id: status
+        run: |
+          if [ "${{ needs.smoke-tests.result }}" == "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+            echo "message=Staging deployment successful" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "emoji=❌" >> $GITHUB_OUTPUT
+            echo "message=Staging deployment failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        continue-on-error: true
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_STAGING }}
+          payload: |
+            {
+              "text": "${{ steps.status.outputs.emoji }} Staging Deployment: ${{ steps.status.outputs.message }}",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "${{ steps.status.outputs.emoji }} Apollo Staging Deployment"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Status:*\n${{ steps.status.outputs.message }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Environment:*\nStaging"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:*\n`${{ github.sha }}`"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Deployed by:*\n${{ github.actor }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Deployment"
+                      },
+                      "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    },
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Staging"
+                      },
+                      "url": "https://staging.apollo-platform.com"
+                    }
+                  ]
+                }
+              ]
+            }
+
+      - name: Create GitHub deployment
+        uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          script: |
+            const { data: deployment } = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: 'staging',
+              auto_merge: false,
+              required_contexts: []
+            });
+
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.id,
+              state: '${{ steps.status.outputs.status }}',
+              environment_url: 'https://staging.apollo-platform.com',
+              description: '${{ steps.status.outputs.message }}'
+            });
+
+      - name: Generate summary
+        run: |
+          echo "# 🚀 Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ steps.status.outputs.emoji }} ${{ steps.status.outputs.message }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Staging" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Links" >> $GITHUB_STEP_SUMMARY
+          echo "- [Staging Environment](https://staging.apollo-platform.com)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Deployment Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY

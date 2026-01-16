@@ -1,8 +1,40 @@
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
-import { database, redis, logger, generateId, UnauthorizedError, NotFoundError } from '@apollo/shared';
+import crypto from 'crypto';
+import { database, redis, logger, generateId, UnauthorizedError, NotFoundError, BadRequestError } from '@apollo/shared';
+import { biometricService, BiometricType, BiometricStatus } from './biometric.service';
+
+// MFA factor types
+export enum MfaFactorType {
+  TOTP = 'totp',
+  SMS = 'sms',
+  EMAIL = 'email',
+  FINGERPRINT = 'fingerprint',
+  FACE_ID = 'face_id',
+  VOICE_PRINT = 'voice_print',
+  HARDWARE_KEY = 'hardware_key',
+  BACKUP_CODE = 'backup_code',
+}
+
+// MFA verification status
+export interface MfaVerificationStatus {
+  verified: boolean;
+  factorType: MfaFactorType;
+  timestamp: Date;
+  confidence?: number;
+}
+
+// MFA requirements based on clearance level
+export const MFA_REQUIREMENTS: Record<string, { minFactors: number; requiredTypes?: MfaFactorType[] }> = {
+  UNCLASSIFIED: { minFactors: 1 },
+  RESTRICTED: { minFactors: 1 },
+  CONFIDENTIAL: { minFactors: 2 },
+  SECRET: { minFactors: 2, requiredTypes: [MfaFactorType.TOTP] },
+  TOP_SECRET: { minFactors: 2, requiredTypes: [MfaFactorType.TOTP, MfaFactorType.FINGERPRINT] },
+};
 
 export class MfaService {
+  private readonly MFA_CHALLENGE_TTL = 300; // 5 minutes
   async setupMfa(userId: string): Promise<{ secret: string; qrCodeUrl: string }> {
     // Check if user exists
     const userResult = await database.query(
@@ -206,6 +238,370 @@ export class MfaService {
     } catch (error) {
       logger.error(`Failed to log MFA activity: ${error}`);
     }
+  }
+}
+
+  /**
+   * Get available MFA factors for a user
+   */
+  async getAvailableMfaFactors(userId: string): Promise<Array<{
+    type: MfaFactorType;
+    enabled: boolean;
+    lastUsed?: Date;
+  }>> {
+    const factors: Array<{ type: MfaFactorType; enabled: boolean; lastUsed?: Date }> = [];
+
+    // Check TOTP
+    const totpResult = await database.query(
+      'SELECT is_mfa_enabled FROM users WHERE id = $1',
+      [userId],
+    );
+
+    if (totpResult.rows.length > 0) {
+      factors.push({
+        type: MfaFactorType.TOTP,
+        enabled: totpResult.rows[0]!.is_mfa_enabled || false,
+      });
+    }
+
+    // Check biometric factors
+    const biometricEnrollments = await biometricService.getUserEnrollments(userId);
+
+    for (const enrollment of biometricEnrollments) {
+      let factorType: MfaFactorType;
+      switch (enrollment.type) {
+        case BiometricType.FINGERPRINT:
+          factorType = MfaFactorType.FINGERPRINT;
+          break;
+        case BiometricType.FACE_ID:
+          factorType = MfaFactorType.FACE_ID;
+          break;
+        case BiometricType.VOICE_PRINT:
+          factorType = MfaFactorType.VOICE_PRINT;
+          break;
+        default:
+          continue;
+      }
+
+      factors.push({
+        type: factorType,
+        enabled: enrollment.status === BiometricStatus.ENROLLED,
+        lastUsed: enrollment.lastUsed || undefined,
+      });
+    }
+
+    // Add SMS and Email as potential factors (check if configured)
+    const userResult = await database.query(
+      'SELECT phone_number, email_verified FROM users WHERE id = $1',
+      [userId],
+    );
+
+    if (userResult.rows.length > 0) {
+      const user = userResult.rows[0]!;
+
+      factors.push({
+        type: MfaFactorType.SMS,
+        enabled: !!user.phone_number,
+      });
+
+      factors.push({
+        type: MfaFactorType.EMAIL,
+        enabled: user.email_verified || false,
+      });
+    }
+
+    return factors;
+  }
+
+  /**
+   * Start MFA challenge for multi-factor verification
+   */
+  async startMfaChallenge(userId: string, factorTypes: MfaFactorType[]): Promise<{
+    challengeId: string;
+    requiredFactors: MfaFactorType[];
+    expiresAt: Date;
+  }> {
+    const challengeId = generateId();
+    const expiresAt = new Date(Date.now() + this.MFA_CHALLENGE_TTL * 1000);
+
+    await redis.set(
+      `mfa:challenge:${challengeId}`,
+      JSON.stringify({
+        userId,
+        requiredFactors: factorTypes,
+        verifiedFactors: [],
+        createdAt: new Date().toISOString(),
+      }),
+      this.MFA_CHALLENGE_TTL,
+    );
+
+    logger.info(`MFA challenge started for user: ${userId}, factors: ${factorTypes.join(', ')}`);
+
+    return {
+      challengeId,
+      requiredFactors: factorTypes,
+      expiresAt,
+    };
+  }
+
+  /**
+   * Verify a factor in an MFA challenge
+   */
+  async verifyMfaChallengeFactor(
+    challengeId: string,
+    factorType: MfaFactorType,
+    verificationData: {
+      token?: string;
+      biometricTemplate?: string;
+      livenessProof?: string;
+    },
+  ): Promise<{
+    factorVerified: boolean;
+    challengeComplete: boolean;
+    remainingFactors: MfaFactorType[];
+  }> {
+    // Get challenge data
+    const challengeData = await redis.get(`mfa:challenge:${challengeId}`);
+    if (!challengeData) {
+      throw new UnauthorizedError('MFA challenge expired or not found');
+    }
+
+    const challenge = JSON.parse(challengeData);
+    const { userId, requiredFactors, verifiedFactors } = challenge;
+
+    // Check if factor is required
+    if (!requiredFactors.includes(factorType)) {
+      throw new BadRequestError(`Factor type ${factorType} is not required for this challenge`);
+    }
+
+    // Check if already verified
+    if (verifiedFactors.includes(factorType)) {
+      throw new BadRequestError(`Factor type ${factorType} is already verified`);
+    }
+
+    // Verify the factor
+    let verified = false;
+
+    switch (factorType) {
+      case MfaFactorType.TOTP:
+        if (!verificationData.token) {
+          throw new BadRequestError('TOTP token is required');
+        }
+        verified = await this.verifyMfa(userId, verificationData.token);
+        break;
+
+      case MfaFactorType.FINGERPRINT:
+      case MfaFactorType.FACE_ID:
+      case MfaFactorType.VOICE_PRINT:
+        if (!verificationData.biometricTemplate) {
+          throw new BadRequestError('Biometric template is required');
+        }
+        const biometricType = this.factorTypeToBiometric(factorType);
+        const biometricResult = await biometricService.authenticateWithBiometric(
+          userId,
+          biometricType,
+          verificationData.biometricTemplate,
+          verificationData.livenessProof,
+        );
+        verified = biometricResult.success;
+        break;
+
+      case MfaFactorType.SMS:
+      case MfaFactorType.EMAIL:
+        if (!verificationData.token) {
+          throw new BadRequestError('Verification code is required');
+        }
+        verified = await this.verifyOtpCode(userId, factorType, verificationData.token);
+        break;
+
+      case MfaFactorType.BACKUP_CODE:
+        if (!verificationData.token) {
+          throw new BadRequestError('Backup code is required');
+        }
+        verified = await this.verifyBackupCode(userId, verificationData.token);
+        break;
+
+      default:
+        throw new BadRequestError(`Unsupported factor type: ${factorType}`);
+    }
+
+    if (!verified) {
+      throw new UnauthorizedError('Factor verification failed');
+    }
+
+    // Update challenge
+    verifiedFactors.push(factorType);
+    const remainingFactors = requiredFactors.filter(
+      (f: MfaFactorType) => !verifiedFactors.includes(f),
+    );
+    const challengeComplete = remainingFactors.length === 0;
+
+    if (challengeComplete) {
+      // Remove challenge on completion
+      await redis.del(`mfa:challenge:${challengeId}`);
+
+      // Log successful multi-factor authentication
+      await this.logActivity(userId, 'MFA_CHALLENGE_COMPLETED', {
+        challengeId,
+        factors: verifiedFactors,
+      });
+    } else {
+      // Update challenge with verified factor
+      await redis.set(
+        `mfa:challenge:${challengeId}`,
+        JSON.stringify({ ...challenge, verifiedFactors }),
+        this.MFA_CHALLENGE_TTL,
+      );
+    }
+
+    return {
+      factorVerified: true,
+      challengeComplete,
+      remainingFactors,
+    };
+  }
+
+  /**
+   * Send OTP code via SMS or Email
+   */
+  async sendOtpCode(userId: string, method: MfaFactorType.SMS | MfaFactorType.EMAIL): Promise<void> {
+    // Generate 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+
+    // Store code with expiration
+    await redis.set(
+      `mfa:otp:${userId}:${method}`,
+      codeHash,
+      300, // 5 minutes
+    );
+
+    // Get user contact info
+    const userResult = await database.query(
+      'SELECT email, phone_number FROM users WHERE id = $1',
+      [userId],
+    );
+
+    if (userResult.rows.length === 0) {
+      throw new NotFoundError('User not found');
+    }
+
+    const user = userResult.rows[0]!;
+
+    if (method === MfaFactorType.SMS) {
+      if (!user.phone_number) {
+        throw new BadRequestError('Phone number not configured');
+      }
+      // In production: Send SMS via Twilio, AWS SNS, etc.
+      logger.info(`[DEV] SMS code for ${user.phone_number}: ${code}`);
+    } else if (method === MfaFactorType.EMAIL) {
+      // In production: Send email via SendGrid, AWS SES, etc.
+      logger.info(`[DEV] Email code for ${user.email}: ${code}`);
+    }
+
+    await this.logActivity(userId, 'OTP_CODE_SENT', { method });
+  }
+
+  /**
+   * Verify OTP code sent via SMS or Email
+   */
+  private async verifyOtpCode(
+    userId: string,
+    method: MfaFactorType.SMS | MfaFactorType.EMAIL,
+    code: string,
+  ): Promise<boolean> {
+    const storedHash = await redis.get(`mfa:otp:${userId}:${method}`);
+    if (!storedHash) {
+      return false;
+    }
+
+    const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+    if (codeHash !== storedHash) {
+      return false;
+    }
+
+    // Remove used code
+    await redis.del(`mfa:otp:${userId}:${method}`);
+    return true;
+  }
+
+  /**
+   * Verify backup code
+   */
+  private async verifyBackupCode(userId: string, code: string): Promise<boolean> {
+    // Try TOTP backup codes first
+    try {
+      await this.verifyMfa(userId, code);
+      return true;
+    } catch {
+      // Try biometric backup codes
+      const enrollments = await biometricService.getUserEnrollments(userId);
+      for (const enrollment of enrollments) {
+        try {
+          const verified = await biometricService.authenticateWithBackupCode(
+            userId,
+            enrollment.type as BiometricType,
+            code,
+          );
+          if (verified) return true;
+        } catch {
+          continue;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Convert MFA factor type to biometric type
+   */
+  private factorTypeToBiometric(factorType: MfaFactorType): BiometricType {
+    switch (factorType) {
+      case MfaFactorType.FINGERPRINT:
+        return BiometricType.FINGERPRINT;
+      case MfaFactorType.FACE_ID:
+        return BiometricType.FACE_ID;
+      case MfaFactorType.VOICE_PRINT:
+        return BiometricType.VOICE_PRINT;
+      default:
+        throw new BadRequestError('Invalid biometric factor type');
+    }
+  }
+
+  /**
+   * Check if user meets MFA requirements for clearance level
+   */
+  async checkMfaRequirements(userId: string, clearanceLevel: string): Promise<{
+    meetsRequirements: boolean;
+    requiredFactors: number;
+    enabledFactors: MfaFactorType[];
+    missingRequiredTypes?: MfaFactorType[];
+  }> {
+    const requirements = MFA_REQUIREMENTS[clearanceLevel] || { minFactors: 1 };
+    const availableFactors = await this.getAvailableMfaFactors(userId);
+    const enabledFactors = availableFactors
+      .filter(f => f.enabled)
+      .map(f => f.type);
+
+    let meetsRequirements = enabledFactors.length >= requirements.minFactors;
+    let missingRequiredTypes: MfaFactorType[] | undefined;
+
+    if (requirements.requiredTypes) {
+      const missing = requirements.requiredTypes.filter(
+        required => !enabledFactors.includes(required),
+      );
+      if (missing.length > 0) {
+        meetsRequirements = false;
+        missingRequiredTypes = missing;
+      }
+    }
+
+    return {
+      meetsRequirements,
+      requiredFactors: requirements.minFactors,
+      enabledFactors,
+      missingRequiredTypes,
+    };
   }
 }
 

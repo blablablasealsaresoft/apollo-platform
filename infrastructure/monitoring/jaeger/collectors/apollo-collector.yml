@@ -1,0 +1,15 @@
+apiVersion: jaegertracing.io/v1
+kind: Jaeger
+metadata:
+  name: apollo
+spec:
+  strategy: production
+  storage:
+    type: elasticsearch
+    options:
+      es:
+        nodes: http://apollo-elasticsearch:9200
+  ingress:
+    enabled: true
+  collector:
+    maxReplicas: 3

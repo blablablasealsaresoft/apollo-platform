@@ -16,6 +16,8 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 import logging
+import asyncpg
+from neo4j import AsyncGraphDatabase
 
 # Import forensics modules
 from .onecoin.tracker import OneCoinTracker
@@ -23,9 +25,169 @@ from .onecoin.wallet_identifier import RujaWalletIdentifier
 from .onecoin.fund_flow import FundFlowAnalyzer
 from .clustering.clustering_engine import WalletClusteringEngine
 from .api_clients.api_manager import BlockchainAPIManager
-from .config import config
+from .config import config, get_timescaledb_url, get_neo4j_config
 
 logger = logging.getLogger(__name__)
+
+
+class DatabaseManager:
+    """Database manager for PostgreSQL/TimescaleDB"""
+
+    def __init__(self, dsn: str):
+        self.dsn = dsn
+        self.pool: Optional[asyncpg.Pool] = None
+
+    async def connect(self):
+        """Initialize connection pool"""
+        try:
+            self.pool = await asyncpg.create_pool(
+                self.dsn,
+                min_size=5,
+                max_size=20,
+                command_timeout=60,
+            )
+            logger.info("Database connection pool initialized")
+        except Exception as e:
+            logger.warning(f"Database connection failed (will use mock mode): {e}")
+            self.pool = None
+
+    async def close(self):
+        """Close connection pool"""
+        if self.pool:
+            await self.pool.close()
+            logger.info("Database connection pool closed")
+
+    async def get_address_transactions(self, address: str, blockchain: str = "btc", limit: int = 100) -> List[Dict]:
+        """Get transactions for an address from database"""
+        if not self.pool:
+            return []
+
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT * FROM blockchain_transactions
+                WHERE (from_address = $1 OR to_address = $1) AND blockchain = $2
+                ORDER BY timestamp DESC
+                LIMIT $3
+                """,
+                address, blockchain, limit
+            )
+            return [dict(row) for row in rows]
+
+    async def store_transaction(self, tx: Dict) -> bool:
+        """Store a transaction in database"""
+        if not self.pool:
+            return False
+
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO blockchain_transactions
+                (tx_hash, blockchain, from_address, to_address, amount, timestamp)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                ON CONFLICT (tx_hash) DO NOTHING
+                """,
+                tx.get('tx_hash'), tx.get('blockchain'), tx.get('from_address'),
+                tx.get('to_address'), tx.get('amount'), tx.get('timestamp')
+            )
+            return True
+
+
+class GraphClient:
+    """Neo4j graph database client"""
+
+    def __init__(self, uri: str, user: str, password: str):
+        self.uri = uri
+        self.user = user
+        self.password = password
+        self.driver = None
+
+    async def connect(self):
+        """Initialize Neo4j driver"""
+        try:
+            self.driver = AsyncGraphDatabase.driver(
+                self.uri,
+                auth=(self.user, self.password)
+            )
+            # Test connection
+            async with self.driver.session() as session:
+                await session.run("RETURN 1")
+            logger.info("Neo4j connection established")
+        except Exception as e:
+            logger.warning(f"Neo4j connection failed (will use mock mode): {e}")
+            self.driver = None
+
+    async def close(self):
+        """Close Neo4j driver"""
+        if self.driver:
+            await self.driver.close()
+            logger.info("Neo4j connection closed")
+
+    async def create_address_node(self, address: str, blockchain: str, labels: List[str] = None):
+        """Create or update an address node"""
+        if not self.driver:
+            return
+
+        async with self.driver.session() as session:
+            await session.run(
+                """
+                MERGE (a:Address {address: $address, blockchain: $blockchain})
+                SET a.labels = $labels, a.updated_at = datetime()
+                """,
+                address=address, blockchain=blockchain, labels=labels or []
+            )
+
+    async def create_transaction_edge(self, from_addr: str, to_addr: str, tx_hash: str, amount: float):
+        """Create a transaction relationship between addresses"""
+        if not self.driver:
+            return
+
+        async with self.driver.session() as session:
+            await session.run(
+                """
+                MATCH (from:Address {address: $from_addr})
+                MATCH (to:Address {address: $to_addr})
+                MERGE (from)-[t:TRANSACTED {tx_hash: $tx_hash}]->(to)
+                SET t.amount = $amount, t.created_at = datetime()
+                """,
+                from_addr=from_addr, to_addr=to_addr, tx_hash=tx_hash, amount=amount
+            )
+
+    async def find_paths(self, from_addr: str, to_addr: str, max_depth: int = 5) -> List[List[str]]:
+        """Find all paths between two addresses"""
+        if not self.driver:
+            return []
+
+        async with self.driver.session() as session:
+            result = await session.run(
+                """
+                MATCH path = shortestPath((from:Address {address: $from_addr})-[:TRANSACTED*..%d]->(to:Address {address: $to_addr}))
+                RETURN [node in nodes(path) | node.address] as addresses
+                """ % max_depth,
+                from_addr=from_addr, to_addr=to_addr
+            )
+            paths = []
+            async for record in result:
+                paths.append(record["addresses"])
+            return paths
+
+    async def get_connected_addresses(self, address: str, depth: int = 2) -> List[str]:
+        """Get all addresses connected within N hops"""
+        if not self.driver:
+            return []
+
+        async with self.driver.session() as session:
+            result = await session.run(
+                """
+                MATCH (start:Address {address: $address})-[:TRANSACTED*1..%d]-(connected:Address)
+                RETURN DISTINCT connected.address as address
+                """ % depth,
+                address=address
+            )
+            addresses = []
+            async for record in result:
+                addresses.append(record["address"])
+            return addresses
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -73,6 +235,8 @@ class WalletAnalysisRequest(BaseModel):
 
 # Global instances (will be initialized on startup)
 api_manager: Optional[BlockchainAPIManager] = None
+db_manager: Optional[DatabaseManager] = None
+graph_client: Optional[GraphClient] = None
 onecoin_tracker: Optional[OneCoinTracker] = None
 wallet_identifier: Optional[RujaWalletIdentifier] = None
 fund_flow_analyzer: Optional[FundFlowAnalyzer] = None
@@ -82,19 +246,29 @@ clustering_engine: Optional[WalletClusteringEngine] = None
 @app.on_event("startup")
 async def startup():
     """Initialize services on startup"""
-    global api_manager, onecoin_tracker, wallet_identifier, fund_flow_analyzer, clustering_engine
+    global api_manager, db_manager, graph_client
+    global onecoin_tracker, wallet_identifier, fund_flow_analyzer, clustering_engine
 
     logger.info("Starting Blockchain Forensics API...")
 
-    # Initialize API manager
+    # Initialize API manager for blockchain explorer APIs
     api_manager = BlockchainAPIManager(config)
     await api_manager.initialize()
 
-    # Initialize database and graph clients (placeholder - implement based on your DB setup)
-    db_manager = None  # Initialize your database manager
-    graph_client = None  # Initialize your Neo4j client
+    # Initialize database manager (PostgreSQL/TimescaleDB)
+    db_manager = DatabaseManager(get_timescaledb_url())
+    await db_manager.connect()
 
-    # Initialize forensics modules
+    # Initialize graph client (Neo4j)
+    neo4j_config = get_neo4j_config()
+    graph_client = GraphClient(
+        uri=neo4j_config["uri"],
+        user=neo4j_config["user"],
+        password=neo4j_config["password"]
+    )
+    await graph_client.connect()
+
+    # Initialize forensics modules with actual clients
     onecoin_tracker = OneCoinTracker(db_manager, api_manager, graph_client)
     wallet_identifier = RujaWalletIdentifier(db_manager, api_manager, graph_client)
     fund_flow_analyzer = FundFlowAnalyzer(db_manager, api_manager, graph_client)
@@ -106,10 +280,17 @@ async def startup():
 @app.on_event("shutdown")
 async def shutdown():
     """Cleanup on shutdown"""
-    global api_manager
+    global api_manager, db_manager, graph_client
 
+    # Close all connections gracefully
     if api_manager:
         await api_manager.close()
+
+    if db_manager:
+        await db_manager.close()
+
+    if graph_client:
+        await graph_client.close()
 
     logger.info("Blockchain Forensics API shut down")
 

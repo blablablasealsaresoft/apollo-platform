@@ -1,0 +1,132 @@
+service:
+  name: operations-service
+  port: 4002
+  version: 1.0.0
+  description: Core investigation and operations management service
+
+runtime:
+  workers: 8
+  max_memory: 4GB
+  timeout: 60s
+  restart_policy: always
+  graceful_shutdown_timeout: 15s
+
+features:
+  investigation_management: true
+  target_tracking: true
+  timeline_management: true
+  case_management: true
+  evidence_linking: true
+  collaboration: true
+  task_management: true
+
+database:
+  postgresql:
+    connection: ${DATABASE_URL}
+    pool_size: 30
+    ssl_mode: require
+
+  neo4j:
+    uri: ${NEO4J_URI}
+    user: ${NEO4J_USER}
+    password: ${NEO4J_PASSWORD}
+    max_connections: 50
+    connection_timeout: 30s
+
+  redis:
+    connection: ${REDIS_URL}
+    max_connections: 50
+
+  elasticsearch:
+    url: ${ELASTICSEARCH_URL}
+    index_prefix: apollo-operations
+    shards: 3
+    replicas: 2
+
+investigation:
+  max_active_per_user: 50
+  max_targets_per_investigation: 1000
+  auto_archiving: true
+  archive_after_days: 365
+  priority_levels: [low, medium, high, critical, urgent]
+  status_workflow:
+    - draft
+    - active
+    - suspended
+    - closed
+    - archived
+
+target_tracking:
+  types:
+    - person
+    - organization
+    - cryptocurrency_wallet
+    - ip_address
+    - domain
+    - email
+    - phone
+    - social_media
+  relationship_types:
+    - associated_with
+    - controls
+    - communicates_with
+    - transacted_with
+    - employed_by
+    - located_at
+
+timeline:
+  auto_generation: true
+  event_correlation: true
+  confidence_scoring: true
+  visualization: true
+
+integration:
+  intelligence_fusion: http://intelligence-fusion:4003
+  surveillance: http://surveillance:5000
+  blockchain_forensics: http://blockchain-forensics:6000
+  evidence_management: http://evidence-management:4008
+  notifications: http://notifications:4005
+
+api:
+  version: v1
+  base_path: /api/v1
+  authentication: jwt
+  rate_limiting: 1000/minute
+
+monitoring:
+  metrics: true
+  tracing: true
+  logging_level: info
+  prometheus_endpoint: /metrics
+  jaeger_endpoint: ${JAEGER_ENDPOINT}
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - stdout
+    - file: /var/log/apollo/operations.log
+  audit_events:
+    - investigation_created
+    - investigation_closed
+    - target_added
+    - evidence_linked
+    - access_granted
+    - access_revoked
+
+cache:
+  redis_enabled: true
+  ttl:
+    investigations: 5m
+    targets: 10m
+    timelines: 15m
+  invalidation_events:
+    - update
+    - delete
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: operations-service
+    health_check_interval: 10s

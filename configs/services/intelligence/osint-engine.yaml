@@ -1,0 +1,342 @@
+service:
+  name: osint-engine
+  version: 1.0.0
+  port: 5001
+  description: Comprehensive OSINT collection engine with 686 tools and 1000+ APIs
+
+runtime:
+  workers: 8
+  max_memory: 16GB
+  timeout: 600s
+  restart_policy: always
+
+tools:
+  total: 686
+
+  categories:
+    reconnaissance:
+      count: 100+
+      tools:
+        - bbot
+        - amass
+        - subfinder
+        - assetfinder
+        - findomain
+        - subhunterx
+        - cloudrecon
+        - dnsreaper
+        - github-subdomains
+        - shodan
+        - censys
+        - zoomeye
+        - fofa
+        - hunter
+        - theHarvester
+        - recon-ng
+        - spiderfoot
+        - maltego
+        - osrframework
+        - and_90_more: true
+
+    social_media:
+      count: 400+
+      platforms:
+        - facebook
+        - twitter
+        - instagram
+        - linkedin
+        - tiktok
+        - reddit
+        - youtube
+        - telegram
+        - discord
+        - snapchat
+        - pinterest
+        - whatsapp
+        - vk
+        - weibo
+        - and_others: true
+      tools:
+        - sherlock
+        - maigret
+        - holehe
+        - socialscan
+        - social-analyzer
+        - twint
+        - instaloader
+        - facebook-scraper
+        - linkedin-scraper
+        - tiktok-scraper
+        - and_390_more: true
+
+    blockchain:
+      count: 50+
+      tools:
+        - onecoin-tracker
+        - wallet-clustering
+        - exchange-monitoring
+        - blockchain-explorer
+        - transaction-analyzer
+        - mixer-detector
+        - smart-contract-analyzer
+        - nft-tracker
+        - defi-monitor
+        - and_41_more: true
+      blockchains:
+        - bitcoin
+        - ethereum
+        - monero
+        - litecoin
+        - ripple
+        - cardano
+        - polkadot
+        - binance_chain
+        - and_others: true
+
+    dark_web:
+      count: 30+
+      tools:
+        - tor-browser
+        - onion-scanner
+        - dark-web-crawler
+        - paste-monitor
+        - breach-monitor
+        - market-monitor
+        - forum-scraper
+        - and_23_more: true
+
+    email:
+      count: 20+
+      tools:
+        - dehashed
+        - hunter
+        - clearbit
+        - emailrep
+        - email-verifier
+        - breach-check
+        - and_14_more: true
+
+    phone:
+      count: 15+
+      tools:
+        - phone-lookup
+        - carrier-lookup
+        - number-validator
+        - location-lookup
+        - and_11_more: true
+
+    domain:
+      count: 25+
+      tools:
+        - whois
+        - dns-enumeration
+        - certificate-transparency
+        - domain-history
+        - nameserver-lookup
+        - and_20_more: true
+
+    image:
+      count: 10+
+      tools:
+        - reverse-image-search
+        - exif-extractor
+        - face-recognition
+        - geolocation-from-image
+        - and_6_more: true
+
+    geolocation:
+      count: 10+
+      tools:
+        - ip-geolocation
+        - wifi-geolocation
+        - cell-tower-lookup
+        - and_7_more: true
+
+    others:
+      count: 26+
+      categories:
+        - document_analysis
+        - metadata_extraction
+        - data_breach_search
+        - vehicle_lookup
+        - business_intelligence
+        - and_others: true
+
+public_apis:
+  total: 1000+
+
+  categories:
+    cryptocurrency:
+      count: 10+
+      apis:
+        - coinmarketcap
+        - coingecko
+        - blockchain_com
+        - etherscan
+        - btc_com
+        - and_5_more: true
+
+    geolocation:
+      count: 15+
+      apis:
+        - ipapi
+        - ipgeolocation
+        - maxmind
+        - ipstack
+        - and_11_more: true
+
+    government:
+      count: 20+
+      apis:
+        - fbi_most_wanted
+        - interpol_red_notices
+        - sec_edgar
+        - uk_companies_house
+        - eu_transparency
+        - and_15_more: true
+
+    social_media:
+      count: 10+
+      apis:
+        - twitter_api
+        - facebook_graph
+        - instagram_basic_display
+        - linkedin_api
+        - and_6_more: true
+
+    finance:
+      count: 20+
+      apis:
+        - alpha_vantage
+        - yahoo_finance
+        - exchangerate_api
+        - currencylayer
+        - and_16_more: true
+
+    weather:
+      count: 10+
+      apis:
+        - openweathermap
+        - weatherapi
+        - accuweather
+        - and_7_more: true
+
+    telecommunications:
+      count: 5+
+      apis:
+        - twilio_lookup
+        - numverify
+        - and_3_more: true
+
+    blockchain:
+      count: 15+
+      apis:
+        - etherscan_api
+        - blockchain_com_api
+        - blockcypher
+        - and_12_more: true
+
+    open_data:
+      count: 50+
+      apis:
+        - world_bank
+        - un_data
+        - eurostat
+        - data_gov
+        - and_46_more: true
+
+    others:
+      count: 845+
+      categories:
+        - health
+        - transportation
+        - entertainment
+        - sports
+        - news
+        - books
+        - food
+        - business
+        - science
+        - and_many_more: true
+
+automation:
+  batch_processing: true
+  parallel_execution: true
+  max_concurrent: 50
+  queue_management: true
+  rate_limiting: true
+
+integration:
+  intelligence_fusion: http://intelligence-fusion:4003
+  ai_orchestration: http://cyberspike-villager:37695
+  operations: http://operations:4002
+
+api_management:
+  rate_limiting: true
+  key_rotation: true
+  quota_management: true
+  error_handling: true
+  retry_logic: exponential_backoff
+
+database:
+  postgresql:
+    connection: ${DATABASE_URL}
+    pool_size: 40
+
+  redis:
+    connection: ${REDIS_URL}
+    cache_ttl: 1h
+    max_connections: 100
+
+  elasticsearch:
+    url: ${ELASTICSEARCH_URL}
+    index_prefix: apollo-osint
+    shards: 5
+
+  mongodb:
+    uri: ${MONGODB_URI}
+    database: apollo_osint
+    collections:
+      - tool_results
+      - api_responses
+      - cached_data
+
+scheduling:
+  enabled: true
+  scheduler: celery
+  beat_schedule: true
+  periodic_tasks:
+    - name: refresh_data_sources
+      interval: 1h
+    - name: update_breach_databases
+      interval: 6h
+
+api:
+  version: v1
+  base_path: /api/v1
+  authentication: jwt
+  rate_limiting: 500/minute
+
+monitoring:
+  metrics: true
+  prometheus_endpoint: /metrics
+  health_check: /health
+  custom_metrics:
+    - tools_executed_total
+    - apis_called_total
+    - data_collected_bytes
+    - execution_duration_seconds
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - stdout
+    - file: /var/log/apollo/osint-engine.log
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: osint-engine
+    health_check_interval: 10s

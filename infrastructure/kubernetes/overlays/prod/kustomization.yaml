@@ -1,0 +1,17 @@
+resources:
+  - ../../kustomization.yaml
+patches:
+  - target:
+      kind: Deployment
+      name: apollo-authentication
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      kind: StatefulSet
+      name: apollo-postgresql
+    patch: |
+      - op: replace
+        path: /spec/replicas
+        value: 2

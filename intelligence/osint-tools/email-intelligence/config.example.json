@@ -1,0 +1,58 @@
+{
+  "api_keys": {
+    "emailrep": "YOUR_EMAILREP_API_KEY_HERE",
+    "hunter": "YOUR_HUNTER_API_KEY_HERE",
+    "hibp": "YOUR_HIBP_API_KEY_HERE",
+    "shodan": "YOUR_SHODAN_API_KEY_HERE"
+  },
+  "settings": {
+    "smtp_timeout": 10,
+    "dns_timeout": 5,
+    "verify_smtp": false,
+    "rate_limit": 50,
+    "cache_ttl": 3600,
+    "max_concurrent": 20,
+    "batch_workers": 5
+  },
+  "holehe": {
+    "timeout": 10,
+    "max_concurrent": 20,
+    "enabled_categories": [
+      "social_media",
+      "professional",
+      "gaming",
+      "shopping",
+      "communication"
+    ]
+  },
+  "validator": {
+    "verify_smtp": false,
+    "check_disposable": true,
+    "check_role_based": true,
+    "check_free_provider": true
+  },
+  "reputation": {
+    "check_blacklists": true,
+    "check_breaches": true,
+    "cache_enabled": true
+  },
+  "hunter": {
+    "rate_limit": 50,
+    "verify_emails": false
+  },
+  "correlation": {
+    "min_confidence": 0.5,
+    "find_variations": true,
+    "link_social_media": true
+  },
+  "output": {
+    "formats": ["json", "html", "csv"],
+    "export_path": "./reports",
+    "timestamp_reports": true
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "./logs/email_intel.log",
+    "console": true
+  }
+}

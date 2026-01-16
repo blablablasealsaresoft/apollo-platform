@@ -1,0 +1,368 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apollo-config
+  namespace: apollo-production
+  labels:
+    app: apollo
+    environment: production
+data:
+  # Application Configuration
+  NODE_ENV: "production"
+  API_PORT: "4000"
+  FRONTEND_PORT: "3000"
+
+  # Logging
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+
+  # Database Hosts (internal cluster DNS)
+  POSTGRES_HOST: "postgres.apollo-production.svc.cluster.local"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DATABASE: "apollo"
+
+  NEO4J_HOST: "neo4j.apollo-production.svc.cluster.local"
+  NEO4J_PORT: "7687"
+  NEO4J_DATABASE: "neo4j"
+
+  REDIS_HOST: "redis.apollo-production.svc.cluster.local"
+  REDIS_PORT: "6379"
+
+  ELASTICSEARCH_HOST: "elasticsearch.apollo-production.svc.cluster.local"
+  ELASTICSEARCH_PORT: "9200"
+
+  MONGODB_HOST: "mongodb.apollo-production.svc.cluster.local"
+  MONGODB_PORT: "27017"
+  MONGODB_DATABASE: "apollo"
+
+  RABBITMQ_HOST: "rabbitmq.apollo-production.svc.cluster.local"
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_VHOST: "/apollo"
+
+  TIMESCALE_HOST: "timescaledb.apollo-production.svc.cluster.local"
+  TIMESCALE_PORT: "5432"
+  TIMESCALE_DATABASE: "apollo_timeseries"
+
+  # Service Configuration
+  SURVEILLANCE_ENABLED: "true"
+  SURVEILLANCE_WORKERS: "8"
+  SURVEILLANCE_GPU: "true"
+
+  FACIAL_RECOGNITION_ENABLED: "true"
+  FACIAL_RECOGNITION_MODEL: "cnn"
+  FACIAL_RECOGNITION_THRESHOLD: "0.7"
+
+  VOICE_RECOGNITION_ENABLED: "true"
+  VOICE_RECOGNITION_THRESHOLD: "0.8"
+
+  # AI Configuration
+  AI_ANALYSIS_ENABLED: "true"
+  AI_MAX_CONCURRENT_REQUESTS: "50"
+
+  # Feature Flags
+  ENABLE_MFA: "true"
+  ENABLE_AUDIT_LOGGING: "true"
+  ENABLE_ENCRYPTION: "true"
+  ENABLE_RATE_LIMITING: "true"
+
+  # Monitoring
+  PROMETHEUS_URL: "http://prometheus.monitoring.svc.cluster.local:9090"
+  GRAFANA_URL: "http://grafana.monitoring.svc.cluster.local:3000"
+
+  # Timeouts
+  REQUEST_TIMEOUT: "60s"
+  UPLOAD_MAX_SIZE: "500mb"
+
+  # Session
+  SESSION_TIMEOUT: "15m"
+
+  # CORS
+  CORS_ORIGIN: "https://apollo.yourdomain.com"
+  CORS_CREDENTIALS: "true"
+
+  # SSL/TLS
+  TLS_MIN_VERSION: "1.3"
+
+  # Case Configuration
+  TARGET_NAME: "Ruja Ignatova"
+  CASE_ID: "IGNATOVA-2024-001"
+  CASE_PRIORITY: "CRITICAL"
+  REWARD_AMOUNT: "5000000"
+  REWARD_CURRENCY: "EUR"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apollo-database-config
+  namespace: apollo-production
+  labels:
+    app: apollo
+    environment: production
+    component: database
+data:
+  # PostgreSQL Configuration
+  postgres.conf: |
+    # Connection Settings
+    max_connections = 200
+    superuser_reserved_connections = 3
+
+    # Memory Settings
+    shared_buffers = 8GB
+    effective_cache_size = 24GB
+    maintenance_work_mem = 2GB
+    work_mem = 16MB
+
+    # WAL Settings
+    wal_level = replica
+    max_wal_size = 4GB
+    min_wal_size = 1GB
+    wal_buffers = 16MB
+
+    # Checkpoint Settings
+    checkpoint_completion_target = 0.9
+
+    # Query Planning
+    random_page_cost = 1.1
+    effective_io_concurrency = 200
+    default_statistics_target = 100
+
+    # Logging
+    log_destination = 'stderr'
+    logging_collector = on
+    log_directory = '/var/log/postgresql'
+    log_filename = 'postgresql-%Y-%m-%d.log'
+    log_min_duration_statement = 2000
+
+    # Replication
+    max_wal_senders = 10
+    wal_keep_size = 1GB
+
+  # Neo4j Configuration
+  neo4j.conf: |
+    # Memory Settings
+    dbms.memory.heap.initial_size=4G
+    dbms.memory.heap.max_size=8G
+    dbms.memory.pagecache.size=10G
+
+    # Network
+    dbms.default_listen_address=0.0.0.0
+    dbms.connector.bolt.enabled=true
+    dbms.connector.bolt.listen_address=:7687
+
+    # Security
+    dbms.security.auth_enabled=true
+
+    # Cluster (Causal Cluster)
+    causal_clustering.minimum_core_cluster_size_at_formation=3
+    causal_clustering.minimum_core_cluster_size_at_runtime=3
+    causal_clustering.initial_discovery_members=neo4j-0.neo4j.apollo-production.svc.cluster.local:5000,neo4j-1.neo4j.apollo-production.svc.cluster.local:5000,neo4j-2.neo4j.apollo-production.svc.cluster.local:5000
+
+  # Redis Configuration
+  redis.conf: |
+    # Network
+    bind 0.0.0.0
+    protected-mode yes
+    port 6379
+
+    # Memory
+    maxmemory 16gb
+    maxmemory-policy allkeys-lru
+
+    # Persistence
+    save 900 1
+    save 300 10
+    save 60 10000
+    appendonly yes
+    appendfsync everysec
+
+    # Security
+    requirepass CHANGE_ME_IN_SECRET
+
+    # Replication
+    replica-read-only yes
+
+  # Elasticsearch Configuration
+  elasticsearch.yml: |
+    cluster.name: apollo-cluster
+    node.name: ${HOSTNAME}
+    network.host: 0.0.0.0
+
+    # Discovery
+    discovery.seed_hosts:
+      - elasticsearch-0.elasticsearch.apollo-production.svc.cluster.local
+      - elasticsearch-1.elasticsearch.apollo-production.svc.cluster.local
+      - elasticsearch-2.elasticsearch.apollo-production.svc.cluster.local
+
+    cluster.initial_master_nodes:
+      - elasticsearch-0
+      - elasticsearch-1
+      - elasticsearch-2
+
+    # Memory
+    bootstrap.memory_lock: true
+
+    # Security
+    xpack.security.enabled: true
+    xpack.security.transport.ssl.enabled: true
+    xpack.security.http.ssl.enabled: true
+
+  # MongoDB Configuration
+  mongod.conf: |
+    # Network
+    net:
+      port: 27017
+      bindIp: 0.0.0.0
+
+    # Security
+    security:
+      authorization: enabled
+      keyFile: /etc/mongodb/keyfile
+
+    # Replication
+    replication:
+      replSetName: apollo-rs
+
+    # Storage
+    storage:
+      dbPath: /data/db
+      journal:
+        enabled: true
+
+    # System Log
+    systemLog:
+      destination: file
+      path: /var/log/mongodb/mongod.log
+      logAppend: true
+
+  # RabbitMQ Configuration
+  rabbitmq.conf: |
+    # Cluster
+    cluster_formation.peer_discovery_backend = k8s
+    cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
+    cluster_formation.k8s.address_type = hostname
+    cluster_formation.k8s.service_name = rabbitmq-headless
+    cluster_formation.k8s.namespace = apollo-production
+
+    # Network
+    listeners.tcp.default = 5672
+    management.tcp.port = 15672
+
+    # Memory
+    vm_memory_high_watermark.relative = 0.6
+
+    # Disk
+    disk_free_limit.absolute = 10GB
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apollo-nginx-config
+  namespace: apollo-production
+  labels:
+    app: apollo
+    component: nginx
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes auto;
+    error_log /var/log/nginx/error.log warn;
+    pid /var/run/nginx.pid;
+
+    events {
+        worker_connections 4096;
+    }
+
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+
+        log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for"';
+
+        access_log /var/log/nginx/access.log main;
+
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        types_hash_max_size 2048;
+
+        # Security headers
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+        # SSL Configuration
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
+        ssl_prefer_server_ciphers on;
+
+        # Gzip compression
+        gzip on;
+        gzip_vary on;
+        gzip_proxied any;
+        gzip_comp_level 6;
+        gzip_types text/plain text/css text/xml text/javascript application/json application/javascript application/xml+rss;
+
+        # Rate limiting
+        limit_req_zone $binary_remote_addr zone=api_limit:10m rate=100r/s;
+        limit_req_status 429;
+
+        # Upstream services
+        upstream api_backend {
+            least_conn;
+            server api-gateway:4000;
+        }
+
+        upstream frontend {
+            server frontend:3000;
+        }
+
+        # Server configuration
+        server {
+            listen 80;
+            server_name apollo.yourdomain.com;
+            return 301 https://$server_name$request_uri;
+        }
+
+        server {
+            listen 443 ssl http2;
+            server_name apollo.yourdomain.com;
+
+            ssl_certificate /etc/nginx/ssl/tls.crt;
+            ssl_certificate_key /etc/nginx/ssl/tls.key;
+
+            # API endpoints
+            location /api/ {
+                limit_req zone=api_limit burst=20 nodelay;
+
+                proxy_pass http://api_backend;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_cache_bypass $http_upgrade;
+
+                proxy_connect_timeout 60s;
+                proxy_send_timeout 60s;
+                proxy_read_timeout 60s;
+            }
+
+            # Frontend
+            location / {
+                proxy_pass http://frontend;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection 'upgrade';
+                proxy_set_header Host $host;
+                proxy_cache_bypass $http_upgrade;
+            }
+        }
+    }

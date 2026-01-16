@@ -1,0 +1,9 @@
+models:
+  sentiment-v1:
+    type: transformer
+    artifact: s3://apollo-models/sentiment-v1.onnx
+    updated_at: 2024-11-01
+  anomaly-detector:
+    type: random-forest
+    artifact: s3://apollo-models/anomaly-forest.pkl
+    updated_at: 2024-10-15

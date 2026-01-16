@@ -1,0 +1,185 @@
+service:
+  name: react-console
+  port: 3000
+  version: 1.0.0
+  description: Apollo Platform React-based web console
+
+runtime:
+  node_version: 20.x
+  workers: 4
+  max_memory: 2GB
+  restart_policy: always
+  graceful_shutdown_timeout: 10s
+
+build:
+  tool: vite
+  mode: production
+  output_dir: dist
+  source_maps: true
+  minification: true
+  code_splitting: true
+  tree_shaking: true
+
+environment:
+  NODE_ENV: production
+  REACT_APP_API_BASE_URL: ${API_BASE_URL}
+  REACT_APP_WS_URL: ${WEBSOCKET_URL}
+  REACT_APP_VERSION: 1.0.0
+  REACT_APP_SENTRY_DSN: ${SENTRY_DSN}
+
+features:
+  authentication: true
+  investigation_management: true
+  target_tracking: true
+  intelligence_dashboard: true
+  surveillance_viewer: true
+  evidence_management: true
+  reporting: true
+  real_time_updates: true
+
+modules:
+  dashboard:
+    enabled: true
+    widgets:
+      - active_investigations
+      - recent_alerts
+      - surveillance_status
+      - intelligence_summary
+      - system_health
+
+  investigations:
+    enabled: true
+    features:
+      - case_management
+      - target_tracking
+      - timeline_view
+      - evidence_linking
+      - collaboration
+
+  intelligence:
+    enabled: true
+    features:
+      - osint_tools
+      - correlation_viewer
+      - graph_visualization
+      - threat_scoring
+
+  surveillance:
+    enabled: true
+    features:
+      - live_feed_viewer
+      - facial_recognition
+      - alert_management
+      - recording_playback
+
+  evidence:
+    enabled: true
+    features:
+      - file_upload
+      - viewer
+      - chain_of_custody
+      - search
+
+  redteam:
+    enabled: true
+    features:
+      - campaign_management
+      - vulnerability_tracking
+      - exploit_console
+      - reporting
+
+  analytics:
+    enabled: true
+    features:
+      - custom_dashboards
+      - data_visualization
+      - export_reports
+
+api_integration:
+  base_url: ${API_BASE_URL}
+  timeout: 30s
+  retry_attempts: 3
+  endpoints:
+    authentication: /api/v1/auth
+    operations: /api/v1/operations
+    intelligence: /api/v1/intelligence
+    surveillance: /api/v1/surveillance
+    evidence: /api/v1/evidence
+    redteam: /api/v1/redteam
+
+websocket:
+  url: ${WEBSOCKET_URL}
+  reconnect: true
+  reconnect_attempts: 5
+  reconnect_delay: 5s
+  channels:
+    - alerts
+    - notifications
+    - surveillance_matches
+    - investigation_updates
+
+authentication:
+  token_storage: localStorage
+  refresh_token_storage: httpOnly_cookie
+  auto_refresh: true
+  session_timeout: 24h
+
+ui_framework:
+  library: react
+  version: 18.x
+  state_management: redux_toolkit
+  routing: react_router_v6
+  ui_library: mui
+  charts: recharts
+  maps: leaflet
+
+performance:
+  lazy_loading: true
+  code_splitting: true
+  bundle_size_limit: 500KB
+  asset_optimization: true
+  compression: gzip
+  caching:
+    static_assets: 1y
+    api_responses: 5m
+
+security:
+  csp_enabled: true
+  xss_protection: true
+  csrf_protection: true
+  secure_cookies: true
+  https_only: true
+
+monitoring:
+  analytics: true
+  error_tracking: sentry
+  performance_monitoring: true
+  user_sessions: true
+
+logging:
+  level: info
+  console_logging: false
+  remote_logging: true
+  error_boundary: true
+
+accessibility:
+  wcag_compliance: AA
+  keyboard_navigation: true
+  screen_reader_support: true
+
+internationalization:
+  enabled: true
+  default_locale: en-US
+  supported_locales:
+    - en-US
+    - en-GB
+    - es-ES
+    - fr-FR
+    - de-DE
+
+service_discovery:
+  consul:
+    enabled: true
+    address: consul:8500
+    service_name: react-console
+    health_check_interval: 10s

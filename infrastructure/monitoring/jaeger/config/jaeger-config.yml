@@ -1,0 +1,13 @@
+collector:
+  zipkin:
+    http-port: 9411
+sampling:
+  strategies:
+    default_strategy:
+      probabilistic:
+        sampling_rate: 0.05
+storage:
+  type: elasticsearch
+  options:
+    es.server-urls: http://apollo-elasticsearch:9200
+    es.index-prefix: jaeger

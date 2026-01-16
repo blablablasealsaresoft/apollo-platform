@@ -1,0 +1,634 @@
+category: geolocation
+total_apis: 18
+priority: critical
+apollo_use: "IP tracking, suspect location intelligence, GEOINT operations, geospatial analysis"
+mission_relevance: "Track Ruja Ignatova's locations via IP addresses, deploy surveillance based on high-confidence geolocations"
+
+apis:
+  ipstack:
+    name: IPstack
+    url: https://api.ipstack.com
+    authentication: apiKey
+    free_tier: 10000/month
+    rate_limit: 10000/month
+    description: "IP to geolocation with security and threat detection - 99.99% uptime, 2 million+ unique locations"
+
+    endpoints:
+      - path: /{ip}
+        method: GET
+        params:
+          access_key: "{key}"
+          security: 1
+          hostname: 1
+        use: "Get full geolocation data for IP with security info"
+
+      - path: /check
+        method: GET
+        params:
+          access_key: "{key}"
+        use: "Get geolocation for requester's IP"
+
+      - path: /bulk
+        method: POST
+        params:
+          access_key: "{key}"
+        use: "Bulk IP lookup (up to 50 IPs)"
+
+    response_fields:
+      - ip: "IP address"
+      - type: "IPv4 or IPv6"
+      - continent_name: "Continent name"
+      - country_name: "Country name"
+      - city: "City name"
+      - zip: "Zip code"
+      - latitude: "Latitude coordinate"
+      - longitude: "Longitude coordinate"
+      - location:
+          geoname_id: "GeoNames ID"
+          capital: "Country capital"
+          languages: "Spoken languages"
+      - security:
+          is_proxy: "Is proxy?"
+          proxy_type: "Proxy type"
+          is_crawler: "Is crawler?"
+          is_tor: "Is TOR exit node?"
+          threat_level: "Security threat level"
+
+    apollo_integration:
+      use_case: "Track suspect locations from IP addresses, identify proxies/VPNs, deploy surveillance"
+      priority: critical
+      deployment: continuous
+
+      auto_geolocate:
+        sources:
+          - server_logs
+          - network_traffic
+          - social_media_ips
+          - email_headers
+          - document_metadata
+        confidence_threshold: 0.7
+        security_check: true  # Always check for proxies/VPNs
+        threat_analysis: true
+
+      surveillance_deployment:
+        trigger_condition: "confidence > 0.8 AND not proxy AND not vpn"
+        alert_teams:
+          - geoint
+          - tactical
+          - surveillance
+        response_time: immediate
+
+      intelligence_feeds:
+        - target: apollo.geoint_intelligence
+          type: ip_geolocation
+          format: json
+        - target: apollo.surveillance_ops
+          type: high_confidence_location
+          threshold: 0.8
+        - target: apollo.threat_intelligence
+          type: security_indicators
+          priority: high
+
+    example_usage: |
+      # Basic IP geolocation
+      curl "http://api.ipstack.com/134.201.250.155?access_key=YOUR_ACCESS_KEY"
+
+      # With security module
+      curl "http://api.ipstack.com/134.201.250.155?access_key=YOUR_ACCESS_KEY&security=1"
+
+      # Bulk lookup
+      curl -X POST http://api.ipstack.com/bulk \
+        -H "Content-Type: application/json" \
+        -d '{"access_key":"YOUR_ACCESS_KEY","ips":["134.201.250.155","8.8.8.8"]}'
+
+  ipapi:
+    name: ipapi
+    url: https://ipapi.co
+    authentication: none (optional for higher limits)
+    free_tier: 1000/day
+    rate_limit: 1000/day (30000/month with key)
+    description: "Simple IP geolocation API with timezone and currency data"
+
+    endpoints:
+      - path: /{ip}/json
+        method: GET
+        use: "Get JSON geolocation data for IP"
+
+      - path: /json
+        method: GET
+        use: "Get geolocation for requester's IP"
+
+      - path: /{ip}/csv
+        method: GET
+        use: "Get CSV format data"
+
+      - path: /{ip}/yaml
+        method: GET
+        use: "Get YAML format data"
+
+    apollo_integration:
+      use_case: "Real-time location intelligence from IPs, alternative to ipstack"
+      priority: critical
+      deployment: continuous
+
+      auto_track:
+        ips: suspect_ip_list  # From Apollo intelligence database
+        update_frequency: hourly
+        alert_on_change: true
+        store_history: true
+
+      location_timeline:
+        build_timeline: true
+        detect_travel: true
+        suspicious_movement: true  # Flag rapid location changes
+
+      intelligence_feeds:
+        - target: apollo.geoint_intelligence
+          type: real_time_location
+          format: json
+        - target: apollo.movement_analysis
+          type: location_timeline
+          frequency: hourly
+
+    example_usage: |
+      # Get IP location
+      curl "https://ipapi.co/8.8.8.8/json/"
+
+      # Get own IP location
+      curl "https://ipapi.co/json/"
+
+  ip_api:
+    name: IP-API
+    url: http://ip-api.com/json
+    authentication: none
+    free_tier: true
+    rate_limit: 45/minute
+    description: "Fast IP geolocation API - non-commercial use"
+
+    endpoints:
+      - path: /{ip}
+        method: GET
+        params:
+          fields: "status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query"
+        use: "Get geolocation with custom fields"
+
+      - path: /batch
+        method: POST
+        use: "Batch lookup (up to 100 IPs)"
+
+    apollo_integration:
+      use_case: "High-volume IP tracking, alternative geolocation source"
+      priority: high
+      batch_processing: true
+
+  ipgeolocation:
+    name: IP Geolocation
+    url: https://api.ipgeolocation.io
+    authentication: apiKey
+    free_tier: 1000/day
+    rate_limit: 1000/day
+    description: "IP geolocation with timezone, astronomy, and ISP data"
+
+    endpoints:
+      - path: /ipgeo
+        method: GET
+        params:
+          apiKey: "{key}"
+          ip: "{ip}"
+        use: "Get IP geolocation"
+
+      - path: /timezone
+        method: GET
+        params:
+          apiKey: "{key}"
+          ip: "{ip}"
+        use: "Get timezone info"
+
+    apollo_integration:
+      use_case: "IP tracking with timezone intelligence for temporal analysis"
+      priority: high
+      timezone_correlation: true
+
+  ipinfo:
+    name: IPinfo
+    url: https://ipinfo.io
+    authentication: optional
+    free_tier: 50000/month
+    rate_limit: 50000/month
+    description: "Comprehensive IP address data and geolocation"
+
+    endpoints:
+      - path: /{ip}
+        method: GET
+        use: "Get full IP data"
+
+      - path: /{ip}/geo
+        method: GET
+        use: "Get geolocation only"
+
+      - path: /{ip}/org
+        method: GET
+        use: "Get organization/ASN info"
+
+    apollo_integration:
+      use_case: "High-volume IP intelligence with ASN tracking"
+      priority: high
+      asn_tracking: true
+
+  abstractapi_geolocation:
+    name: Abstract API Geolocation
+    url: https://ipgeolocation.abstractapi.com/v1
+    authentication: apiKey
+    free_tier: 20000/month
+    rate_limit: 20000/month
+    description: "IP geolocation with VPN and proxy detection"
+
+    endpoints:
+      - path: /
+        method: GET
+        params:
+          api_key: "{key}"
+          ip_address: "{ip}"
+        use: "Get IP geolocation with security checks"
+
+    apollo_integration:
+      use_case: "IP tracking with VPN/proxy detection for OPSEC awareness"
+      priority: high
+      vpn_detection: true
+      proxy_detection: true
+
+  geocode_xyz:
+    name: Geocode.xyz
+    url: https://geocode.xyz
+    authentication: none
+    free_tier: true
+    rate_limit: 1/second
+    description: "Forward and reverse geocoding worldwide"
+
+    endpoints:
+      - path: /{location}
+        method: GET
+        params:
+          json: 1
+        use: "Geocode address to coordinates"
+
+      - path: /{lat},{lon}
+        method: GET
+        params:
+          geoit: json
+        use: "Reverse geocode coordinates to address"
+
+    apollo_integration:
+      use_case: "Convert addresses to coordinates for mapping"
+      priority: medium
+      geocoding: true
+
+  opencagedata:
+    name: OpenCage Geocoding
+    url: https://api.opencagedata.com/geocode/v1
+    authentication: apiKey
+    free_tier: 2500/day
+    rate_limit: 2500/day
+    description: "Forward and reverse geocoding using multiple data sources"
+
+    endpoints:
+      - path: /json
+        method: GET
+        params:
+          q: "{query}"
+          key: "{key}"
+        use: "Geocode address or reverse geocode coordinates"
+
+    apollo_integration:
+      use_case: "Location intelligence from addresses and coordinates"
+      priority: medium
+      multi_source: true
+
+  positionstack:
+    name: Positionstack
+    url: http://api.positionstack.com/v1
+    authentication: apiKey
+    free_tier: 25000/month
+    rate_limit: 25000/month
+    description: "Real-time forward and reverse geocoding REST API"
+
+    endpoints:
+      - path: /forward
+        method: GET
+        params:
+          access_key: "{key}"
+          query: "{address}"
+        use: "Geocode address to coordinates"
+
+      - path: /reverse
+        method: GET
+        params:
+          access_key: "{key}"
+          query: "{lat},{lon}"
+        use: "Reverse geocode coordinates to address"
+
+    apollo_integration:
+      use_case: "High-volume geocoding operations"
+      priority: medium
+
+  ipdata:
+    name: ipdata
+    url: https://api.ipdata.co
+    authentication: apiKey
+    free_tier: 1500/day
+    rate_limit: 1500/day
+    description: "IP geolocation with threat intelligence and carrier detection"
+
+    endpoints:
+      - path: /{ip}
+        method: GET
+        params:
+          api-key: "{key}"
+        use: "Get IP geolocation with threat data"
+
+      - path: /bulk
+        method: POST
+        params:
+          api-key: "{key}"
+        use: "Bulk IP lookup"
+
+    apollo_integration:
+      use_case: "IP tracking with integrated threat intelligence"
+      priority: high
+      threat_intel: true
+
+  ipify:
+    name: ipify
+    url: https://api.ipify.org
+    authentication: none
+    free_tier: true
+    rate_limit: unlimited
+    description: "Simple public IP address API"
+
+    endpoints:
+      - path: /
+        method: GET
+        params:
+          format: json
+        use: "Get public IP address"
+
+    apollo_integration:
+      use_case: "Detect Apollo's own IP for OPSEC"
+      priority: low
+      opsec: true
+
+  freegeoip:
+    name: FreeGeoIP
+    url: https://freegeoip.app/json
+    authentication: none
+    free_tier: 15000/hour
+    rate_limit: 15000/hour
+    description: "Free IP geolocation service"
+
+    endpoints:
+      - path: /{ip}
+        method: GET
+        use: "Get IP geolocation"
+
+    apollo_integration:
+      use_case: "High-volume IP tracking"
+      priority: medium
+
+  bigdatacloud:
+    name: BigDataCloud
+    url: https://api.bigdatacloud.net/data
+    authentication: none
+    free_tier: true
+    rate_limit: 10000/month
+    description: "IP geolocation and reverse geocoding"
+
+    endpoints:
+      - path: /ip-geolocation
+        method: GET
+        params:
+          ip: "{ip}"
+        use: "Get IP geolocation"
+
+      - path: /reverse-geocode
+        method: GET
+        params:
+          latitude: "{lat}"
+          longitude: "{lon}"
+        use: "Reverse geocode coordinates"
+
+    apollo_integration:
+      use_case: "Alternative geolocation source"
+      priority: medium
+
+  geoapify:
+    name: Geoapify
+    url: https://api.geoapify.com/v1
+    authentication: apiKey
+    free_tier: 3000/day
+    rate_limit: 3000/day
+    description: "Geocoding, routing, and places API"
+
+    endpoints:
+      - path: /geocode/search
+        method: GET
+        params:
+          text: "{query}"
+          apiKey: "{key}"
+        use: "Geocode address"
+
+      - path: /geocode/reverse
+        method: GET
+        params:
+          lat: "{lat}"
+          lon: "{lon}"
+          apiKey: "{key}"
+        use: "Reverse geocode"
+
+      - path: /routing
+        method: GET
+        params:
+          waypoints: "{waypoints}"
+          apiKey: "{key}"
+        use: "Calculate routes"
+
+    apollo_integration:
+      use_case: "Route planning and location intelligence for operations"
+      priority: medium
+      route_planning: true
+
+  locationiq:
+    name: LocationIQ
+    url: https://us1.locationiq.com/v1
+    authentication: apiKey
+    free_tier: 10000/day
+    rate_limit: 2/second
+    description: "Geocoding and mapping using OpenStreetMap data"
+
+    endpoints:
+      - path: /search
+        method: GET
+        params:
+          q: "{query}"
+          key: "{key}"
+          format: json
+        use: "Search for location"
+
+      - path: /reverse
+        method: GET
+        params:
+          lat: "{lat}"
+          lon: "{lon}"
+          key: "{key}"
+          format: json
+        use: "Reverse geocode"
+
+    apollo_integration:
+      use_case: "Location search and mapping intelligence"
+      priority: medium
+
+  mapbox_geocoding:
+    name: Mapbox Geocoding
+    url: https://api.mapbox.com/geocoding/v5
+    authentication: apiKey
+    free_tier: 100000/month
+    rate_limit: 600/minute
+    description: "Forward and reverse geocoding with worldwide coverage"
+
+    endpoints:
+      - path: /mapbox.places/{query}.json
+        method: GET
+        params:
+          access_token: "{token}"
+        use: "Geocode query"
+
+      - path: /mapbox.places/{lon},{lat}.json
+        method: GET
+        params:
+          access_token: "{token}"
+        use: "Reverse geocode"
+
+    apollo_integration:
+      use_case: "High-volume geocoding with mapping integration"
+      priority: high
+      mapping: true
+
+  here_geocoding:
+    name: HERE Geocoding
+    url: https://geocode.search.hereapi.com/v1
+    authentication: apiKey
+    free_tier: 250000/month
+    rate_limit: 5/second
+    description: "Enterprise-grade geocoding and location services"
+
+    endpoints:
+      - path: /geocode
+        method: GET
+        params:
+          q: "{query}"
+          apiKey: "{key}"
+        use: "Geocode address"
+
+      - path: /revgeocode
+        method: GET
+        params:
+          at: "{lat},{lon}"
+          apiKey: "{key}"
+        use: "Reverse geocode"
+
+      - path: /lookup
+        method: GET
+        params:
+          id: "{locationId}"
+          apiKey: "{key}"
+        use: "Lookup location by ID"
+
+    apollo_integration:
+      use_case: "Enterprise-grade geocoding for high-accuracy operations"
+      priority: high
+      accuracy: high
+
+  tomtom_geocoding:
+    name: TomTom Geocoding
+    url: https://api.tomtom.com/search/2
+    authentication: apiKey
+    free_tier: 2500/day
+    rate_limit: 5/second
+    description: "Geocoding and search API"
+
+    endpoints:
+      - path: /geocode/{query}.json
+        method: GET
+        params:
+          key: "{key}"
+        use: "Geocode address"
+
+      - path: /reverseGeocode/{lat},{lon}.json
+        method: GET
+        params:
+          key: "{key}"
+        use: "Reverse geocode"
+
+    apollo_integration:
+      use_case: "Location search and geocoding"
+      priority: medium
+
+deployment:
+  mode: continuous
+  auto_start: true
+  failover: true
+  redundancy: multi-api  # Use multiple APIs for validation
+  priority: critical
+
+monitoring:
+  track_targets:
+    - suspect_ips
+    - server_logs
+    - email_headers
+    - social_media_ips
+    - network_traffic
+
+  alert_conditions:
+    - high_confidence_location: ">0.8"
+    - location_change: "rapid movement detected"
+    - proxy_detected: "VPN/proxy/TOR usage"
+    - threat_detected: "malicious IP activity"
+
+  correlation_with:
+    - cryptocurrency_apis
+    - social_media_apis
+    - transportation_apis
+    - business_apis
+
+intelligence_fusion:
+  feed_to:
+    - apollo.geoint_intelligence
+    - apollo.surveillance_ops
+    - apollo.movement_analysis
+    - apollo.threat_intelligence
+    - apollo.fusion_center
+
+  analysis:
+    - location_clustering: true
+    - movement_patterns: true
+    - temporal_analysis: true
+    - threat_correlation: true
+
+  visualization:
+    - heat_maps: true
+    - movement_trails: true
+    - confidence_overlays: true
+    - real_time_tracking: true
+
+surveillance_integration:
+  auto_deploy:
+    enabled: true
+    confidence_threshold: 0.8
+    exclude_proxies: true
+    exclude_vpns: true
+    verification: multi_source
+
+  alert_protocol:
+    - level_1: "confidence > 0.9"  # Immediate tactical response
+    - level_2: "confidence > 0.8"  # Deploy surveillance
+    - level_3: "confidence > 0.7"  # Monitor and verify
+    - level_4: "confidence > 0.5"  # Flag for analysis

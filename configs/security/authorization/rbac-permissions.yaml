@@ -1,0 +1,641 @@
+# RBAC Permissions for Apollo Platform
+# Granular permission definitions for all platform resources
+
+permissions:
+  # Investigation Permissions
+  investigations:
+    # Read permissions
+    - id: read:investigations
+      name: Read Investigations
+      description: View investigation details
+      resource: investigation
+      action: read
+      scope: assigned
+
+    - id: read:investigations:all
+      name: Read All Investigations
+      description: View all investigations in system
+      resource: investigation
+      action: read
+      scope: all
+
+    - id: read:investigations:team
+      name: Read Team Investigations
+      description: View team investigations
+      resource: investigation
+      action: read
+      scope: team
+
+    # Write permissions
+    - id: write:investigations
+      name: Write Investigations
+      description: Create and update investigations
+      resource: investigation
+      action: write
+      scope: assigned
+
+    - id: write:investigations:all
+      name: Write All Investigations
+      description: Create and update any investigation
+      resource: investigation
+      action: write
+      scope: all
+
+    # Delete permissions
+    - id: delete:investigations
+      name: Delete Investigations
+      description: Delete investigations
+      resource: investigation
+      action: delete
+      scope: own
+
+    - id: delete:investigations:all
+      name: Delete All Investigations
+      description: Delete any investigation
+      resource: investigation
+      action: delete
+      scope: all
+
+    # Management permissions
+    - id: manage:investigations
+      name: Manage Investigations
+      description: Full investigation management
+      resource: investigation
+      action: manage
+      scope: assigned
+
+    - id: approve:investigations
+      name: Approve Investigations
+      description: Approve investigation operations
+      resource: investigation
+      action: approve
+      scope: team
+
+    - id: assign:investigations
+      name: Assign Investigations
+      description: Assign investigations to team members
+      resource: investigation
+      action: assign
+      scope: team
+
+    - id: close:investigations
+      name: Close Investigations
+      description: Close investigations
+      resource: investigation
+      action: close
+      scope: assigned
+
+  # Intelligence Permissions
+  intelligence:
+    - id: read:intelligence
+      name: Read Intelligence
+      description: View intelligence data
+      resource: intelligence
+      action: read
+      scope: assigned
+
+    - id: read:intelligence:all
+      name: Read All Intelligence
+      description: View all intelligence data
+      resource: intelligence
+      action: read
+      scope: all
+
+    - id: write:intelligence
+      name: Write Intelligence
+      description: Create and update intelligence
+      resource: intelligence
+      action: write
+      scope: assigned
+
+    - id: delete:intelligence
+      name: Delete Intelligence
+      description: Delete intelligence data
+      resource: intelligence
+      action: delete
+      scope: own
+
+    - id: execute:osint
+      name: Execute OSINT
+      description: Run open source intelligence operations
+      resource: intelligence
+      action: execute
+      capability: osint
+
+    - id: execute:osint:advanced
+      name: Execute Advanced OSINT
+      description: Run advanced OSINT operations
+      resource: intelligence
+      action: execute
+      capability: osint_advanced
+
+    - id: execute:geoint
+      name: Execute GEOINT
+      description: Run geospatial intelligence operations
+      resource: intelligence
+      action: execute
+      capability: geoint
+
+    - id: execute:geoint:advanced
+      name: Execute Advanced GEOINT
+      description: Run advanced GEOINT operations
+      resource: intelligence
+      action: execute
+      capability: geoint_advanced
+
+    - id: execute:sigint
+      name: Execute SIGINT
+      description: Run signals intelligence operations
+      resource: intelligence
+      action: execute
+      capability: sigint
+
+    - id: execute:sigint:advanced
+      name: Execute Advanced SIGINT
+      description: Run advanced SIGINT operations
+      resource: intelligence
+      action: execute
+      capability: sigint_advanced
+
+    - id: execute:humint
+      name: Execute HUMINT
+      description: Run human intelligence operations
+      resource: intelligence
+      action: execute
+      capability: humint
+
+    - id: access:classified_intelligence
+      name: Access Classified Intelligence
+      description: Access classified intelligence data
+      resource: intelligence
+      action: access
+      classification: classified
+
+  # Surveillance Permissions
+  surveillance:
+    - id: read:surveillance
+      name: Read Surveillance
+      description: View surveillance data
+      resource: surveillance
+      action: read
+      scope: assigned
+
+    - id: read:surveillance:all
+      name: Read All Surveillance
+      description: View all surveillance data
+      resource: surveillance
+      action: read
+      scope: all
+
+    - id: write:surveillance
+      name: Write Surveillance
+      description: Create and update surveillance operations
+      resource: surveillance
+      action: write
+      scope: assigned
+
+    - id: manage:cameras
+      name: Manage Cameras
+      description: Manage camera systems
+      resource: surveillance
+      action: manage
+      capability: cameras
+
+    - id: access:facial_recognition
+      name: Access Facial Recognition
+      description: Use facial recognition systems
+      resource: surveillance
+      action: access
+      capability: facial_recognition
+
+    - id: access:voice_recognition
+      name: Access Voice Recognition
+      description: Use voice recognition systems
+      resource: surveillance
+      action: access
+      capability: voice_recognition
+
+    - id: access:live_feeds
+      name: Access Live Feeds
+      description: Access live surveillance feeds
+      resource: surveillance
+      action: access
+      capability: live_feeds
+
+    - id: access:camera_feeds
+      name: Access Camera Feeds
+      description: View camera feeds
+      resource: surveillance
+      action: access
+      capability: camera_feeds
+
+  # Evidence Permissions
+  evidence:
+    - id: read:evidence
+      name: Read Evidence
+      description: View evidence
+      resource: evidence
+      action: read
+      scope: assigned
+
+    - id: read:evidence:all
+      name: Read All Evidence
+      description: View all evidence
+      resource: evidence
+      action: read
+      scope: all
+
+    - id: write:evidence
+      name: Write Evidence
+      description: Upload and update evidence
+      resource: evidence
+      action: write
+      scope: assigned
+
+    - id: delete:evidence
+      name: Delete Evidence
+      description: Delete evidence
+      resource: evidence
+      action: delete
+      scope: own
+      requires_approval: true
+
+    - id: upload:evidence
+      name: Upload Evidence
+      description: Upload evidence files
+      resource: evidence
+      action: upload
+      scope: assigned
+
+    - id: download:evidence
+      name: Download Evidence
+      description: Download evidence files
+      resource: evidence
+      action: download
+      scope: assigned
+
+    - id: manage:chain_of_custody
+      name: Manage Chain of Custody
+      description: Manage evidence chain of custody
+      resource: evidence
+      action: manage
+      capability: chain_of_custody
+
+    - id: approve:evidence
+      name: Approve Evidence
+      description: Approve evidence submissions
+      resource: evidence
+      action: approve
+      scope: team
+
+    - id: write:evidence:forensics
+      name: Write Forensic Evidence
+      description: Add forensic analysis to evidence
+      resource: evidence
+      action: write
+      capability: forensics
+
+    - id: write:evidence:redteam
+      name: Write Red Team Evidence
+      description: Add red team operation evidence
+      resource: evidence
+      action: write
+      capability: redteam
+
+  # Red Team Permissions
+  redteam:
+    - id: execute:redteam_ops
+      name: Execute Red Team Operations
+      description: Run red team operations
+      resource: redteam
+      action: execute
+      capability: basic
+
+    - id: execute:redteam_ops:basic
+      name: Execute Basic Red Team Operations
+      description: Run basic red team operations
+      resource: redteam
+      action: execute
+      capability: basic
+
+    - id: execute:redteam_ops:advanced
+      name: Execute Advanced Red Team Operations
+      description: Run advanced red team operations
+      resource: redteam
+      action: execute
+      capability: advanced
+
+    - id: manage:c2_sessions
+      name: Manage C2 Sessions
+      description: Manage command and control sessions
+      resource: redteam
+      action: manage
+      capability: c2
+
+    - id: view:c2_sessions:assigned
+      name: View Assigned C2 Sessions
+      description: View assigned C2 sessions
+      resource: redteam
+      action: view
+      capability: c2
+      scope: assigned
+
+    - id: deploy:exploits
+      name: Deploy Exploits
+      description: Deploy exploitation tools
+      resource: redteam
+      action: deploy
+      capability: exploits
+      requires_approval: true
+
+    - id: access:offensive_tools
+      name: Access Offensive Tools
+      description: Access offensive security tools
+      resource: redteam
+      action: access
+      capability: offensive_tools
+
+    - id: create:implants
+      name: Create Implants
+      description: Create and deploy implants
+      resource: redteam
+      action: create
+      capability: implants
+
+  # User Management Permissions
+  users:
+    - id: read:users
+      name: Read Users
+      description: View user information
+      resource: user
+      action: read
+      scope: team
+
+    - id: read:users:all
+      name: Read All Users
+      description: View all user information
+      resource: user
+      action: read
+      scope: all
+
+    - id: write:users
+      name: Write Users
+      description: Create and update users
+      resource: user
+      action: write
+      scope: team
+
+    - id: delete:users
+      name: Delete Users
+      description: Delete users
+      resource: user
+      action: delete
+      scope: team
+
+    - id: manage:users
+      name: Manage Users
+      description: Full user management
+      resource: user
+      action: manage
+      scope: all
+
+    - id: manage:team_members
+      name: Manage Team Members
+      description: Manage team member accounts
+      resource: user
+      action: manage
+      scope: team
+
+  # Role Management Permissions
+  roles:
+    - id: read:roles
+      name: Read Roles
+      description: View role definitions
+      resource: role
+      action: read
+      scope: all
+
+    - id: write:roles
+      name: Write Roles
+      description: Create and update roles
+      resource: role
+      action: write
+      scope: all
+
+    - id: delete:roles
+      name: Delete Roles
+      description: Delete roles
+      resource: role
+      action: delete
+      scope: all
+
+    - id: manage:roles
+      name: Manage Roles
+      description: Full role management
+      resource: role
+      action: manage
+      scope: all
+
+    - id: assign:roles
+      name: Assign Roles
+      description: Assign roles to users
+      resource: role
+      action: assign
+      scope: team
+
+  # System Permissions
+  system:
+    - id: manage:system
+      name: Manage System
+      description: System configuration and management
+      resource: system
+      action: manage
+      scope: all
+
+    - id: view:audit_logs
+      name: View Audit Logs
+      description: View system audit logs
+      resource: system
+      action: view
+      capability: audit_logs
+
+    - id: read:audit_logs:all
+      name: Read All Audit Logs
+      description: Read all audit logs
+      resource: system
+      action: read
+      capability: audit_logs
+      scope: all
+
+    - id: manage:configuration
+      name: Manage Configuration
+      description: Manage system configuration
+      resource: system
+      action: manage
+      capability: configuration
+
+    - id: manage:infrastructure
+      name: Manage Infrastructure
+      description: Manage infrastructure
+      resource: system
+      action: manage
+      capability: infrastructure
+
+  # Analysis Permissions
+  analysis:
+    - id: write:analysis
+      name: Write Analysis
+      description: Create analysis reports
+      resource: analysis
+      action: write
+      scope: assigned
+
+    - id: write:reports
+      name: Write Reports
+      description: Create reports
+      resource: analysis
+      action: write
+      capability: reports
+
+    - id: access:analytics_tools
+      name: Access Analytics Tools
+      description: Access analytics tools
+      resource: analysis
+      action: access
+      capability: tools
+
+    - id: access:visualization_tools
+      name: Access Visualization Tools
+      description: Access data visualization tools
+      resource: analysis
+      action: access
+      capability: visualization
+
+    - id: access:data_mining_tools
+      name: Access Data Mining Tools
+      description: Access data mining tools
+      resource: analysis
+      action: access
+      capability: data_mining
+
+  # Forensics Permissions
+  forensics:
+    - id: execute:forensic_analysis
+      name: Execute Forensic Analysis
+      description: Perform forensic analysis
+      resource: forensics
+      action: execute
+      capability: analysis
+
+    - id: access:forensic_tools
+      name: Access Forensic Tools
+      description: Access forensic tools
+      resource: forensics
+      action: access
+      capability: tools
+
+    - id: access:disk_imaging
+      name: Access Disk Imaging
+      description: Perform disk imaging
+      resource: forensics
+      action: access
+      capability: disk_imaging
+
+    - id: access:memory_analysis
+      name: Access Memory Analysis
+      description: Perform memory analysis
+      resource: forensics
+      action: access
+      capability: memory_analysis
+
+    - id: access:malware_analysis
+      name: Access Malware Analysis
+      description: Perform malware analysis
+      resource: forensics
+      action: access
+      capability: malware_analysis
+
+  # Compliance Permissions
+  compliance:
+    - id: execute:compliance_checks
+      name: Execute Compliance Checks
+      description: Run compliance checks
+      resource: compliance
+      action: execute
+      capability: checks
+
+    - id: generate:compliance_reports
+      name: Generate Compliance Reports
+      description: Generate compliance reports
+      resource: compliance
+      action: generate
+      capability: reports
+
+    - id: access:gdpr_tools
+      name: Access GDPR Tools
+      description: Access GDPR compliance tools
+      resource: compliance
+      action: access
+      capability: gdpr
+
+    - id: access:cjis_tools
+      name: Access CJIS Tools
+      description: Access CJIS compliance tools
+      resource: compliance
+      action: access
+      capability: cjis
+
+  # Collaboration Permissions
+  collaboration:
+    - id: collaborate:investigations
+      name: Collaborate on Investigations
+      description: Collaborate on investigations
+      resource: investigation
+      action: collaborate
+      scope: assigned
+
+    - id: share:intelligence
+      name: Share Intelligence
+      description: Share intelligence with team
+      resource: intelligence
+      action: share
+      scope: team
+
+# Permission Scopes
+scopes:
+  own:
+    description: Resources created by the user
+    filter: user_id = current_user.id
+
+  assigned:
+    description: Resources assigned to the user
+    filter: assigned_to = current_user.id OR team_id IN current_user.teams
+
+  team:
+    description: Resources within user's team
+    filter: team_id IN current_user.teams
+
+  all:
+    description: All resources in the system
+    filter: none
+
+# Permission Evaluation
+evaluation:
+  # Permission evaluation order
+  order:
+    - explicit_deny
+    - explicit_allow
+    - role_permissions
+    - inherited_permissions
+    - default_deny
+
+  # Caching
+  cache:
+    enabled: true
+    ttl: 5m
+
+  # Evaluation logging
+  logging:
+    log_denials: true
+    log_grants: false
+    log_evaluation_time: true

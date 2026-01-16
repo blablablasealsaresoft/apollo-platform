@@ -1,0 +1,209 @@
+category: government
+total_apis: 24
+priority: high
+apollo_use: "Public records, legal data, HVT tracking, government intelligence, regulatory monitoring"
+mission_relevance: "Track Ruja Ignatova FBI status, access government databases, monitor legal proceedings"
+
+apis:
+  fbi_wanted:
+    name: FBI Wanted
+    url: https://api.fbi.gov/wanted/v1
+    authentication: none
+    free_tier: true
+    rate_limit: unlimited
+    description: "FBI Most Wanted list, fugitive data, missing persons"
+
+    endpoints:
+      - path: /list
+        method: GET
+        params:
+          page: 1
+          pageSize: 20
+        use: "Get FBI Most Wanted list"
+
+      - path: /{uid}
+        method: GET
+        use: "Get specific wanted person by UID"
+
+    apollo_integration:
+      use_case: "Track Ignatova FBI Most Wanted status, monitor HVT list updates"
+      priority: critical
+      deployment: continuous
+
+      auto_sync:
+        frequency: daily
+        check_targets:
+          - ruja ignatova
+          - onecoin associates
+          - cryptoqueen
+        alert_on_update: true
+        store_history: true
+
+      hvt_monitoring:
+        targets:
+          - name: "Ruja Ignatova"
+            search_terms: ["ignatova", "ruja", "cryptoqueen"]
+            priority: critical
+        alert_protocol:
+          - status_change: immediate
+          - reward_update: immediate
+          - new_information: immediate
+
+    example_usage: |
+      # Get FBI Most Wanted list
+      curl "https://api.fbi.gov/wanted/v1/list"
+
+      # Search for Ignatova
+      curl "https://api.fbi.gov/wanted/v1/list" | jq '.items[] | select(.title | contains("Ignatova"))'
+
+  data_gov:
+    name: Data.gov
+    url: https://api.data.gov
+    authentication: apiKey
+    free_tier: true
+    rate_limit: 1000/hour
+    description: "US government open datasets - 300,000+ datasets"
+
+    apollo_integration:
+      use_case: "Access public records, government datasets, regulatory data"
+      priority: high
+      datasets:
+        - business_records
+        - court_filings
+        - regulatory_actions
+        - corporate_registrations
+
+  data_usa:
+    name: Data USA
+    url: https://datausa.io/api
+    authentication: none
+    free_tier: true
+    rate_limit: unlimited
+
+    apollo_integration:
+      use_case: "US demographic and economic intelligence"
+      priority: medium
+
+  usa_spending:
+    name: USAspending
+    url: https://api.usaspending.gov/api/v2
+    authentication: none
+    free_tier: true
+    rate_limit: unlimited
+
+    apollo_integration:
+      use_case: "Track government contracts, spending, corporate connections"
+      priority: medium
+
+  federal_register:
+    name: Federal Register
+    url: https://www.federalregister.gov/api/v1
+    authentication: none
+    free_tier: true
+    rate_limit: unlimited
+
+    apollo_integration:
+      use_case: "Legal and regulatory intelligence"
+      priority: medium
+
+  court_listener:
+    name: CourtListener
+    url: https://www.courtlistener.com/api/rest/v3
+    authentication: apiKey
+    free_tier: 5000/day
+    rate_limit: 5000/day
+
+    apollo_integration:
+      use_case: "US court case intelligence, legal proceedings"
+      priority: high
+      search_terms:
+        - onecoin
+        - ignatova
+        - cryptocurrency fraud
+
+  sec_edgar:
+    name: SEC EDGAR
+    url: https://data.sec.gov
+    authentication: none
+    free_tier: true
+    rate_limit: 10/second
+
+    apollo_integration:
+      use_case: "Corporate financial intelligence, SEC filings"
+      priority: high
+      monitor_companies:
+        - onecoin_related
+        - suspect_corporations
+
+  open_corporates:
+    name: OpenCorporates
+    url: https://api.opencorporates.com/v0.4
+    authentication: apiKey
+    free_tier: 500/month
+    rate_limit: 500/month
+
+    apollo_integration:
+      use_case: "Global corporate intelligence, company ownership"
+      priority: high
+
+  uk_police:
+    name: UK Police
+    url: https://data.police.uk/api
+    authentication: none
+    free_tier: true
+    rate_limit: 15/second
+
+    apollo_integration:
+      use_case: "UK crime intelligence"
+      priority: medium
+
+  interpol_notices:
+    name: Interpol Red Notices
+    url: https://www.interpol.int/en/How-we-work/Notices/View-Red-Notices
+    authentication: none
+    free_tier: true
+    rate_limit: manual
+
+    apollo_integration:
+      use_case: "International fugitive tracking, Interpol Red Notice monitoring"
+      priority: critical
+      method: web_scraping
+      targets:
+        - ruja ignatova
+
+  ofac_sanctions:
+    name: OFAC Sanctions List
+    url: https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports
+    authentication: none
+    free_tier: true
+    rate_limit: unlimited
+
+    apollo_integration:
+      use_case: "US Treasury sanctions intelligence"
+      priority: high
+      auto_sync: daily
+
+deployment:
+  mode: continuous
+  auto_start: true
+  priority: high
+
+monitoring:
+  targets:
+    - ruja_ignatova
+    - onecoin_entities
+    - associated_companies
+    - legal_proceedings
+
+  alert_conditions:
+    - fbi_status_change
+    - new_legal_filing
+    - sanctions_update
+    - interpol_notice
+
+intelligence_fusion:
+  feed_to:
+    - apollo.legal_intelligence
+    - apollo.hvt_tracking
+    - apollo.corporate_intelligence
+    - apollo.fusion_center

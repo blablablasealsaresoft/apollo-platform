@@ -1,0 +1,265 @@
+IoT Intelligence System - File Manifest
+Generated: 2026-01-14
+Agent: Agent 14 - IoT & Device Intelligence
+Location: C:\SECURE_THREAT_INTEL\YoureGunnaHAveToShootMeToStopME\apollo\intelligence\osint-tools\iot-intelligence\
+
+================================================================================
+CORE COMPONENTS (8 files)
+================================================================================
+
+1. __init__.py (1.1K)
+   - Package initialization
+   - Exports all major classes and data structures
+   - Version information
+
+2. iot_intel.py (20K)
+   - Main IoT intelligence system
+   - Device discovery from multiple sources
+   - Risk scoring and analysis
+   - Network topology mapping
+   - Comprehensive reporting
+   - Classes: IoTIntelligence, IoTDevice, IoTNetwork
+
+3. shodan_iot.py (19K)
+   - Shodan API integration
+   - Webcam and router discovery
+   - IoT device enumeration
+   - Vulnerability detection
+   - Geographic distribution analysis
+   - Classes: ShodanIoT, ShodanIoTDevice
+
+4. censys_iot.py (24K)
+   - Internet-wide device scanning
+   - SSL/TLS certificate analysis
+   - Service fingerprinting
+   - Device enumeration by type
+   - Vulnerability searching
+   - Classes: CensysIoT, CensysDevice, Certificate
+
+5. insecam_integration.py (22K)
+   - Insecam camera directory integration
+   - Live camera feed access
+   - Geographic camera search
+   - Feed recording and screenshots
+   - KML export for mapping
+   - Classes: InsecamIntegration, Camera, CameraFeed
+
+6. device_fingerprinter.py (20K)
+   - Advanced device fingerprinting
+   - Banner grabbing (HTTP, SSH, FTP, Telnet)
+   - Service detection and versioning
+   - OS fingerprinting
+   - HTTP header and SSL analysis
+   - Classes: DeviceFingerprinter, DeviceFingerprint
+
+7. iot_vulnerability_scanner.py (25K)
+   - Comprehensive vulnerability assessment
+   - Default credential checking (60+ entries)
+   - CVE matching (20+ vulnerabilities)
+   - Misconfiguration detection
+   - Exploit suggestions
+   - Risk scoring
+   - Classes: IoTVulnerabilityScanner, Vulnerability, ScanResult
+
+8. network_mapper.py (22K)
+   - Network topology mapping
+   - Device relationship analysis
+   - Gateway identification
+   - Subnet analysis
+   - Critical device detection
+   - Graphviz export
+   - Classes: NetworkMapper, NetworkDevice, NetworkSegment, NetworkTopology
+
+================================================================================
+DOCUMENTATION (3 files)
+================================================================================
+
+9. README_IOT_INTEL.md (17K)
+   - Complete system documentation
+   - Component descriptions
+   - Usage examples for all modules
+   - Data structure reference
+   - Security considerations
+   - API reference
+   - Troubleshooting guide
+   - Integration examples
+
+10. QUICK_START.md (3.0K)
+    - Quick reference guide
+    - Installation instructions
+    - Common usage patterns
+    - Command examples
+    - API key setup
+    - Legal notices
+
+11. DEPLOYMENT_SUMMARY.md (9.8K)
+    - Deployment status and completion checklist
+    - Feature implementation summary
+    - Technical specifications
+    - Code statistics
+    - Architecture diagram
+    - Output files reference
+    - Version information
+
+================================================================================
+EXAMPLES & TESTING (2 files)
+================================================================================
+
+12. example_full_workflow.py (16K)
+    - Complete integration example
+    - 7-phase intelligence workflow:
+      Phase 1: Device Discovery
+      Phase 2: Device Fingerprinting
+      Phase 3: Vulnerability Assessment
+      Phase 4: Network Topology Mapping
+      Phase 5: Camera Feed Analysis
+      Phase 6: Report Generation
+      Phase 7: Executive Summary
+    - Demonstrates all component integration
+    - Generates comprehensive reports
+
+13. test_installation.py (7.1K)
+    - Installation verification script
+    - Module import testing
+    - Basic functionality testing
+    - Data structure testing
+    - Complete test suite
+
+================================================================================
+ADDITIONAL FILES
+================================================================================
+
+14. MANIFEST.txt (this file)
+    - Complete file listing
+    - Component descriptions
+    - File sizes and purposes
+
+================================================================================
+TOTAL STATISTICS
+================================================================================
+
+Total Files: 14
+- Python Modules: 8
+- Documentation: 3
+- Examples/Tests: 2
+- Manifest: 1
+
+Total Size: ~193KB
+Lines of Code: ~10,000+
+
+Core Functionality:
+- Classes: 25+
+- Functions/Methods: 150+
+- Data Structures: 15+
+- Device Signatures: 50+
+- CVE Entries: 20+
+- Default Credentials: 60+
+
+================================================================================
+CAPABILITIES SUMMARY
+================================================================================
+
+Discovery & Intelligence:
+✓ Multi-source device discovery (Shodan, Censys, Insecam)
+✓ Organization-based targeting
+✓ Subnet scanning and enumeration
+✓ Geographic distribution analysis
+✓ Device type classification (8 categories)
+✓ Vendor identification (30+ vendors)
+
+Fingerprinting & Analysis:
+✓ Banner grabbing (5 protocols)
+✓ Service detection (15+ services)
+✓ Version identification
+✓ OS fingerprinting (5 OS families)
+✓ SSL/TLS certificate analysis
+✓ HTTP header analysis
+
+Vulnerability Assessment:
+✓ Default credential database (8 vendor databases, 60+ credentials)
+✓ CVE database (20+ vulnerabilities)
+✓ Misconfiguration detection (5 checks)
+✓ Risk scoring algorithm
+✓ Exploit suggestion engine
+✓ Remediation recommendations
+
+Network Mapping:
+✓ Topology discovery
+✓ Device relationship mapping
+✓ Gateway identification
+✓ Subnet analysis
+✓ Critical device detection
+✓ Connectivity graphing
+
+Reporting:
+✓ JSON export
+✓ Graphviz DOT format
+✓ KML for Google Earth
+✓ Executive summaries
+✓ Statistics generation
+
+================================================================================
+USAGE INSTRUCTIONS
+================================================================================
+
+Quick Start:
+1. Navigate to directory
+2. Run: python test_installation.py (verify setup)
+3. Run: python example_full_workflow.py (see demo)
+4. Review: README_IOT_INTEL.md (full documentation)
+
+Individual Components:
+- from iot_intel import IoTIntelligence
+- from shodan_iot import ShodanIoT
+- from censys_iot import CensysIoT
+- from insecam_integration import InsecamIntegration
+- from device_fingerprinter import DeviceFingerprinter
+- from iot_vulnerability_scanner import IoTVulnerabilityScanner
+- from network_mapper import NetworkMapper
+
+================================================================================
+API KEYS (Optional)
+================================================================================
+
+Shodan: https://account.shodan.io/
+Censys: https://censys.io/account
+
+Note: System works in demo mode without API keys
+
+================================================================================
+LEGAL & SECURITY
+================================================================================
+
+⚠ Authorization required for network scanning
+⚠ Respect API terms of service
+⚠ Follow responsible disclosure
+⚠ Comply with local laws
+⚠ Use for authorized security research only
+
+================================================================================
+SUPPORT
+================================================================================
+
+Documentation: README_IOT_INTEL.md
+Quick Start: QUICK_START.md
+Examples: example_full_workflow.py
+Testing: test_installation.py
+
+================================================================================
+VERSION INFORMATION
+================================================================================
+
+Version: 1.0.0
+Build Date: 2026-01-14
+Python: 3.7+
+Platform: Cross-platform
+Status: PRODUCTION READY
+
+================================================================================
+DEPLOYMENT STATUS: ✓ COMPLETE
+================================================================================
+
+All components implemented, tested, and documented.
+System ready for operational use.
+
+Agent 14: IoT & Device Intelligence - Mission Complete

@@ -1,0 +1,79 @@
+# BugTrace-AI Model Configuration
+# Configure AI models for vulnerability analysis
+
+default_model: google/gemini-flash
+
+models:
+  gemini-flash:
+    provider: google
+    model: gemini-flash
+    temperature: 0.7
+    max_tokens: 8000
+    context_window: 128000
+    description: "Recommended - Optimized for BugTrace-AI, fast inference, cost-effective"
+
+  gemini-pro:
+    provider: google
+    model: gemini-pro
+    temperature: 0.7
+    max_tokens: 8000
+    context_window: 32000
+    description: "Higher accuracy for complex vulnerabilities"
+
+  claude-sonnet:
+    provider: anthropic
+    model: claude-3-sonnet-20240229
+    temperature: 0.7
+    max_tokens: 4000
+    context_window: 200000
+    description: "Superior reasoning for exploit chains"
+
+  claude-opus:
+    provider: anthropic
+    model: claude-3-opus-20240229
+    temperature: 0.7
+    max_tokens: 4000
+    context_window: 200000
+    description: "Highest accuracy, most expensive"
+
+  gpt-4:
+    provider: openai
+    model: gpt-4
+    temperature: 0.7
+    max_tokens: 8000
+    context_window: 8192
+    description: "Good general performance, slower"
+
+  gpt-4-turbo:
+    provider: openai
+    model: gpt-4-turbo-preview
+    temperature: 0.7
+    max_tokens: 4096
+    context_window: 128000
+    description: "Faster than GPT-4, larger context"
+
+# Recommended configurations by use case
+recommendations:
+  fast_scanning:
+    model: gemini-flash
+    depth: 3
+    enable_consolidation: true
+    enable_deep_analysis: false
+
+  thorough_analysis:
+    model: claude-sonnet
+    depth: 5
+    enable_consolidation: true
+    enable_deep_analysis: true
+
+  budget_friendly:
+    model: gemini-flash
+    depth: 3
+    enable_consolidation: true
+    enable_deep_analysis: false
+
+  maximum_accuracy:
+    model: claude-opus
+    depth: 5
+    enable_consolidation: true
+    enable_deep_analysis: true

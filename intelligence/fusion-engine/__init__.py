@@ -1,16 +1,28 @@
 """
 Intelligence Fusion Engine
-Aggregates, correlates, and scores intelligence from all sources
+Advanced multi-source intelligence correlation and entity resolution
 """
 
-from .fusion_engine import IntelligenceFusionEngine
-from .correlator import IntelligenceCorrelator
-from .entity_resolver import EntityResolver
-from .timeline_generator import TimelineGenerator
+from .fusion_engine import IntelligenceFusion, IntelligenceSource, EntityProfile
+from .entity_resolver import EntityResolver, ResolvedEntity
+from .correlation_algorithm import CorrelationEngine
+from .confidence_scorer import ConfidenceScorer
+from .risk_assessor import RiskAssessor
+from .timeline_builder import TimelineBuilder
+from .graph_analyzer import GraphAnalyzer
+
+__version__ = "1.0.0"
+__author__ = "APOLLO Intelligence Team"
 
 __all__ = [
-    'IntelligenceFusionEngine',
-    'IntelligenceCorrelator',
+    'IntelligenceFusion',
+    'IntelligenceSource',
+    'EntityProfile',
     'EntityResolver',
-    'TimelineGenerator',
+    'ResolvedEntity',
+    'CorrelationEngine',
+    'ConfidenceScorer',
+    'RiskAssessor',
+    'TimelineBuilder',
+    'GraphAnalyzer'
 ]
