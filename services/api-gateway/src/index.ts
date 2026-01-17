@@ -109,7 +109,22 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
-app.use(express.json({ limit: '10mb' }));
+// Don't parse JSON for proxied routes - the proxy needs the raw body
+app.use((req, res, next) => {
+  // Skip body parsing for proxied API routes
+  if (req.path.startsWith('/api/auth') ||
+      req.path.startsWith('/api/users') ||
+      req.path.startsWith('/api/operations') ||
+      req.path.startsWith('/api/intelligence') ||
+      req.path.startsWith('/api/notifications') ||
+      req.path.startsWith('/api/analytics') ||
+      req.path.startsWith('/api/search') ||
+      req.path.startsWith('/api/reports') ||
+      req.path.startsWith('/api/alerts')) {
+    return next();
+  }
+  express.json({ limit: '10mb' })(req, res, next);
+});
 app.use(requestLogger);
 
 // Simple health check for load balancers

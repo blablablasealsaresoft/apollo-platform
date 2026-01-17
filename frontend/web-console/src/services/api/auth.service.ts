@@ -2,7 +2,7 @@ import apiClient from './client';
 import { User, ApiResponse } from '@types/index';
 
 export interface LoginCredentials {
-  username: string;
+  email: string;
   password: string;
 }
 

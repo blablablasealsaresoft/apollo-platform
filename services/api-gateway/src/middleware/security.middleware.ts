@@ -67,8 +67,8 @@ export const additionalSecurityHeaders = (req: Request, res: Response, next: Nex
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
 
-  // Prevent caching of sensitive data
-  res.setHeader('Clear-Site-Data', '"cache"');
+  // Note: Clear-Site-Data header removed - causes issues with CORS credentials mode
+  // In production, this should only be set for logout/security-sensitive endpoints
 
   next();
 };
