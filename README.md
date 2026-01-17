@@ -1,11 +1,11 @@
-🏛️ APOLLO: Next-Generation Criminal Investigation Platform
+# 🏛️ APOLLO: Next-Generation Criminal Investigation Platform
 <div align="center">
 Show Image
 Show Image
 Show Image
 Show Image
 Show Image
-The World's First AI-Enhanced, Multi-Domain Criminal Investigation Platform
+## The World's First AI-Enhanced, Multi-Domain Criminal Investigation Platform
 Specifically designed for hunting cryptocurrency criminals, predators, and high-value FBI Most Wanted fugitives
 </div>
 
@@ -614,4 +614,5 @@ Built with ❤️ by the global security community
 </div>
 
 © 2025 Apollo Platform. All rights reserved. Licensed under Enterprise License.
+
 Apollo Platform is committed to supporting law enforcement and protecting society's most vulnerable members through advanced technology and ethical investigation practices.
