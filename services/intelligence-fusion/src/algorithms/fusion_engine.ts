@@ -3,7 +3,20 @@
  * Multi-source data correlation, entity resolution, and risk assessment
  */
 
-import { logger } from '@apollo/shared';
+// Import logger with fallback for standalone operation
+let logger: any = console;
+try {
+  const shared = require('@apollo/shared');
+  logger = shared.logger || console;
+} catch {
+  logger = {
+    info: (...args: any[]) => console.log('[INFO]', ...args),
+    warn: (...args: any[]) => console.warn('[WARN]', ...args),
+    error: (...args: any[]) => console.error('[ERROR]', ...args),
+    debug: (...args: any[]) => console.debug('[DEBUG]', ...args)
+  };
+}
+
 import * as crypto from 'crypto';
 
 // ============================================

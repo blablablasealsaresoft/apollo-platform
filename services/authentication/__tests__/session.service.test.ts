@@ -21,9 +21,6 @@ jest.mock('@apollo/shared', () => ({
     get: jest.fn(),
     set: jest.fn(),
     del: jest.fn(),
-    sadd: jest.fn(),
-    srem: jest.fn(),
-    expire: jest.fn(),
   },
   logger: {
     info: jest.fn(),
@@ -70,6 +67,12 @@ jest.mock('jsonwebtoken', () => ({
 import { config, database, redis, UnauthorizedError, ForbiddenError, UserRole, ClearanceLevel } from '@apollo/shared';
 import jwt from 'jsonwebtoken';
 
+// Add additional Redis methods to the mock
+const redisMock = redis as any;
+redisMock.sadd = jest.fn();
+redisMock.srem = jest.fn();
+redisMock.expire = jest.fn();
+
 describe('SessionService', () => {
   let sessionService: SessionService;
   const mockUser = {
@@ -112,7 +115,7 @@ describe('SessionService', () => {
     beforeEach(() => {
       (database.query as jest.Mock).mockResolvedValue({ rows: [] });
       (redis.set as jest.Mock).mockResolvedValue('OK');
-      (redis.sadd as jest.Mock).mockResolvedValue(1);
+      (redisMock.sadd as jest.Mock).mockResolvedValue(1);
     });
 
     it('should create session successfully', async () => {
@@ -327,7 +330,7 @@ describe('SessionService', () => {
         ['session-123']
       );
       expect(redis.del).toHaveBeenCalledWith('session:session-123');
-      expect(redis.srem).toHaveBeenCalled();
+      expect(redisMock.srem).toHaveBeenCalled();
     });
 
     it('should do nothing for non-existent session', async () => {
@@ -456,7 +459,7 @@ describe('SessionService', () => {
 
       expect(count).toBe(2);
       expect(redis.del).toHaveBeenCalledTimes(2);
-      expect(redis.srem).toHaveBeenCalledTimes(2);
+      expect(redisMock.srem).toHaveBeenCalledTimes(2);
     });
   });
 

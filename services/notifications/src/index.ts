@@ -12,11 +12,6 @@ import notificationRoutes from './routes/notification.routes';
 import alertRoutes from './routes/alert.routes';
 import { NotificationService } from './services/notification.service';
 import { ApolloWebSocketServer } from './websocket/WebSocketServer';
-import {
-  WebSocketEventType,
-  WebSocketChannel,
-  AlertSeverity,
-} from './websocket/types';
 
 const app = express();
 const PORT = process.env.NOTIFICATIONS_SERVICE_PORT || 3005;

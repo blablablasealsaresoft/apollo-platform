@@ -6,16 +6,17 @@
  * Endpoints:
  * - POST   /api/v1/reports/generate           - Generate a new report
  * - GET    /api/v1/reports                    - List all reports
- * - GET    /api/v1/reports/:id                - Get report details
- * - GET    /api/v1/reports/:id/download       - Download report file
- * - GET    /api/v1/reports/:id/status         - Get report generation status
- * - DELETE /api/v1/reports/:id                - Delete a report
  * - GET    /api/v1/reports/templates          - Get available templates
  * - GET    /api/v1/reports/templates/:type    - Get templates by report type
+ * - GET    /api/v1/reports/types              - Get available report types
  * - POST   /api/v1/reports/schedules          - Create report schedule
- * - GET    /api/v1/reports/schedules          - List report schedules
- * - PUT    /api/v1/reports/schedules/:id      - Update report schedule
- * - DELETE /api/v1/reports/schedules/:id      - Delete report schedule
+ * - GET    /api/v1/reports/:id                - Get report details
+ * - GET    /api/v1/reports/:id/status         - Get report generation status
+ * - GET    /api/v1/reports/:id/download       - Download report file
+ * - DELETE /api/v1/reports/:id                - Delete a report
+ *
+ * IMPORTANT: Static routes must be defined BEFORE parameterized routes
+ * to ensure Express matches them correctly.
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
@@ -47,6 +48,10 @@ const validateExportFormat = (format: string): format is ExportFormat => {
 const validateClassification = (classification: string): classification is ClassificationMarking => {
   return Object.values(ClassificationMarking).includes(classification as ClassificationMarking);
 };
+
+// =============================================================================
+// STATIC ROUTES (must be defined before parameterized routes)
+// =============================================================================
 
 /**
  * POST /api/v1/reports/generate
@@ -128,6 +133,228 @@ router.post('/generate', async (req: Request, res: Response, next: NextFunction)
 });
 
 /**
+ * GET /api/v1/reports/templates
+ * Get available report templates
+ */
+router.get('/templates', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { type } = req.query;
+
+    let reportType: ReportType | undefined;
+    if (type && validateReportType(type as string)) {
+      reportType = type as ReportType;
+    }
+
+    const templates = await reportService.getTemplates(reportType);
+
+    res.json({
+      success: true,
+      data: {
+        templates,
+        availableTypes: Object.values(ReportType),
+        availableFormats: Object.values(ExportFormat),
+        availableClassifications: Object.values(ClassificationMarking),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/v1/reports/templates/:type
+ * Get templates for a specific report type
+ */
+router.get('/templates/:type', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { type } = req.params;
+
+    if (!validateReportType(type)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: REPORT_ERROR_CODES.INVALID_TYPE,
+          message: `Invalid report type: ${type}`,
+        },
+      });
+    }
+
+    const templates = await reportService.getTemplates(type as ReportType);
+
+    res.json({
+      success: true,
+      data: templates,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/v1/reports/types
+ * Get available report types and their parameters
+ */
+router.get('/types', async (_req: Request, res: Response) => {
+  const reportTypes = [
+    {
+      type: ReportType.INVESTIGATION_SUMMARY,
+      name: 'Investigation Summary',
+      description: 'Comprehensive summary of an investigation including findings, evidence, and recommendations',
+      requiredParameters: ['investigationId'],
+      optionalParameters: ['includeTimeline', 'includeEvidence'],
+    },
+    {
+      type: ReportType.TARGET_PROFILE,
+      name: 'Target Profile',
+      description: 'Detailed dossier on a target including personal info, associates, and threat assessment',
+      requiredParameters: ['targetId'],
+      optionalParameters: ['includeFinancials', 'includeDigitalFootprint'],
+    },
+    {
+      type: ReportType.EVIDENCE_CHAIN,
+      name: 'Evidence Chain',
+      description: 'Chain of custody report for evidence items',
+      requiredParameters: ['investigationId'],
+      optionalParameters: ['evidenceIds'],
+    },
+    {
+      type: ReportType.INTELLIGENCE_ANALYSIS,
+      name: 'Intelligence Analysis',
+      description: 'Intelligence analysis report with assessments and indicators',
+      requiredParameters: ['reportIds'],
+      optionalParameters: [],
+    },
+    {
+      type: ReportType.OPERATION_AFTER_ACTION,
+      name: 'Operation After-Action',
+      description: 'Post-operation review with lessons learned and follow-up actions',
+      requiredParameters: ['operationId'],
+      optionalParameters: [],
+    },
+    {
+      type: ReportType.THREAT_ASSESSMENT,
+      name: 'Threat Assessment',
+      description: 'Threat assessment for specified targets',
+      requiredParameters: ['targetIds'],
+      optionalParameters: ['timeframe'],
+    },
+    {
+      type: ReportType.FINANCIAL_ANALYSIS,
+      name: 'Financial Analysis',
+      description: 'Financial analysis report including transactions and suspicious activity',
+      requiredParameters: ['targetId'],
+      optionalParameters: ['startDate', 'endDate'],
+    },
+    {
+      type: ReportType.NETWORK_MAPPING,
+      name: 'Network Mapping',
+      description: 'Entity relationship and network analysis report',
+      requiredParameters: ['entityIds'],
+      optionalParameters: ['depth'],
+    },
+    {
+      type: ReportType.TIMELINE,
+      name: 'Timeline',
+      description: 'Chronological timeline of events',
+      requiredParameters: ['entityId', 'entityType'],
+      optionalParameters: ['startDate', 'endDate'],
+    },
+    {
+      type: ReportType.EXECUTIVE_BRIEF,
+      name: 'Executive Brief',
+      description: 'High-level executive summary of operations and investigations',
+      requiredParameters: [],
+      optionalParameters: ['operationIds', 'investigationIds', 'dateRange'],
+    },
+  ];
+
+  res.json({
+    success: true,
+    data: {
+      reportTypes,
+      exportFormats: Object.values(ExportFormat),
+      classifications: Object.values(ClassificationMarking),
+    },
+  });
+});
+
+/**
+ * POST /api/v1/reports/schedules
+ * Create a report schedule
+ */
+router.post('/schedules', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const {
+      name,
+      reportType,
+      format,
+      parameters,
+      options,
+      cronExpression,
+      timezone = 'UTC',
+      recipients,
+      isActive = true,
+    } = req.body;
+
+    // Validate required fields
+    if (!name || !reportType || !format || !cronExpression) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_REQUEST',
+          message: 'name, reportType, format, and cronExpression are required',
+        },
+      });
+    }
+
+    if (!validateReportType(reportType)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: REPORT_ERROR_CODES.INVALID_TYPE,
+          message: `Invalid report type: ${reportType}`,
+        },
+      });
+    }
+
+    if (!validateExportFormat(format)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: REPORT_ERROR_CODES.INVALID_FORMAT,
+          message: `Invalid export format: ${format}`,
+        },
+      });
+    }
+
+    // Calculate next run time based on cron expression
+    const nextRun = calculateNextRunTime(cronExpression, timezone);
+
+    const schedule = await reportService.createSchedule({
+      name,
+      reportType,
+      format,
+      parameters: parameters || {},
+      options: options || {},
+      cronExpression,
+      timezone,
+      isActive,
+      recipients: recipients || [],
+      nextRun,
+      createdBy: getUserId(req),
+    });
+
+    res.status(201).json({
+      success: true,
+      data: schedule,
+      message: 'Report schedule created successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * GET /api/v1/reports
  * List all reports with optional filters
  */
@@ -182,6 +409,10 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     next(error);
   }
 });
+
+// =============================================================================
+// PARAMETERIZED ROUTES (must be defined after static routes)
+// =============================================================================
 
 /**
  * GET /api/v1/reports/:id
@@ -277,229 +508,9 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
   }
 });
 
-/**
- * GET /api/v1/reports/templates
- * Get available report templates
- */
-router.get('/templates', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { type } = req.query;
-
-    let reportType: ReportType | undefined;
-    if (type && validateReportType(type as string)) {
-      reportType = type as ReportType;
-    }
-
-    const templates = await reportService.getTemplates(reportType);
-
-    res.json({
-      success: true,
-      data: {
-        templates,
-        availableTypes: Object.values(ReportType),
-        availableFormats: Object.values(ExportFormat),
-        availableClassifications: Object.values(ClassificationMarking),
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * GET /api/v1/reports/templates/:type
- * Get templates for a specific report type
- */
-router.get('/templates/:type', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { type } = req.params;
-
-    if (!validateReportType(type)) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: REPORT_ERROR_CODES.INVALID_TYPE,
-          message: `Invalid report type: ${type}`,
-        },
-      });
-    }
-
-    const templates = await reportService.getTemplates(type as ReportType);
-
-    res.json({
-      success: true,
-      data: templates,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * POST /api/v1/reports/schedules
- * Create a report schedule
- */
-router.post('/schedules', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const {
-      name,
-      reportType,
-      format,
-      parameters,
-      options,
-      cronExpression,
-      timezone = 'UTC',
-      recipients,
-      isActive = true,
-    } = req.body;
-
-    // Validate required fields
-    if (!name || !reportType || !format || !cronExpression) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'INVALID_REQUEST',
-          message: 'name, reportType, format, and cronExpression are required',
-        },
-      });
-    }
-
-    if (!validateReportType(reportType)) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: REPORT_ERROR_CODES.INVALID_TYPE,
-          message: `Invalid report type: ${reportType}`,
-        },
-      });
-    }
-
-    if (!validateExportFormat(format)) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: REPORT_ERROR_CODES.INVALID_FORMAT,
-          message: `Invalid export format: ${format}`,
-        },
-      });
-    }
-
-    // Calculate next run time based on cron expression
-    const nextRun = calculateNextRunTime(cronExpression, timezone);
-
-    const schedule = await reportService.createSchedule({
-      name,
-      reportType,
-      format,
-      parameters: parameters || {},
-      options: options || {},
-      cronExpression,
-      timezone,
-      isActive,
-      recipients: recipients || [],
-      nextRun,
-      createdBy: getUserId(req),
-    });
-
-    res.status(201).json({
-      success: true,
-      data: schedule,
-      message: 'Report schedule created successfully',
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * GET /api/v1/reports/types
- * Get available report types and their parameters
- */
-router.get('/types', async (_req: Request, res: Response) => {
-  const reportTypes = [
-    {
-      type: ReportType.INVESTIGATION_SUMMARY,
-      name: 'Investigation Summary',
-      description: 'Comprehensive summary of an investigation including findings, evidence, and recommendations',
-      requiredParameters: ['investigationId'],
-      optionalParameters: ['includeTimeline', 'includeEvidence'],
-    },
-    {
-      type: ReportType.TARGET_PROFILE,
-      name: 'Target Profile',
-      description: 'Detailed dossier on a target including personal info, associates, and threat assessment',
-      requiredParameters: ['targetId'],
-      optionalParameters: ['includeFinancials', 'includeDigitalFootprint'],
-    },
-    {
-      type: ReportType.EVIDENCE_CHAIN,
-      name: 'Evidence Chain',
-      description: 'Chain of custody report for evidence items',
-      requiredParameters: ['investigationId'],
-      optionalParameters: ['evidenceIds'],
-    },
-    {
-      type: ReportType.INTELLIGENCE_ANALYSIS,
-      name: 'Intelligence Analysis',
-      description: 'Intelligence analysis report with assessments and indicators',
-      requiredParameters: ['reportIds'],
-      optionalParameters: [],
-    },
-    {
-      type: ReportType.OPERATION_AFTER_ACTION,
-      name: 'Operation After-Action',
-      description: 'Post-operation review with lessons learned and follow-up actions',
-      requiredParameters: ['operationId'],
-      optionalParameters: [],
-    },
-    {
-      type: ReportType.THREAT_ASSESSMENT,
-      name: 'Threat Assessment',
-      description: 'Threat assessment for specified targets',
-      requiredParameters: ['targetIds'],
-      optionalParameters: ['timeframe'],
-    },
-    {
-      type: ReportType.FINANCIAL_ANALYSIS,
-      name: 'Financial Analysis',
-      description: 'Financial analysis report including transactions and suspicious activity',
-      requiredParameters: ['targetId'],
-      optionalParameters: ['startDate', 'endDate'],
-    },
-    {
-      type: ReportType.NETWORK_MAPPING,
-      name: 'Network Mapping',
-      description: 'Entity relationship and network analysis report',
-      requiredParameters: ['entityIds'],
-      optionalParameters: ['depth'],
-    },
-    {
-      type: ReportType.TIMELINE,
-      name: 'Timeline',
-      description: 'Chronological timeline of events',
-      requiredParameters: ['entityId', 'entityType'],
-      optionalParameters: ['startDate', 'endDate'],
-    },
-    {
-      type: ReportType.EXECUTIVE_BRIEF,
-      name: 'Executive Brief',
-      description: 'High-level executive summary of operations and investigations',
-      requiredParameters: [],
-      optionalParameters: ['operationIds', 'investigationIds', 'dateRange'],
-    },
-  ];
-
-  res.json({
-    success: true,
-    data: {
-      reportTypes,
-      exportFormats: Object.values(ExportFormat),
-      classifications: Object.values(ClassificationMarking),
-    },
-  });
-});
-
-// Helper functions
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
 
 function getProgressEstimate(status: ReportStatus): number {
   const progressMap: Record<ReportStatus, number> = {

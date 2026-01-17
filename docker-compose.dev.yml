@@ -1,9 +1,11 @@
 version: '3.8'
 
-services:
-  # Extends base docker-compose.yml for development environment
+# Apollo Platform - Development Environment
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# This file extends docker-compose.yml for development with hot-reload and debugging
 
-  # Hot-reload enabled services
+services:
+  # Hot-reload enabled BugTrace AI service
   bugtrace-ai-dev:
     build:
       context: ./ai-engine/bugtrace-ai
@@ -13,8 +15,12 @@ services:
       - NODE_ENV=development
       - DEBUG=apollo:bugtrace:*
       - LOG_LEVEL=debug
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
     volumes:
       - ./ai-engine/bugtrace-ai/src:/app/src:cached
+      - ./ai-engine/bugtrace-ai/config:/app/config:cached
       - /app/node_modules
     ports:
       - "3005:3000"
@@ -22,34 +28,14 @@ services:
     networks:
       - apollo-network
     depends_on:
-      - redis
-      - elasticsearch
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     restart: unless-stopped
     command: npm run dev
 
-  osint-engine-dev:
-    build:
-      context: ./intelligence/osint-engine
-      dockerfile: Dockerfile.dev
-    container_name: apollo-osint-engine-dev
-    environment:
-      - NODE_ENV=development
-      - DEBUG=apollo:osint:*
-      - LOG_LEVEL=debug
-    volumes:
-      - ./intelligence/osint-engine:/app:cached
-      - /app/node_modules
-    ports:
-      - "3006:3000"
-    networks:
-      - apollo-network
-    depends_on:
-      - redis
-      - elasticsearch
-      - neo4j
-    restart: unless-stopped
-    command: npm run dev
-
+  # Web Console with Vite hot-reload
   web-console-dev:
     build:
       context: ./frontend/web-console
@@ -61,19 +47,17 @@ services:
       - VITE_WS_URL=ws://localhost:3000/ws
     volumes:
       - ./frontend/web-console/src:/app/src:cached
+      - ./frontend/web-console/public:/app/public:cached
       - /app/node_modules
     ports:
-      - "8080:8080"
+      - "5173:5173"
     networks:
       - apollo-network
     restart: unless-stopped
-    command: npm run dev
 
-  # Development Database with Debug Tools
+  # Development PostgreSQL with trust authentication for easier access
   postgresql-dev:
-    extends:
-      file: docker-compose.yml
-      service: postgresql
+    image: postgres:15-alpine
     container_name: apollo-postgresql-dev
     environment:
       POSTGRES_DB: apollo_dev
@@ -82,12 +66,19 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - postgresql_dev_data:/var/lib/postgresql/data
-      - ./infrastructure/databases/postgresql/schemas:/docker-entrypoint-initdb.d
-      - ./testing/test-data/sql-fixtures:/fixtures
+      - ./infrastructure/databases/postgresql/schemas:/docker-entrypoint-initdb.d:ro
     ports:
-      - "5432:5432"
+      - "5435:5432"
+    networks:
+      - apollo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apollo_dev -d apollo_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
-  # Testing Database (Ephemeral)
+  # Testing Database (Ephemeral - uses tmpfs for speed)
   postgresql-test:
     image: postgres:15-alpine
     container_name: apollo-postgresql-test
@@ -101,30 +92,14 @@ services:
       - "5434:5432"
     networks:
       - apollo-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apollo_test -d apollo_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
     restart: unless-stopped
 
-  # Code Quality Tools
-  sonarqube:
-    image: sonarqube:community
-    container_name: apollo-sonarqube
-    environment:
-      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
-      - SONAR_JDBC_URL=jdbc:postgresql://postgresql-dev:5432/sonarqube
-      - SONAR_JDBC_USERNAME=apollo_dev
-      - SONAR_JDBC_PASSWORD=apollo_dev_password
-    volumes:
-      - sonarqube_data:/opt/sonarqube/data
-      - sonarqube_logs:/opt/sonarqube/logs
-      - sonarqube_extensions:/opt/sonarqube/extensions
-    ports:
-      - "9000:9000"
-    networks:
-      - apollo-network
-    depends_on:
-      - postgresql-dev
-    restart: unless-stopped
-
-  # Mailhog - Email Testing
+  # Mailhog - Email Testing (catches all outgoing emails)
   mailhog:
     image: mailhog/mailhog:latest
     container_name: apollo-mailhog
@@ -135,7 +110,7 @@ services:
       - apollo-network
     restart: unless-stopped
 
-  # Redis Commander - Redis GUI
+  # Redis Commander - Redis GUI for development
   redis-commander:
     image: rediscommander/redis-commander:latest
     container_name: apollo-redis-commander
@@ -146,10 +121,11 @@ services:
     networks:
       - apollo-network
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     restart: unless-stopped
 
-  # Elasticsearch Head - ES GUI
+  # Elasticsearch Head - ES GUI for development
   elasticsearch-head:
     image: mobz/elasticsearch-head:5
     container_name: apollo-es-head
@@ -158,7 +134,8 @@ services:
     networks:
       - apollo-network
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
     restart: unless-stopped
 
   # Jaeger - Distributed Tracing
@@ -182,11 +159,9 @@ services:
 
 volumes:
   postgresql_dev_data:
-  sonarqube_data:
-  sonarqube_logs:
-  sonarqube_extensions:
+    driver: local
 
 networks:
   apollo-network:
     external: true
-    name: apollo-network
+    name: apollo_apollo-network

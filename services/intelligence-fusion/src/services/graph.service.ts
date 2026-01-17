@@ -3,7 +3,19 @@
  * Network analysis, community detection, and entity relationship management
  */
 
-import { logger } from '@apollo/shared';
+// Import logger with fallback for standalone operation
+let logger: any = console;
+try {
+  const shared = require('@apollo/shared');
+  logger = shared.logger || console;
+} catch {
+  logger = {
+    info: (...args: any[]) => console.log('[INFO]', ...args),
+    warn: (...args: any[]) => console.warn('[WARN]', ...args),
+    error: (...args: any[]) => console.error('[ERROR]', ...args),
+    debug: (...args: any[]) => console.debug('[DEBUG]', ...args)
+  };
+}
 
 // Types for graph operations
 export interface GraphNode {
@@ -69,25 +81,58 @@ export interface PredictedLink {
 let neo4jDriver: any = null;
 
 /**
- * Initialize Neo4j connection
+ * Initialize Neo4j connection with timeout
  */
 export async function initializeNeo4j(
   uri: string,
   username: string,
   password: string
 ): Promise<boolean> {
+  // Skip Neo4j connection in standalone mode (when env var is set or URI is default localhost)
+  if (process.env.SKIP_NEO4J === 'true' || process.env.NEO4J_SKIP === 'true') {
+    logger.info('Neo4j connection skipped (SKIP_NEO4J=true)');
+    return false;
+  }
+
   try {
     const neo4j = await import('neo4j-driver');
-    neo4jDriver = neo4j.default.driver(uri, neo4j.default.auth.basic(username, password));
 
-    // Test connection
-    const session = neo4jDriver.session();
-    await session.run('RETURN 1');
-    await session.close();
+    // Create driver with connection timeout
+    neo4jDriver = neo4j.default.driver(
+      uri,
+      neo4j.default.auth.basic(username, password),
+      { connectionTimeout: 5000 } // 5 second timeout
+    );
+
+    // Test connection with timeout
+    const testPromise = (async () => {
+      const session = neo4jDriver.session();
+      try {
+        await session.run('RETURN 1');
+        return true;
+      } finally {
+        await session.close();
+      }
+    })();
+
+    const timeoutPromise = new Promise<boolean>((_, reject) => {
+      setTimeout(() => reject(new Error('Connection timeout')), 5000);
+    });
+
+    await Promise.race([testPromise, timeoutPromise]);
 
     logger.info('Neo4j connection established');
     return true;
   } catch (error) {
+    // Clean up driver if it was created
+    if (neo4jDriver) {
+      try {
+        await neo4jDriver.close();
+      } catch {
+        // Ignore close errors
+      }
+      neo4jDriver = null;
+    }
     logger.warn('Neo4j not available, using in-memory graph', { error: String(error) });
     return false;
   }

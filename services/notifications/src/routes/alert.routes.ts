@@ -5,7 +5,6 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { database, generateId, createSuccessResponse, logger } from '@apollo/shared';
-import { AlertSeverity } from '../websocket/types';
 
 const router = Router();
 
@@ -100,7 +99,112 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// Get alert by ID
+// Get alert statistics - MUST be before /:id route
+router.get('/stats/summary', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const [statusStats, severityStats, typeStats, recentStats] = await Promise.all([
+      database.query(`
+        SELECT status, COUNT(*) as count
+        FROM alerts
+        GROUP BY status
+      `),
+      database.query(`
+        SELECT severity, COUNT(*) as count
+        FROM alerts
+        WHERE status NOT IN ('resolved', 'dismissed')
+        GROUP BY severity
+      `),
+      database.query(`
+        SELECT type, COUNT(*) as count
+        FROM alerts
+        WHERE status NOT IN ('resolved', 'dismissed')
+        GROUP BY type
+      `),
+      database.query(`
+        SELECT
+          COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '1 hour') as last_hour,
+          COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '24 hours') as last_24h,
+          COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '7 days') as last_7d
+        FROM alerts
+      `),
+    ]);
+
+    res.json(createSuccessResponse({
+      byStatus: statusStats.rows.reduce((acc: any, row) => {
+        acc[row.status] = parseInt(row.count);
+        return acc;
+      }, {}),
+      bySeverity: severityStats.rows.reduce((acc: any, row) => {
+        acc[row.severity] = parseInt(row.count);
+        return acc;
+      }, {}),
+      byType: typeStats.rows.reduce((acc: any, row) => {
+        acc[row.type] = parseInt(row.count);
+        return acc;
+      }, {}),
+      recent: recentStats.rows[0],
+    }));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Bulk acknowledge alerts - MUST be before /:id route
+router.post('/bulk/acknowledge', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { alertIds, userId } = req.body;
+
+    if (!alertIds || !Array.isArray(alertIds) || alertIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'alertIds array is required' },
+      });
+    }
+
+    const placeholders = alertIds.map((_, i) => `$${i + 3}`).join(',');
+    const result = await database.query(
+      `UPDATE alerts
+       SET status = $1, acknowledged_at = NOW(), acknowledged_by = $2
+       WHERE id IN (${placeholders}) AND status = 'new'
+       RETURNING id`,
+      [AlertStatus.ACKNOWLEDGED, userId, ...alertIds]
+    );
+
+    logger.info(`Bulk acknowledge: ${result.rows.length} alerts by ${userId}`);
+    res.json(createSuccessResponse({
+      acknowledged: result.rows.map(r => r.id),
+      count: result.rows.length,
+    }));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Delete old resolved/dismissed alerts - MUST be before /:id route
+router.delete('/cleanup', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { olderThanDays = 30 } = req.query;
+
+    const result = await database.query(
+      `DELETE FROM alerts
+       WHERE status IN ('resolved', 'dismissed')
+       AND (resolved_at < NOW() - INTERVAL '1 day' * $1
+            OR dismissed_at < NOW() - INTERVAL '1 day' * $1)
+       RETURNING id`,
+      [Number(olderThanDays)]
+    );
+
+    logger.info(`Alert cleanup: ${result.rows.length} alerts deleted`);
+    res.json(createSuccessResponse({
+      deleted: result.rows.length,
+      message: `Deleted ${result.rows.length} alerts older than ${olderThanDays} days`,
+    }));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get alert by ID - must be after all specific routes
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await database.query(
@@ -320,111 +424,6 @@ router.patch('/:id/assign', async (req: Request, res: Response, next: NextFuncti
 
     logger.info(`Alert assigned: ${req.params.id} to ${assignedTo}`);
     res.json(createSuccessResponse(result.rows[0]));
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Get alert statistics
-router.get('/stats/summary', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const [statusStats, severityStats, typeStats, recentStats] = await Promise.all([
-      database.query(`
-        SELECT status, COUNT(*) as count
-        FROM alerts
-        GROUP BY status
-      `),
-      database.query(`
-        SELECT severity, COUNT(*) as count
-        FROM alerts
-        WHERE status NOT IN ('resolved', 'dismissed')
-        GROUP BY severity
-      `),
-      database.query(`
-        SELECT type, COUNT(*) as count
-        FROM alerts
-        WHERE status NOT IN ('resolved', 'dismissed')
-        GROUP BY type
-      `),
-      database.query(`
-        SELECT
-          COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '1 hour') as last_hour,
-          COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '24 hours') as last_24h,
-          COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '7 days') as last_7d
-        FROM alerts
-      `),
-    ]);
-
-    res.json(createSuccessResponse({
-      byStatus: statusStats.rows.reduce((acc: any, row) => {
-        acc[row.status] = parseInt(row.count);
-        return acc;
-      }, {}),
-      bySeverity: severityStats.rows.reduce((acc: any, row) => {
-        acc[row.severity] = parseInt(row.count);
-        return acc;
-      }, {}),
-      byType: typeStats.rows.reduce((acc: any, row) => {
-        acc[row.type] = parseInt(row.count);
-        return acc;
-      }, {}),
-      recent: recentStats.rows[0],
-    }));
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Bulk acknowledge alerts
-router.post('/bulk/acknowledge', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { alertIds, userId } = req.body;
-
-    if (!alertIds || !Array.isArray(alertIds) || alertIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'alertIds array is required' },
-      });
-    }
-
-    const placeholders = alertIds.map((_, i) => `$${i + 3}`).join(',');
-    const result = await database.query(
-      `UPDATE alerts
-       SET status = $1, acknowledged_at = NOW(), acknowledged_by = $2
-       WHERE id IN (${placeholders}) AND status = 'new'
-       RETURNING id`,
-      [AlertStatus.ACKNOWLEDGED, userId, ...alertIds]
-    );
-
-    logger.info(`Bulk acknowledge: ${result.rows.length} alerts by ${userId}`);
-    res.json(createSuccessResponse({
-      acknowledged: result.rows.map(r => r.id),
-      count: result.rows.length,
-    }));
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Delete old resolved/dismissed alerts
-router.delete('/cleanup', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { olderThanDays = 30 } = req.query;
-
-    const result = await database.query(
-      `DELETE FROM alerts
-       WHERE status IN ('resolved', 'dismissed')
-       AND (resolved_at < NOW() - INTERVAL '1 day' * $1
-            OR dismissed_at < NOW() - INTERVAL '1 day' * $1)
-       RETURNING id`,
-      [Number(olderThanDays)]
-    );
-
-    logger.info(`Alert cleanup: ${result.rows.length} alerts deleted`);
-    res.json(createSuccessResponse({
-      deleted: result.rows.length,
-      message: `Deleted ${result.rows.length} alerts older than ${olderThanDays} days`,
-    }));
   } catch (error) {
     next(error);
   }

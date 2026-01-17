@@ -1,15 +1,77 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { createProxyMiddleware } from 'http-proxy-middleware';
+import { createProxyMiddleware, Options } from 'http-proxy-middleware';
 import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import yaml from 'js-yaml';
 import fs from 'fs';
 import path from 'path';
+import http from 'http';
 import { config, logger } from '@apollo/shared';
 import { authenticate } from './middleware/auth.middleware';
 import { requestLogger } from './middleware/logging.middleware';
+import { authLimiter, sensitiveLimiter } from './middleware/rate-limit.middleware';
+import { securityHeaders, additionalSecurityHeaders, handlePreflight } from './middleware/security.middleware';
+
+// Service health check interface
+interface ServiceHealth {
+  name: string;
+  status: 'healthy' | 'unhealthy' | 'degraded';
+  url: string;
+  responseTime?: number;
+  error?: string;
+}
+
+interface AggregatedHealth {
+  status: 'healthy' | 'unhealthy' | 'degraded';
+  service: string;
+  timestamp: string;
+  uptime: number;
+  services: ServiceHealth[];
+}
+
+// Start time for uptime calculation
+const startTime = Date.now();
+
+// Check health of a single service
+async function checkServiceHealth(name: string, url: string): Promise<ServiceHealth> {
+  const startTime = Date.now();
+  return new Promise((resolve) => {
+    const healthUrl = `${url}/health`;
+    const timeout = 5000; // 5 second timeout
+
+    const req = http.get(healthUrl, { timeout }, (res) => {
+      const responseTime = Date.now() - startTime;
+      if (res.statusCode === 200) {
+        resolve({ name, status: 'healthy', url, responseTime });
+      } else {
+        resolve({ name, status: 'degraded', url, responseTime, error: `HTTP ${res.statusCode}` });
+      }
+    });
+
+    req.on('error', (err) => {
+      resolve({
+        name,
+        status: 'unhealthy',
+        url,
+        responseTime: Date.now() - startTime,
+        error: err.message,
+      });
+    });
+
+    req.on('timeout', () => {
+      req.destroy();
+      resolve({
+        name,
+        status: 'unhealthy',
+        url,
+        responseTime: timeout,
+        error: 'Connection timeout',
+      });
+    });
+  });
+}
 
 // Load OpenAPI specification
 let openApiSpec: any = null;
@@ -26,13 +88,16 @@ const app = express();
 const PORT = process.env.API_GATEWAY_PORT || 3000;
 
 // Security middleware
-app.use(helmet());
+app.use(securityHeaders);
+app.use(additionalSecurityHeaders);
 app.use(cors({
   origin: config.cors.origin,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-Correlation-ID'],
+  exposedHeaders: ['X-Request-ID', 'X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
 }));
+app.use(handlePreflight);
 
 // Rate limiting
 const limiter = rateLimit({
@@ -47,13 +112,74 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(requestLogger);
 
-// Health check
+// Simple health check for load balancers
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
     service: 'api-gateway',
     timestamp: new Date().toISOString(),
+    uptime: Math.floor((Date.now() - startTime) / 1000),
   });
+});
+
+// Aggregated health check for all backend services
+app.get('/health/all', async (req, res) => {
+  const services = [
+    { name: 'authentication', url: config.services.auth },
+    { name: 'user-management', url: config.services.user },
+    { name: 'operations', url: config.services.operations },
+    { name: 'intelligence', url: config.services.intelligence },
+    { name: 'notifications', url: config.services.notifications },
+    { name: 'analytics', url: config.services.analytics },
+    { name: 'search', url: config.services.search },
+    { name: 'reporting', url: config.services.reporting },
+  ];
+
+  const healthChecks = await Promise.all(
+    services.map((svc) => checkServiceHealth(svc.name, svc.url))
+  );
+
+  const unhealthyCount = healthChecks.filter((h) => h.status === 'unhealthy').length;
+  const degradedCount = healthChecks.filter((h) => h.status === 'degraded').length;
+
+  let overallStatus: 'healthy' | 'unhealthy' | 'degraded' = 'healthy';
+  if (unhealthyCount > 0) {
+    overallStatus = unhealthyCount === services.length ? 'unhealthy' : 'degraded';
+  } else if (degradedCount > 0) {
+    overallStatus = 'degraded';
+  }
+
+  const response: AggregatedHealth = {
+    status: overallStatus,
+    service: 'api-gateway',
+    timestamp: new Date().toISOString(),
+    uptime: Math.floor((Date.now() - startTime) / 1000),
+    services: healthChecks,
+  };
+
+  const statusCode = overallStatus === 'healthy' ? 200 : overallStatus === 'degraded' ? 207 : 503;
+  res.status(statusCode).json(response);
+});
+
+// Readiness probe for Kubernetes
+app.get('/ready', async (req, res) => {
+  // Check critical services only
+  const criticalServices = [
+    { name: 'authentication', url: config.services.auth },
+    { name: 'user-management', url: config.services.user },
+  ];
+
+  const healthChecks = await Promise.all(
+    criticalServices.map((svc) => checkServiceHealth(svc.name, svc.url))
+  );
+
+  const allHealthy = healthChecks.every((h) => h.status === 'healthy');
+
+  if (allHealthy) {
+    res.json({ ready: true, services: healthChecks });
+  } else {
+    res.status(503).json({ ready: false, services: healthChecks });
+  }
 });
 
 // API Documentation - Swagger UI
@@ -111,6 +237,7 @@ if (openApiSpec) {
         notifications: '/api/notifications',
         analytics: '/api/analytics',
         search: '/api/search',
+        reporting: '/api/reports',
         alerts: '/api/alerts',
       },
     });
@@ -120,6 +247,12 @@ if (openApiSpec) {
 }
 
 // Public routes (no authentication)
+// Apply stricter rate limiting to auth endpoints to prevent brute force
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/forgot-password', sensitiveLimiter);
+app.use('/api/auth/reset-password', sensitiveLimiter);
+
 app.use('/api/auth', createProxyMiddleware({
   target: config.services.auth,
   changeOrigin: true,
@@ -163,6 +296,20 @@ app.use('/api/search', authenticate, createProxyMiddleware({
   pathRewrite: { '^/api/search': '/api/search' },
 }));
 
+// Reporting service routes
+app.use('/api/reports', authenticate, createProxyMiddleware({
+  target: config.services.reporting,
+  changeOrigin: true,
+  pathRewrite: { '^/api/reports': '/api/reports' },
+}));
+
+// Alerts are handled by the notifications service
+app.use('/api/alerts', authenticate, createProxyMiddleware({
+  target: config.services.notifications,
+  changeOrigin: true,
+  pathRewrite: { '^/api/alerts': '/api/alerts' },
+}));
+
 // WebSocket proxy for notifications
 app.use('/ws', authenticate, createProxyMiddleware({
   target: config.services.notifications,
@@ -203,6 +350,7 @@ app.listen(PORT, () => {
   logger.info(`  Notifications: ${config.services.notifications}`);
   logger.info(`  Analytics: ${config.services.analytics}`);
   logger.info(`  Search: ${config.services.search}`);
+  logger.info(`  Reporting: ${config.services.reporting}`);
 });
 
 export default app;

@@ -17,7 +17,7 @@ services:
     networks:
       - apollo-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U apollo"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-apollo} -d ${DB_NAME:-apollo}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -39,7 +39,7 @@ services:
     networks:
       - apollo-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U apollo"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-apollo} -d ${TIMESCALE_DB:-apollo_ts}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -127,9 +127,36 @@ services:
     volumes:
       - weaviate_data:/var/lib/weaviate
     ports:
-      - "8080:8080"
+      - "${WEAVIATE_PORT:-8088}:8080"
     networks:
       - apollo-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/v1/.well-known/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # RabbitMQ - Message Queue
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: apollo-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-apollo}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-apollo_password}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-apollo}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MGMT_PORT:-15672}:15672"
+    networks:
+      - apollo-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
   # Prometheus - Metrics Collection
@@ -137,7 +164,7 @@ services:
     image: prom/prometheus:latest
     container_name: apollo-prometheus
     volumes:
-      - ./infrastructure/monitoring/prometheus/config:/etc/prometheus
+      - ./infrastructure/monitoring/prometheus:/etc/prometheus
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -145,7 +172,7 @@ services:
       - '--storage.tsdb.retention.time=30d'
       - '--web.enable-lifecycle'
     ports:
-      - "9090:9090"
+      - "${PROMETHEUS_PORT:-9090}:9090"
     networks:
       - apollo-network
     restart: unless-stopped
@@ -205,6 +232,8 @@ volumes:
   redis_data:
     driver: local
   weaviate_data:
+    driver: local
+  rabbitmq_data:
     driver: local
   prometheus_data:
     driver: local

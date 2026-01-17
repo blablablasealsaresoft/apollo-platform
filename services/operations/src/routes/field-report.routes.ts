@@ -1,29 +1,70 @@
 import { Router } from 'express';
-import { database, generateId, createSuccessResponse } from '@apollo/shared';
+import { createSuccessResponse } from '@apollo/shared';
+import { fieldReportService } from '../services/field-report.service';
 
 const router = Router();
 
+// Create a new field report
 router.post('/', async (req, res, next) => {
   try {
-    const { operationId, title, content, authorId } = req.body;
-    const id = generateId();
-    const result = await database.query(
-      'INSERT INTO field_reports (id, operation_id, title, content, author_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [id, operationId, title, content, authorId],
-    );
-    res.status(201).json(createSuccessResponse(result.rows[0]));
+    const { operationId, title, content, createdBy, summary, reportType, location } = req.body;
+    const report = await fieldReportService.createFieldReport({
+      operationId,
+      title,
+      content,
+      createdBy,
+      summary,
+      reportType,
+      location,
+    });
+    res.status(201).json(createSuccessResponse(report));
   } catch (error) {
     next(error);
   }
 });
 
+// List all field reports for an operation
 router.get('/operation/:operationId', async (req, res, next) => {
   try {
-    const result = await database.query(
-      'SELECT * FROM field_reports WHERE operation_id = $1 ORDER BY created_at DESC',
-      [req.params.operationId],
+    const { limit, offset } = req.query;
+    const result = await fieldReportService.listByOperationId(
+      req.params.operationId,
+      {
+        limit: limit ? parseInt(limit as string, 10) : undefined,
+        offset: offset ? parseInt(offset as string, 10) : undefined,
+      }
     );
-    res.json(createSuccessResponse(result.rows));
+    res.json(createSuccessResponse(result));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get a specific field report by ID
+router.get('/:id', async (req, res, next) => {
+  try {
+    const report = await fieldReportService.getFieldReportById(req.params.id);
+    res.json(createSuccessResponse(report));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update a field report
+router.patch('/:id', async (req, res, next) => {
+  try {
+    const report = await fieldReportService.updateFieldReport(req.params.id, req.body);
+    res.json(createSuccessResponse(report));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Delete a field report
+router.delete('/:id', async (req, res, next) => {
+  try {
+    await fieldReportService.deleteFieldReport(req.params.id);
+    res.json(createSuccessResponse({ message: 'Field report deleted' }));
   } catch (error) {
     next(error);
   }

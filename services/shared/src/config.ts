@@ -57,6 +57,7 @@ const envSchema = Joi.object({
   NOTIFICATIONS_SERVICE_URL: Joi.string().default('http://localhost:3005'),
   ANALYTICS_SERVICE_URL: Joi.string().default('http://localhost:3006'),
   SEARCH_SERVICE_URL: Joi.string().default('http://localhost:3007'),
+  REPORTING_SERVICE_URL: Joi.string().default('http://localhost:3008'),
 }).unknown();
 
 const { error, value: envVars } = envSchema.validate(process.env);
@@ -135,6 +136,7 @@ export const config = {
     notifications: envVars.NOTIFICATIONS_SERVICE_URL as string,
     analytics: envVars.ANALYTICS_SERVICE_URL as string,
     search: envVars.SEARCH_SERVICE_URL as string,
+    reporting: envVars.REPORTING_SERVICE_URL as string,
   },
 };
 

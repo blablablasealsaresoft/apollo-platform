@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { database, generateId, createSuccessResponse, NotificationType } from '@apollo/shared';
+import { database, generateId, createSuccessResponse } from '@apollo/shared';
 
 const router = Router();
 

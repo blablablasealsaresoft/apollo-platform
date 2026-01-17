@@ -15,7 +15,28 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
-import { config, logger, database } from '@apollo/shared';
+
+// Import shared module with fallback for standalone operation
+let config: any = null;
+let logger: any = console;
+let database: any = null;
+
+try {
+  const shared = require('@apollo/shared');
+  config = shared.config;
+  logger = shared.logger || console;
+  database = shared.database;
+} catch (error) {
+  // Shared module not available or config validation failed - use standalone mode
+  console.warn('Running in standalone mode - shared module not available:', (error as Error).message);
+  logger = {
+    info: (...args: any[]) => console.log('[INFO]', ...args),
+    warn: (...args: any[]) => console.warn('[WARN]', ...args),
+    error: (...args: any[]) => console.error('[ERROR]', ...args),
+    debug: (...args: any[]) => console.debug('[DEBUG]', ...args)
+  };
+}
+
 import fusionRoutes from './routes/fusion.routes';
 import { notFoundHandler, errorHandler } from './middleware/error.middleware';
 import { initializeNeo4j, closeNeo4j } from './services/graph.service';

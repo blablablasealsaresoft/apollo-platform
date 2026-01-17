@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import request from 'supertest';
 import app from '../src/index';
 import { database, redis } from '@apollo/shared';

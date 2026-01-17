@@ -70,6 +70,31 @@ class RedisClient {
     await client.del(key);
   }
 
+  async incr(key: string): Promise<number> {
+    const client = this.getClient();
+    return await client.incr(key);
+  }
+
+  async expire(key: string, seconds: number): Promise<boolean> {
+    const client = this.getClient();
+    return await client.expire(key, seconds);
+  }
+
+  async sadd(key: string, ...members: string[]): Promise<number> {
+    const client = this.getClient();
+    return await client.sAdd(key, members);
+  }
+
+  async srem(key: string, ...members: string[]): Promise<number> {
+    const client = this.getClient();
+    return await client.sRem(key, members);
+  }
+
+  async smembers(key: string): Promise<string[]> {
+    const client = this.getClient();
+    return await client.sMembers(key);
+  }
+
   async exists(key: string): Promise<boolean> {
     const client = this.getClient();
     const result = await client.exists(key);

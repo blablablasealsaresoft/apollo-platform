@@ -1,0 +1,393 @@
+version: '3.8'
+
+# Apollo Platform - Complete Local Development Stack
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.local.yml up -d
+#
+# This file adds all application services for local development
+# Prerequisites: Run docker-compose.yml first to start infrastructure
+
+services:
+  # ===========================================
+  # API Gateway - Entry point for all requests
+  # ===========================================
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    container_name: apollo-api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - API_GATEWAY_PORT=3000
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - USER_SERVICE_URL=http://user-service:3002
+      - OPERATIONS_SERVICE_URL=http://operations-service:3003
+      - INTELLIGENCE_SERVICE_URL=http://intelligence-service:3004
+      - NOTIFICATIONS_SERVICE_URL=http://notifications-service:3005
+      - ANALYTICS_SERVICE_URL=http://analytics-service:3006
+      - SEARCH_SERVICE_URL=http://search-service:3007
+      - JWT_SECRET=${JWT_SECRET:-apollo_jwt_secret_key_minimum_32_characters_long_2026}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+    networks:
+      - apollo-network
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ===========================================
+  # Authentication Service
+  # ===========================================
+  auth-service:
+    build:
+      context: .
+      dockerfile: services/authentication/Dockerfile
+    container_name: apollo-auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - AUTH_SERVICE_PORT=3001
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-apollo}
+      - DB_USER=${DB_USER:-apollo}
+      - DB_PASSWORD=${DB_PASSWORD:-apollo_password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-apollo_jwt_secret_key_minimum_32_characters_long_2026}
+      - JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION:-15m}
+      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION:-7d}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+    networks:
+      - apollo-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3001/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ===========================================
+  # User Management Service
+  # ===========================================
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-management/Dockerfile
+    container_name: apollo-user-service
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - USER_SERVICE_PORT=3002
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-apollo}
+      - DB_USER=${DB_USER:-apollo}
+      - DB_PASSWORD=${DB_PASSWORD:-apollo_password}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+    networks:
+      - apollo-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3002/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ===========================================
+  # Operations Service
+  # ===========================================
+  operations-service:
+    build:
+      context: .
+      dockerfile: services/operations/Dockerfile
+    container_name: apollo-operations-service
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+      - OPERATIONS_SERVICE_PORT=3003
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-apollo}
+      - DB_USER=${DB_USER:-apollo}
+      - DB_PASSWORD=${DB_PASSWORD:-apollo_password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+    networks:
+      - apollo-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3003/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ===========================================
+  # Intelligence Service
+  # ===========================================
+  intelligence-service:
+    build:
+      context: .
+      dockerfile: services/intelligence/Dockerfile
+    container_name: apollo-intelligence-service
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=development
+      - INTELLIGENCE_SERVICE_PORT=3004
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-apollo}
+      - DB_USER=${DB_USER:-apollo}
+      - DB_PASSWORD=${DB_PASSWORD:-apollo_password}
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - NEO4J_URL=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-apollo_password}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+    networks:
+      - apollo-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3004/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ===========================================
+  # Notifications Service
+  # ===========================================
+  notifications-service:
+    build:
+      context: .
+      dockerfile: services/notifications/Dockerfile
+    container_name: apollo-notifications-service
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=development
+      - NOTIFICATIONS_SERVICE_PORT=3005
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-apollo}
+      - DB_USER=${DB_USER:-apollo}
+      - DB_PASSWORD=${DB_PASSWORD:-apollo_password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-apollo}:${RABBITMQ_PASSWORD:-apollo_password}@rabbitmq:5672/${RABBITMQ_VHOST:-apollo}
+      - SMTP_HOST=${SMTP_HOST:-mailhog}
+      - SMTP_PORT=${SMTP_PORT:-1025}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+    networks:
+      - apollo-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3005/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ===========================================
+  # Analytics Service
+  # ===========================================
+  analytics-service:
+    build:
+      context: .
+      dockerfile: services/analytics/Dockerfile
+    container_name: apollo-analytics-service
+    ports:
+      - "3006:3006"
+    environment:
+      - NODE_ENV=development
+      - ANALYTICS_SERVICE_PORT=3006
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-apollo}
+      - DB_USER=${DB_USER:-apollo}
+      - DB_PASSWORD=${DB_PASSWORD:-apollo_password}
+      - TIMESCALE_HOST=timescaledb
+      - TIMESCALE_PORT=5432
+      - TIMESCALE_DB=${TIMESCALE_DB:-apollo_ts}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+    networks:
+      - apollo-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3006/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ===========================================
+  # Search Service
+  # ===========================================
+  search-service:
+    build:
+      context: .
+      dockerfile: services/search/Dockerfile
+    container_name: apollo-search-service
+    ports:
+      - "3007:3007"
+    environment:
+      - NODE_ENV=development
+      - SEARCH_SERVICE_PORT=3007
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+    networks:
+      - apollo-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3007/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ===========================================
+  # Intelligence Fusion Service
+  # ===========================================
+  intelligence-fusion:
+    build:
+      context: .
+      dockerfile: services/intelligence-fusion/Dockerfile
+    container_name: apollo-intelligence-fusion
+    ports:
+      - "3008:3008"
+    environment:
+      - NODE_ENV=development
+      - INTELLIGENCE_FUSION_PORT=3008
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-apollo}
+      - DB_USER=${DB_USER:-apollo}
+      - DB_PASSWORD=${DB_PASSWORD:-apollo_password}
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - NEO4J_URL=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-apollo_password}
+      - WEAVIATE_URL=http://weaviate:8080
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+    networks:
+      - apollo-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      weaviate:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3008/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ===========================================
+  # Reporting Service
+  # ===========================================
+  reporting-service:
+    build:
+      context: .
+      dockerfile: services/reporting/Dockerfile
+    container_name: apollo-reporting-service
+    ports:
+      - "3009:3009"
+    environment:
+      - NODE_ENV=development
+      - REPORTING_SERVICE_PORT=3009
+      - DB_HOST=postgresql
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-apollo}
+      - DB_USER=${DB_USER:-apollo}
+      - DB_PASSWORD=${DB_PASSWORD:-apollo_password}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+    networks:
+      - apollo-network
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3009/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ===========================================
+  # Web Console Frontend
+  # ===========================================
+  web-console:
+    build:
+      context: ./frontend/web-console
+      dockerfile: Dockerfile
+    container_name: apollo-web-console
+    ports:
+      - "8080:80"
+    networks:
+      - apollo-network
+    depends_on:
+      - api-gateway
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+networks:
+  apollo-network:
+    external: true
+    name: apollo_apollo-network

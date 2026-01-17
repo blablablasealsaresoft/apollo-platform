@@ -40,4 +40,22 @@ router.get('/:id/confidence', async (req, res, next) => {
   }
 });
 
+router.put('/:id', async (req, res, next) => {
+  try {
+    const report = await intelligenceService.updateReport(req.params.id, req.body);
+    res.json(createSuccessResponse(report));
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete('/:id', async (req, res, next) => {
+  try {
+    await intelligenceService.deleteReport(req.params.id);
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

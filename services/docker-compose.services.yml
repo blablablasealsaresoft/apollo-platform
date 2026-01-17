@@ -19,6 +19,7 @@ services:
       - NOTIFICATIONS_SERVICE_URL=http://notifications-service:3005
       - ANALYTICS_SERVICE_URL=http://analytics-service:3006
       - SEARCH_SERVICE_URL=http://search-service:3007
+      - REPORTING_SERVICE_URL=http://reporting-service:3008
     networks:
       - apollo-network
     depends_on:

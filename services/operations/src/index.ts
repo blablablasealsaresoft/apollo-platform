@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import { config, logger, database } from '@apollo/shared';
 import operationRoutes from './routes/operation.routes';
 import fieldReportRoutes from './routes/field-report.routes';
-import { errorHandler } from './middleware/error.middleware';
+import { errorHandler, notFoundHandler, requestIdMiddleware } from './middleware/error.middleware';
 
 const app = express();
 const PORT = process.env.OPERATIONS_SERVICE_PORT || 3003;
@@ -12,6 +12,7 @@ const PORT = process.env.OPERATIONS_SERVICE_PORT || 3003;
 app.use(helmet());
 app.use(cors({ origin: config.cors.origin }));
 app.use(express.json());
+app.use(requestIdMiddleware);
 
 app.get('/health', async (req, res) => {
   const dbHealthy = await database.healthCheck();
@@ -20,6 +21,11 @@ app.get('/health', async (req, res) => {
 
 app.use('/api/operations', operationRoutes);
 app.use('/api/field-reports', fieldReportRoutes);
+
+// Handle 404 for unmatched routes
+app.use(notFoundHandler);
+
+// Global error handler
 app.use(errorHandler);
 
 app.listen(PORT, () => logger.info(`Operations service on port ${PORT}`));

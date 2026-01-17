@@ -14,8 +14,6 @@ jest.mock('@apollo/shared', () => ({
     get: jest.fn(),
     set: jest.fn(),
     del: jest.fn(),
-    incr: jest.fn(),
-    expire: jest.fn(),
   },
   logger: {
     info: jest.fn(),
@@ -59,6 +57,11 @@ jest.mock('crypto', () => ({
 }));
 
 import { database, redis, UnauthorizedError, ForbiddenError, NotFoundError, BadRequestError } from '@apollo/shared';
+
+// Add additional Redis methods to the mock
+const redisMock = redis as any;
+redisMock.incr = jest.fn();
+redisMock.expire = jest.fn();
 
 describe('ApiKeyService', () => {
   let apiKeyService: ApiKeyService;
@@ -158,7 +161,7 @@ describe('ApiKeyService', () => {
 
       (redis.get as jest.Mock).mockResolvedValueOnce(null); // Not cached
       (database.query as jest.Mock).mockResolvedValueOnce({ rows: [mockKey] });
-      (redis.incr as jest.Mock).mockResolvedValueOnce(1); // Rate limit counter
+      (redisMock.incr as jest.Mock).mockResolvedValueOnce(1); // Rate limit counter
 
       const result = await apiKeyService.validateApiKey(validApiKey);
 
@@ -180,7 +183,7 @@ describe('ApiKeyService', () => {
       };
 
       (redis.get as jest.Mock).mockResolvedValueOnce(JSON.stringify(cachedKey));
-      (redis.incr as jest.Mock).mockResolvedValueOnce(1);
+      (redisMock.incr as jest.Mock).mockResolvedValueOnce(1);
 
       const result = await apiKeyService.validateApiKey(validApiKey);
 
@@ -276,7 +279,7 @@ describe('ApiKeyService', () => {
       };
 
       (redis.get as jest.Mock).mockResolvedValueOnce(JSON.stringify(keyWithWhitelist));
-      (redis.incr as jest.Mock).mockResolvedValueOnce(1);
+      (redisMock.incr as jest.Mock).mockResolvedValueOnce(1);
 
       const result = await apiKeyService.validateApiKey(validApiKey, undefined, '10.1.2.3');
 
@@ -295,7 +298,7 @@ describe('ApiKeyService', () => {
       };
 
       (redis.get as jest.Mock).mockResolvedValueOnce(JSON.stringify(rateLimitedKey));
-      (redis.incr as jest.Mock).mockResolvedValueOnce(101); // Over limit
+      (redisMock.incr as jest.Mock).mockResolvedValueOnce(101); // Over limit
 
       const result = await apiKeyService.validateApiKey(validApiKey);
 
@@ -316,7 +319,7 @@ describe('ApiKeyService', () => {
       };
 
       (redis.get as jest.Mock).mockResolvedValueOnce(JSON.stringify(limitedScopeKey));
-      (redis.incr as jest.Mock).mockResolvedValueOnce(1);
+      (redisMock.incr as jest.Mock).mockResolvedValueOnce(1);
 
       const result = await apiKeyService.validateApiKey(
         validApiKey,
@@ -339,7 +342,7 @@ describe('ApiKeyService', () => {
       };
 
       (redis.get as jest.Mock).mockResolvedValueOnce(JSON.stringify(adminKey));
-      (redis.incr as jest.Mock).mockResolvedValueOnce(1);
+      (redisMock.incr as jest.Mock).mockResolvedValueOnce(1);
 
       const result = await apiKeyService.validateApiKey(
         validApiKey,
