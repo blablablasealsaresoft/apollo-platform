@@ -113,7 +113,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v5
         with:
-          context: ./services/${{ inputs.service_name }}
+          context: .
           file: ./services/${{ inputs.service_name }}/Dockerfile
           push: ${{ inputs.push_image }}
           tags: ${{ steps.meta.outputs.tags }}

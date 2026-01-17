@@ -245,12 +245,12 @@ jobs:
       matrix:
         service:
           - authentication
-          - investigation
+          - intelligence
           - intelligence-fusion
           - search
-          - notification
+          - notifications
           - analytics
-          - file-storage
+          - operations
           - reporting
 
     steps:
@@ -270,7 +270,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./services/${{ matrix.service }}
+          context: .
           file: ./services/${{ matrix.service }}/Dockerfile
           push: false
           tags: |
