@@ -451,7 +451,7 @@ export class CaseFormatter {
     sections.push({
       id: generateId(),
       title: 'Intelligence Analysis Summary',
-      content: `Analyst: ${data.analyst?.first_name || ''} ${data.analyst?.last_name || data.analyst?.email || 'Unknown'}\nDate Completed: ${this.formatDate(data.dateCompleted)}\n\n${data.intelligenceRequirement ? `Intelligence Requirement: ${data.intelligenceRequirement}` : ''}`,
+      content: `Analyst: ${data.analyst?.firstName || ''} ${data.analyst?.lastName || data.analyst?.email || 'Unknown'}\nDate Completed: ${this.formatDate(data.dateCompleted)}\n\n${data.intelligenceRequirement ? `Intelligence Requirement: ${data.intelligenceRequirement}` : ''}`,
       order: 1,
     });
 
@@ -839,7 +839,7 @@ export class CaseFormatter {
 
 Investigation Period: ${this.formatDate(data.startDate)} - ${data.endDate ? this.formatDate(data.endDate) : 'Ongoing'}
 
-Lead Investigator: ${data.leadInvestigator?.first_name || ''} ${data.leadInvestigator?.last_name || data.leadInvestigator?.email || 'Not Assigned'}
+Lead Investigator: ${data.leadInvestigator?.firstName || ''} ${data.leadInvestigator?.lastName || data.leadInvestigator?.email || 'Not Assigned'}
 Team Size: ${data.teamMembers?.length || 0} member(s)
 
 ${findingsSummary}
@@ -862,13 +862,13 @@ ${data.endDate ? `End Date: ${this.formatDate(data.endDate)}` : 'Status: Active'
     const lead = data.leadInvestigator;
     const members = data.teamMembers || [];
 
-    let content = `Lead Investigator: ${lead?.first_name || ''} ${lead?.last_name || lead?.email || 'Not Assigned'} (${lead?.role || 'N/A'})\n\nTeam Members:`;
+    let content = `Lead Investigator: ${lead?.firstName || ''} ${lead?.lastName || lead?.email || 'Not Assigned'} (${lead?.role || 'N/A'})\n\nTeam Members:`;
 
     if (members.length === 0) {
       content += '\nNo additional team members assigned.';
     } else {
       members.forEach((member, i) => {
-        content += `\n${i + 1}. ${member.first_name || ''} ${member.last_name || member.email || 'Unknown'} - ${member.role || 'Team Member'}`;
+        content += `\n${i + 1}. ${member.firstName || ''} ${member.lastName || member.email || 'Unknown'} - ${member.role || 'Team Member'}`;
       });
     }
 

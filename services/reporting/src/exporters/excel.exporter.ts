@@ -110,7 +110,7 @@ export class ExcelExporter {
     const sheet = workbook.addWorksheet('Summary', {
       properties: { tabColor: { argb: CLASSIFICATION_COLORS[data.classification].replace('FF', '') } },
       pageSetup: {
-        paperSize: options.pageSize === 'a4' ? 9 : 1, // A4 or Letter
+        paperSize: (options.pageSize === 'a4' ? 9 : 1) as any, // A4 or Letter
         orientation: options.orientation === 'landscape' ? 'landscape' : 'portrait',
         fitToPage: true,
         fitToWidth: 1,
@@ -236,7 +236,7 @@ export class ExcelExporter {
   ): void {
     const sheet = workbook.addWorksheet(worksheetData.name, {
       pageSetup: {
-        paperSize: options.pageSize === 'a4' ? 9 : 1,
+        paperSize: (options.pageSize === 'a4' ? 9 : 1) as any,
         orientation: 'landscape',
         fitToPage: true,
         fitToWidth: 1,
@@ -350,7 +350,7 @@ export class ExcelExporter {
   ): void {
     const sheet = workbook.addWorksheet(table.title || sheetName, {
       pageSetup: {
-        paperSize: options.pageSize === 'a4' ? 9 : 1,
+        paperSize: (options.pageSize === 'a4' ? 9 : 1) as any,
         orientation: 'landscape',
         fitToPage: true,
       },

@@ -59,31 +59,31 @@ export const ERROR_CODES = {
 } as const;
 
 export class BadRequestError extends AppError {
-  constructor(message: string, code = ERROR_CODES.BAD_REQUEST) {
+  constructor(message: string, code: string = ERROR_CODES.BAD_REQUEST) {
     super(message, 400, code);
   }
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(message = 'Unauthorized', code = ERROR_CODES.UNAUTHORIZED) {
+  constructor(message = 'Unauthorized', code: string = ERROR_CODES.UNAUTHORIZED) {
     super(message, 401, code);
   }
 }
 
 export class ForbiddenError extends AppError {
-  constructor(message = 'Forbidden', code = ERROR_CODES.FORBIDDEN) {
+  constructor(message = 'Forbidden', code: string = ERROR_CODES.FORBIDDEN) {
     super(message, 403, code);
   }
 }
 
 export class NotFoundError extends AppError {
-  constructor(message: string, code = ERROR_CODES.NOT_FOUND) {
+  constructor(message: string, code: string = ERROR_CODES.NOT_FOUND) {
     super(message, 404, code);
   }
 }
 
 export class ConflictError extends AppError {
-  constructor(message: string, code = ERROR_CODES.CONFLICT) {
+  constructor(message: string, code: string = ERROR_CODES.CONFLICT) {
     super(message, 409, code);
   }
 }
@@ -91,7 +91,7 @@ export class ConflictError extends AppError {
 export class ValidationError extends AppError {
   public readonly details?: Record<string, string[]>;
 
-  constructor(message: string, code = ERROR_CODES.VALIDATION_ERROR, details?: Record<string, string[]>) {
+  constructor(message: string, code: string = ERROR_CODES.VALIDATION_ERROR, details?: Record<string, string[]>) {
     super(message, 422, code);
     this.details = details;
   }
@@ -107,25 +107,25 @@ export class RateLimitError extends AppError {
 }
 
 export class InternalServerError extends AppError {
-  constructor(message = 'Internal Server Error', code = ERROR_CODES.INTERNAL_ERROR) {
+  constructor(message = 'Internal Server Error', code: string = ERROR_CODES.INTERNAL_ERROR) {
     super(message, 500, code);
   }
 }
 
 export class BadGatewayError extends AppError {
-  constructor(message = 'Bad Gateway', code = ERROR_CODES.BAD_GATEWAY) {
+  constructor(message = 'Bad Gateway', code: string = ERROR_CODES.BAD_GATEWAY) {
     super(message, 502, code);
   }
 }
 
 export class ServiceUnavailableError extends AppError {
-  constructor(message = 'Service Unavailable', code = ERROR_CODES.SERVICE_UNAVAILABLE) {
+  constructor(message = 'Service Unavailable', code: string = ERROR_CODES.SERVICE_UNAVAILABLE) {
     super(message, 503, code);
   }
 }
 
 export class GatewayTimeoutError extends AppError {
-  constructor(message = 'Gateway Timeout', code = ERROR_CODES.GATEWAY_TIMEOUT) {
+  constructor(message = 'Gateway Timeout', code: string = ERROR_CODES.GATEWAY_TIMEOUT) {
     super(message, 504, code);
   }
 }

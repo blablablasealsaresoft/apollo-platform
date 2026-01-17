@@ -156,7 +156,7 @@ export class DocxExporter {
             paragraph: {
               alignment: AlignmentType.CENTER,
               shading: { type: ShadingType.SOLID, color: classificationColor },
-            },
+            } as any,
           },
           {
             id: 'ReportTitle',

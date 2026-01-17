@@ -371,7 +371,7 @@ export class ReportService {
     if (targetResult.rows.length === 0) {
       throw new NotFoundError(`Target not found: ${targetId}`);
     }
-    const target = targetResult.rows[0];
+    const target = targetResult.rows[0] as any;
 
     // Fetch aliases
     const aliasResult = await database.query(
@@ -1201,7 +1201,7 @@ export class ReportService {
       const result = await database.query(`SELECT * FROM reports WHERE id = $1`, [reportId]);
       if (result.rows.length > 0) {
         const metadata = this.mapDbRowToMetadata(result.rows[0]);
-        await redis.setex(`report:${reportId}`, 3600, JSON.stringify(metadata)); // 1 hour cache
+        await redis.set(`report:${reportId}`, JSON.stringify(metadata), 3600); // 1 hour cache
       }
     } catch (error: any) {
       logger.warn(`Failed to cache report metadata: ${error.message}`);

@@ -38,13 +38,13 @@ jobs:
           - authentication
           - operations
           - intelligence-fusion
-          # - intelligence  # Disabled: has TypeScript errors
-          # - search  # Disabled: has TypeScript errors
-          # - notifications  # Disabled: has TypeScript errors
+          - intelligence
+          - search
+          - notifications
           - analytics
           - api-gateway
           - user-management
-          # - reporting  # Disabled: has TypeScript errors
+          - reporting
 
     steps:
       - name: Checkout code
@@ -127,18 +127,26 @@ jobs:
           kubectl set image deployment/apollo-authentication apollo-authentication=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-authentication:${{ github.sha }} -n apollo-staging || true
           kubectl set image deployment/apollo-operations apollo-operations=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-operations:${{ github.sha }} -n apollo-staging || true
           kubectl set image deployment/apollo-intelligence-fusion apollo-intelligence-fusion=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-intelligence-fusion:${{ github.sha }} -n apollo-staging || true
+          kubectl set image deployment/apollo-intelligence apollo-intelligence=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-intelligence:${{ github.sha }} -n apollo-staging || true
+          kubectl set image deployment/apollo-search apollo-search=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-search:${{ github.sha }} -n apollo-staging || true
+          kubectl set image deployment/apollo-notifications apollo-notifications=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-notifications:${{ github.sha }} -n apollo-staging || true
           kubectl set image deployment/apollo-analytics apollo-analytics=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-analytics:${{ github.sha }} -n apollo-staging || true
           kubectl set image deployment/apollo-api-gateway apollo-api-gateway=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-api-gateway:${{ github.sha }} -n apollo-staging || true
           kubectl set image deployment/apollo-user-management apollo-user-management=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-user-management:${{ github.sha }} -n apollo-staging || true
+          kubectl set image deployment/apollo-reporting apollo-reporting=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-reporting:${{ github.sha }} -n apollo-staging || true
 
       - name: Wait for rollout
         run: |
           kubectl rollout status deployment/apollo-authentication -n apollo-staging --timeout=5m || true
           kubectl rollout status deployment/apollo-operations -n apollo-staging --timeout=5m || true
           kubectl rollout status deployment/apollo-intelligence-fusion -n apollo-staging --timeout=5m || true
+          kubectl rollout status deployment/apollo-intelligence -n apollo-staging --timeout=5m || true
+          kubectl rollout status deployment/apollo-search -n apollo-staging --timeout=5m || true
+          kubectl rollout status deployment/apollo-notifications -n apollo-staging --timeout=5m || true
           kubectl rollout status deployment/apollo-analytics -n apollo-staging --timeout=5m || true
           kubectl rollout status deployment/apollo-api-gateway -n apollo-staging --timeout=5m || true
           kubectl rollout status deployment/apollo-user-management -n apollo-staging --timeout=5m || true
+          kubectl rollout status deployment/apollo-reporting -n apollo-staging --timeout=5m || true
 
       - name: Run smoke tests
         run: |
@@ -151,9 +159,13 @@ jobs:
           kubectl rollout undo deployment/apollo-authentication -n apollo-staging || true
           kubectl rollout undo deployment/apollo-operations -n apollo-staging || true
           kubectl rollout undo deployment/apollo-intelligence-fusion -n apollo-staging || true
+          kubectl rollout undo deployment/apollo-intelligence -n apollo-staging || true
+          kubectl rollout undo deployment/apollo-search -n apollo-staging || true
+          kubectl rollout undo deployment/apollo-notifications -n apollo-staging || true
           kubectl rollout undo deployment/apollo-analytics -n apollo-staging || true
           kubectl rollout undo deployment/apollo-api-gateway -n apollo-staging || true
           kubectl rollout undo deployment/apollo-user-management -n apollo-staging || true
+          kubectl rollout undo deployment/apollo-reporting -n apollo-staging || true
 
   # Health checks
   health-check-staging:
@@ -171,9 +183,13 @@ jobs:
             "authentication"
             "operations"
             "intelligence-fusion"
+            "intelligence"
+            "search"
+            "notifications"
             "analytics"
             "api-gateway"
             "user-management"
+            "reporting"
           )
 
           for service in "${services[@]}"; do
@@ -229,18 +245,26 @@ jobs:
           kubectl set image deployment/apollo-authentication apollo-authentication=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-authentication:${{ github.sha }} -n apollo-production || true
           kubectl set image deployment/apollo-operations apollo-operations=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-operations:${{ github.sha }} -n apollo-production || true
           kubectl set image deployment/apollo-intelligence-fusion apollo-intelligence-fusion=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-intelligence-fusion:${{ github.sha }} -n apollo-production || true
+          kubectl set image deployment/apollo-intelligence apollo-intelligence=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-intelligence:${{ github.sha }} -n apollo-production || true
+          kubectl set image deployment/apollo-search apollo-search=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-search:${{ github.sha }} -n apollo-production || true
+          kubectl set image deployment/apollo-notifications apollo-notifications=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-notifications:${{ github.sha }} -n apollo-production || true
           kubectl set image deployment/apollo-analytics apollo-analytics=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-analytics:${{ github.sha }} -n apollo-production || true
           kubectl set image deployment/apollo-api-gateway apollo-api-gateway=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-api-gateway:${{ github.sha }} -n apollo-production || true
           kubectl set image deployment/apollo-user-management apollo-user-management=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-user-management:${{ github.sha }} -n apollo-production || true
+          kubectl set image deployment/apollo-reporting apollo-reporting=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-reporting:${{ github.sha }} -n apollo-production || true
 
       - name: Wait for rollout
         run: |
           kubectl rollout status deployment/apollo-authentication -n apollo-production --timeout=10m || true
           kubectl rollout status deployment/apollo-operations -n apollo-production --timeout=10m || true
           kubectl rollout status deployment/apollo-intelligence-fusion -n apollo-production --timeout=10m || true
+          kubectl rollout status deployment/apollo-intelligence -n apollo-production --timeout=10m || true
+          kubectl rollout status deployment/apollo-search -n apollo-production --timeout=10m || true
+          kubectl rollout status deployment/apollo-notifications -n apollo-production --timeout=10m || true
           kubectl rollout status deployment/apollo-analytics -n apollo-production --timeout=10m || true
           kubectl rollout status deployment/apollo-api-gateway -n apollo-production --timeout=10m || true
           kubectl rollout status deployment/apollo-user-management -n apollo-production --timeout=10m || true
+          kubectl rollout status deployment/apollo-reporting -n apollo-production --timeout=10m || true
 
       - name: Run production smoke tests
         run: |
@@ -259,9 +283,13 @@ jobs:
           kubectl rollout undo deployment/apollo-authentication -n apollo-production || true
           kubectl rollout undo deployment/apollo-operations -n apollo-production || true
           kubectl rollout undo deployment/apollo-intelligence-fusion -n apollo-production || true
+          kubectl rollout undo deployment/apollo-intelligence -n apollo-production || true
+          kubectl rollout undo deployment/apollo-search -n apollo-production || true
+          kubectl rollout undo deployment/apollo-notifications -n apollo-production || true
           kubectl rollout undo deployment/apollo-analytics -n apollo-production || true
           kubectl rollout undo deployment/apollo-api-gateway -n apollo-production || true
           kubectl rollout undo deployment/apollo-user-management -n apollo-production || true
+          kubectl rollout undo deployment/apollo-reporting -n apollo-production || true
 
       - name: Notify team
         if: always()

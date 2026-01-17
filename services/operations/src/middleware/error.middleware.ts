@@ -59,8 +59,8 @@ export const errorHandler = (
     );
     response.requestId = requestId;
 
-    if (process.env.NODE_ENV === 'development') {
-      response.error.stack = err.stack;
+    if (process.env.NODE_ENV === 'development' && response.error) {
+      (response.error as any).stack = err.stack;
     }
 
     res.status(500).json(response);

@@ -446,7 +446,7 @@ export class TargetFormatter {
 
     return {
       title: `Target Profile: ${target.name || 'Unknown Subject'}`,
-      subtitle: target.codename ? `Codename: ${target.codename}` : undefined,
+      subtitle: (target as any).codename ? `Codename: ${(target as any).codename}` : undefined,
       classification: options.classification,
       generatedDate: new Date(),
       sections,
@@ -474,7 +474,7 @@ export class TargetFormatter {
 TARGET OVERVIEW
 Status: ${target.status || 'Unknown'}
 Type: ${target.type || 'Person'}
-Risk Level: ${target.risk_level || 'Not Assessed'}
+Risk Level: ${target.riskLevel || 'Not Assessed'}
 Threat Assessment: ${threatLevel.toUpperCase()}
 
 PROFILE SUMMARY

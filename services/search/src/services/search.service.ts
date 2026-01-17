@@ -204,7 +204,10 @@ export class SearchService {
         },
       });
 
-      return result.suggest?.suggestions?.[0]?.options?.map((opt: any) => opt.text) || [];
+      const options = result.suggest?.suggestions?.[0]?.options;
+      if (!options) return [];
+      const optionsArray = Array.isArray(options) ? options : [options];
+      return optionsArray.map((opt: any) => opt.text);
     } catch (error: any) {
       logger.error(`Suggestion query failed: ${error.message}`);
       // Return empty suggestions on error rather than failing

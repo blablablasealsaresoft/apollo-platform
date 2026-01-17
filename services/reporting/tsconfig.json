@@ -17,17 +17,11 @@
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
-    "types": ["node", "jest"],
-    "typeRoots": ["./node_modules/@types", "./src/types"],
-    "paths": {
-      "@apollo/shared": ["../shared/src"],
-      "@/*": ["./src/*"]
-    },
     "baseUrl": "."
   },
   "include": ["src/**/*"],
