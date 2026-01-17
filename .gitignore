@@ -284,3 +284,11 @@ service-account*.json
 .local/
 .cache/
 local.properties
+
+# Compiled TypeScript in source directories (should be in dist/)
+**/src/**/*.js
+**/src/**/*.js.map
+**/src/**/*.d.ts
+**/src/**/*.d.ts.map
+tsconfig.tsbuildinfo
+**/tsconfig.tsbuildinfo
