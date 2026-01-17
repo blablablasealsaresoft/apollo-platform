@@ -1560,15 +1560,5 @@ function detectBlockchain(wallet: string): string {
 }
 
 // ============================================
-// EXPORTS
+// Note: Functions are exported inline above
 // ============================================
-
-export {
-  resolveEntities,
-  correlateEntities,
-  buildEntityProfile,
-  calculateConfidence,
-  assessRisk,
-  buildTimeline,
-  analyzeGraph
-};

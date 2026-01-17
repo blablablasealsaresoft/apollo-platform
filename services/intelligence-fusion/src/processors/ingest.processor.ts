@@ -798,10 +798,4 @@ export function validatePayload(payload: unknown): { valid: boolean; errors: str
   return { valid: errors.length === 0, errors };
 }
 
-export {
-  normalizeSource,
-  detectSourceType,
-  enrichSourceData,
-  getDefaultReliability,
-  validatePayload
-};
+// Note: Functions are exported inline above

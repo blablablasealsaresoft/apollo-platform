@@ -37,7 +37,7 @@ jobs:
         service:
           - authentication
           - operations
-          # - intelligence-fusion  # Disabled: has duplicate export errors
+          - intelligence-fusion
           # - intelligence  # Disabled: has TypeScript errors
           # - search  # Disabled: has TypeScript errors
           # - notifications  # Disabled: has TypeScript errors
@@ -126,6 +126,7 @@ jobs:
         run: |
           kubectl set image deployment/apollo-authentication apollo-authentication=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-authentication:${{ github.sha }} -n apollo-staging || true
           kubectl set image deployment/apollo-operations apollo-operations=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-operations:${{ github.sha }} -n apollo-staging || true
+          kubectl set image deployment/apollo-intelligence-fusion apollo-intelligence-fusion=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-intelligence-fusion:${{ github.sha }} -n apollo-staging || true
           kubectl set image deployment/apollo-analytics apollo-analytics=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-analytics:${{ github.sha }} -n apollo-staging || true
           kubectl set image deployment/apollo-api-gateway apollo-api-gateway=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-api-gateway:${{ github.sha }} -n apollo-staging || true
           kubectl set image deployment/apollo-user-management apollo-user-management=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-user-management:${{ github.sha }} -n apollo-staging || true
@@ -134,6 +135,7 @@ jobs:
         run: |
           kubectl rollout status deployment/apollo-authentication -n apollo-staging --timeout=5m || true
           kubectl rollout status deployment/apollo-operations -n apollo-staging --timeout=5m || true
+          kubectl rollout status deployment/apollo-intelligence-fusion -n apollo-staging --timeout=5m || true
           kubectl rollout status deployment/apollo-analytics -n apollo-staging --timeout=5m || true
           kubectl rollout status deployment/apollo-api-gateway -n apollo-staging --timeout=5m || true
           kubectl rollout status deployment/apollo-user-management -n apollo-staging --timeout=5m || true
@@ -148,6 +150,7 @@ jobs:
         run: |
           kubectl rollout undo deployment/apollo-authentication -n apollo-staging || true
           kubectl rollout undo deployment/apollo-operations -n apollo-staging || true
+          kubectl rollout undo deployment/apollo-intelligence-fusion -n apollo-staging || true
           kubectl rollout undo deployment/apollo-analytics -n apollo-staging || true
           kubectl rollout undo deployment/apollo-api-gateway -n apollo-staging || true
           kubectl rollout undo deployment/apollo-user-management -n apollo-staging || true
@@ -167,6 +170,7 @@ jobs:
           services=(
             "authentication"
             "operations"
+            "intelligence-fusion"
             "analytics"
             "api-gateway"
             "user-management"
@@ -224,6 +228,7 @@ jobs:
         run: |
           kubectl set image deployment/apollo-authentication apollo-authentication=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-authentication:${{ github.sha }} -n apollo-production || true
           kubectl set image deployment/apollo-operations apollo-operations=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-operations:${{ github.sha }} -n apollo-production || true
+          kubectl set image deployment/apollo-intelligence-fusion apollo-intelligence-fusion=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-intelligence-fusion:${{ github.sha }} -n apollo-production || true
           kubectl set image deployment/apollo-analytics apollo-analytics=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-analytics:${{ github.sha }} -n apollo-production || true
           kubectl set image deployment/apollo-api-gateway apollo-api-gateway=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-api-gateway:${{ github.sha }} -n apollo-production || true
           kubectl set image deployment/apollo-user-management apollo-user-management=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/apollo-user-management:${{ github.sha }} -n apollo-production || true
@@ -232,6 +237,7 @@ jobs:
         run: |
           kubectl rollout status deployment/apollo-authentication -n apollo-production --timeout=10m || true
           kubectl rollout status deployment/apollo-operations -n apollo-production --timeout=10m || true
+          kubectl rollout status deployment/apollo-intelligence-fusion -n apollo-production --timeout=10m || true
           kubectl rollout status deployment/apollo-analytics -n apollo-production --timeout=10m || true
           kubectl rollout status deployment/apollo-api-gateway -n apollo-production --timeout=10m || true
           kubectl rollout status deployment/apollo-user-management -n apollo-production --timeout=10m || true
@@ -252,6 +258,7 @@ jobs:
           echo "🔄 Rolling back production deployment..."
           kubectl rollout undo deployment/apollo-authentication -n apollo-production || true
           kubectl rollout undo deployment/apollo-operations -n apollo-production || true
+          kubectl rollout undo deployment/apollo-intelligence-fusion -n apollo-production || true
           kubectl rollout undo deployment/apollo-analytics -n apollo-production || true
           kubectl rollout undo deployment/apollo-api-gateway -n apollo-production || true
           kubectl rollout undo deployment/apollo-user-management -n apollo-production || true

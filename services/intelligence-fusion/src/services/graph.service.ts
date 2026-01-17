@@ -591,7 +591,7 @@ async function detectCommunitiesNeo4j(): Promise<Community[]> {
         component.add(current);
 
         const neighbors = result.records
-          .find(r => r.get('nodeId') === current)
+          .find((r: any) => r.get('nodeId') === current)
           ?.get('neighbors') || [];
 
         for (const neighbor of neighbors) {

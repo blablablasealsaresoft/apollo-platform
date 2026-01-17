@@ -144,11 +144,15 @@ async function initializeService() {
     logger.warn('Neo4j initialization failed, using in-memory graph', { error: String(error) });
   }
 
-  // Initialize database connection (optional)
-  if (database?.connect) {
+  // Verify database connection (optional)
+  if (database) {
     try {
-      await database.connect();
-      logger.info('Database connection established');
+      const healthy = await database.healthCheck();
+      if (healthy) {
+        logger.info('Database connection established');
+      } else {
+        logger.warn('Database health check failed, some features may be limited');
+      }
     } catch (error) {
       logger.warn('Database connection failed, some features may be limited', { error: String(error) });
     }
@@ -173,9 +177,9 @@ async function gracefulShutdown(signal: string) {
   }
 
   // Close database connection
-  if (database?.disconnect) {
+  if (database?.close) {
     try {
-      await database.disconnect();
+      await database.close();
       logger.info('Database connection closed');
     } catch (error) {
       logger.error('Error closing database', { error: String(error) });
