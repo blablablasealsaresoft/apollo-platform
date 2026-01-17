@@ -1,7 +1,20 @@
-variable "cluster_name" { type = string }
-variable "version" { type = string default = "1.29" }
-variable "node_instance_type" { type = string default = "m6i.xlarge" }
-variable "subnet_ids" { type = list(string) }
+variable "cluster_name" {
+  type = string
+}
+
+variable "version" {
+  type    = string
+  default = "1.29"
+}
+
+variable "node_instance_type" {
+  type    = string
+  default = "m6i.xlarge"
+}
+
+variable "subnet_ids" {
+  type = list(string)
+}
 
 resource "aws_eks_cluster" "this" {
   name     = var.cluster_name
