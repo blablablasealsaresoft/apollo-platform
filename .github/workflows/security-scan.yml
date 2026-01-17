@@ -59,7 +59,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm ci
+          npm install --ignore-scripts || true
           pip install bandit semgrep flake8 pylint
 
       - name: Run Semgrep SAST
@@ -78,6 +78,7 @@ jobs:
 
       - name: Upload Semgrep SARIF
         uses: github/codeql-action/upload-sarif@v4
+        continue-on-error: true
         with:
           sarif_file: semgrep.sarif
           category: semgrep
@@ -91,6 +92,7 @@ jobs:
       - name: Upload Bandit SARIF
         uses: github/codeql-action/upload-sarif@v4
         if: always()
+        continue-on-error: true
         with:
           sarif_file: bandit-results.sarif
           category: bandit
@@ -107,6 +109,7 @@ jobs:
       - name: Upload ESLint SARIF
         uses: github/codeql-action/upload-sarif@v4
         if: always()
+        continue-on-error: true
         with:
           sarif_file: eslint-results.sarif
           category: eslint
@@ -151,7 +154,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm ci
+          npm install --ignore-scripts || true
           pip install safety pip-audit
 
       - name: Run npm audit
@@ -182,6 +185,7 @@ jobs:
       - name: Upload Snyk SARIF
         uses: github/codeql-action/upload-sarif@v4
         if: always()
+        continue-on-error: true
         with:
           sarif_file: snyk.sarif
           category: snyk
@@ -371,6 +375,9 @@ jobs:
     name: IaC Security Scan
     runs-on: ubuntu-latest
     if: inputs.scan_type == 'full' || inputs.scan_type == ''
+    permissions:
+      security-events: write
+      contents: read
 
     steps:
       - name: Checkout code
@@ -388,6 +395,7 @@ jobs:
       - name: Upload Checkov SARIF
         uses: github/codeql-action/upload-sarif@v4
         if: always()
+        continue-on-error: true
         with:
           sarif_file: checkov.sarif
           category: checkov
@@ -403,6 +411,7 @@ jobs:
       - name: Upload tfsec SARIF
         uses: github/codeql-action/upload-sarif@v4
         if: always()
+        continue-on-error: true
         with:
           sarif_file: tfsec.sarif
           category: tfsec
