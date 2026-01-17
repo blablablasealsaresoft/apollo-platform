@@ -10,7 +10,7 @@ CREATE TABLE users (
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     role user_role NOT NULL DEFAULT 'viewer',
-    clearance_level clearance_level NOT NULL DEFAULT 'unclassified'
+    clearance_level clearance_level NOT NULL DEFAULT 'unclassified',
     organization VARCHAR(200),
     department VARCHAR(200),
     badge_number VARCHAR(50),
@@ -286,7 +286,7 @@ INSERT INTO users (
 ) VALUES (
     'admin@apollo.local',
     'apollo_admin',
-    '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYqNg7fCXzi',
+    '$2b$12$ovyYCQrF3TmKFVMPVgGYgucvLtaPiW2CHt.Yq1JAxdTnvpNTEnOoO',
     'Apollo',
     'Administrator',
     'admin',

@@ -2,7 +2,7 @@ import Joi from 'joi';
 import { UserRole, ClearanceLevel } from '@apollo/shared';
 
 export const registerSchema = Joi.object({
-  email: Joi.string().email().required(),
+  email: Joi.string().email({ tlds: { allow: false } }).required(),
   username: Joi.string().alphanum().min(3).max(30).required(),
   password: Joi.string().min(8).required(),
   firstName: Joi.string().min(1).max(50).required(),
@@ -12,7 +12,7 @@ export const registerSchema = Joi.object({
 });
 
 export const loginSchema = Joi.object({
-  email: Joi.string().email().required(),
+  email: Joi.string().email({ tlds: { allow: false } }).required(),
   password: Joi.string().required(),
 });
 
@@ -21,7 +21,7 @@ export const refreshTokenSchema = Joi.object({
 });
 
 export const resetPasswordRequestSchema = Joi.object({
-  email: Joi.string().email().required(),
+  email: Joi.string().email({ tlds: { allow: false } }).required(),
 });
 
 export const resetPasswordSchema = Joi.object({

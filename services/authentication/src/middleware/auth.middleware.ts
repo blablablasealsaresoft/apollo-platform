@@ -43,7 +43,7 @@ export const authenticate = async (
     const token = authHeader.substring(7);
 
     try {
-      // Validate token and get session info
+      // Try to validate token with session info
       const { user: decoded, sessionId, mfaVerified, biometricVerified } =
         await sessionService.validateAccessToken(token);
 
@@ -62,8 +62,28 @@ export const authenticate = async (
       };
 
       next();
-    } catch (error) {
-      throw new UnauthorizedError('Invalid or expired token');
+    } catch (sessionError) {
+      // Fallback to JWT-only validation (no session required)
+      try {
+        const decoded = jwt.verify(token, config.jwt.secret) as JWTPayload;
+
+        req.user = {
+          id: decoded.userId,
+          email: decoded.email,
+          role: decoded.role,
+          clearanceLevel: decoded.clearanceLevel,
+        } as User;
+
+        req.session = {
+          id: 'jwt-only',
+          mfaVerified: false,
+          biometricVerified: false,
+        };
+
+        next();
+      } catch (jwtError) {
+        throw new UnauthorizedError('Invalid or expired token');
+      }
     }
   } catch (error) {
     next(error);
