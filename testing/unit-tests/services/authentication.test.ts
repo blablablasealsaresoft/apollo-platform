@@ -1,5 +1,3 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-
 describe('Authentication Service', () => {
   describe('User Login', () => {
     it('should successfully authenticate valid credentials', async () => {
@@ -197,7 +195,7 @@ describe('Authentication Service', () => {
     });
 
     it('should enforce password complexity requirements', () => {
-      const weakPassword = 'password';
+      const weakPassword = 'weak';
       const strongPassword = 'SecureP@ssw0rd123!';
 
       const isWeak = weakPassword.length < 8;

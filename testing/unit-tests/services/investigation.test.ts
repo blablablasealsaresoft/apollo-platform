@@ -1,5 +1,3 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-
 describe('Investigation Service', () => {
   describe('Create Investigation', () => {
     it('should create new investigation with valid data', async () => {

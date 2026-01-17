@@ -1,5 +1,3 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
-
 describe('PostgreSQL Database Integration Tests', () => {
   describe('Database Connection', () => {
     it('should successfully connect to database', async () => {

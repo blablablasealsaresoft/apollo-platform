@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import request from 'supertest';
 
 describe('Investigation API Integration Tests', () => {
