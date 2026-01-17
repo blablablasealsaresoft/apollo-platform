@@ -27,7 +27,7 @@ on:
           - secrets
 
 env:
-  NODE_VERSION: '18.x'
+  NODE_VERSION: '20.x'
   PYTHON_VERSION: '3.11'
 
 jobs:

