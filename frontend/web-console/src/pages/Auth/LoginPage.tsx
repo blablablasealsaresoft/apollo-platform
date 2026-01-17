@@ -5,7 +5,8 @@ import * as Yup from 'yup';
 import { useAppDispatch } from '@store/hooks';
 import { login, loginWithBiometric, verifyMfa } from '@store/slices/authSlice';
 import toast from 'react-hot-toast';
-import { FiLock, FiUser, FiSmartphone, FiCamera, FiMic, FiFingerprint, FiShield } from 'react-icons/fi';
+import { FiLock, FiUser, FiSmartphone, FiCamera, FiMic, FiShield } from 'react-icons/fi';
+import { BiFingerprint } from 'react-icons/bi';
 
 // Biometric authentication types
 type BiometricType = 'fingerprint' | 'face_id' | 'voice_print';
@@ -262,7 +263,7 @@ const LoginPage: React.FC = () => {
   const getBiometricIcon = (type: BiometricType) => {
     switch (type) {
       case 'fingerprint':
-        return <FiFingerprint className="h-6 w-6" />;
+        return <BiFingerprint className="h-6 w-6" />;
       case 'face_id':
         return <FiCamera className="h-6 w-6" />;
       case 'voice_print':
@@ -402,7 +403,7 @@ const LoginPage: React.FC = () => {
                   disabled={biometricLoading}
                   className="flex w-full items-center justify-center rounded-lg border border-primary-500 bg-primary-50 px-4 py-3 text-primary-700 transition-colors hover:bg-primary-100"
                 >
-                  <FiFingerprint className="mr-2 h-5 w-5" />
+                  <BiFingerprint className="mr-2 h-5 w-5" />
                   {biometricLoading ? 'Authenticating...' : 'Sign in with Biometrics'}
                 </button>
               )}
