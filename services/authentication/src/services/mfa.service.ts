@@ -228,18 +228,17 @@ export class MfaService {
     return { backupCodes };
   }
 
-  private async logActivity(userId: string, action: string): Promise<void> {
+  private async logActivity(userId: string, action: string, metadata?: Record<string, any>): Promise<void> {
     try {
       await database.query(
-        `INSERT INTO activity_logs (id, user_id, action, resource_type, resource_id, timestamp)
-         VALUES ($1, $2, $3, $4, $5, NOW())`,
-        [generateId(), userId, action, 'mfa', userId],
+        `INSERT INTO activity_logs (id, user_id, action, resource_type, resource_id, metadata, timestamp)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+        [generateId(), userId, action, 'mfa', userId, metadata ? JSON.stringify(metadata) : null],
       );
     } catch (error) {
       logger.error(`Failed to log MFA activity: ${error}`);
     }
   }
-}
 
   /**
    * Get available MFA factors for a user

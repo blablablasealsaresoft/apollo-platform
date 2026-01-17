@@ -24,7 +24,7 @@ COPY tsconfig.json ./
 
 # Build
 RUN npm run build --workspace=@apollo/shared
-RUN npm run build --workspace=@apollo/reporting
+RUN npm run build --workspace=@apollo/reporting-service
 
 # Stage 2: Production
 FROM node:20-alpine AS production
