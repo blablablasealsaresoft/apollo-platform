@@ -35,7 +35,7 @@ router.get(
   authenticate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const keys = await apiKeyService.getUserApiKeys(userId);
 
       res.json({
@@ -103,7 +103,7 @@ router.post(
   validate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const { name, scopes, rateLimit, rateLimitWindow, expiresIn, ipWhitelist, preset, metadata } = req.body;
 
       // Use preset scopes if specified
@@ -155,7 +155,7 @@ router.get(
   validate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const keyId = req.params.keyId;
 
       const keys = await apiKeyService.getUserApiKeys(userId);
@@ -191,7 +191,7 @@ router.get(
   validate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const keyId = req.params.keyId;
 
       const stats = await apiKeyService.getKeyUsageStats(keyId, userId);
@@ -220,7 +220,7 @@ router.post(
   validate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const keyId = req.params.keyId;
 
       const result = await apiKeyService.rotateApiKey(keyId, userId);
@@ -258,7 +258,7 @@ router.patch(
   validate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const keyId = req.params.keyId;
       const { scopes } = req.body;
 
@@ -291,7 +291,7 @@ router.patch(
   validate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const keyId = req.params.keyId;
       const { rateLimit, rateLimitWindow } = req.body;
 
@@ -323,7 +323,7 @@ router.delete(
   validate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const keyId = req.params.keyId;
       const { reason } = req.body;
 

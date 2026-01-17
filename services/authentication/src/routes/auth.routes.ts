@@ -50,7 +50,7 @@ router.post(
 // Logout
 router.post('/logout', authenticate, async (req, res, next) => {
   try {
-    const userId = req.user!.id;
+    const userId = (req.user as any).id;
     const refreshToken = req.body.refreshToken;
     await authService.logout(userId, refreshToken);
     res.json(createSuccessResponse({ message: 'Logged out successfully' }));
@@ -117,7 +117,7 @@ router.post(
   validate(changePasswordSchema),
   async (req, res, next) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const { oldPassword, newPassword } = req.body;
       await authService.changePassword(userId, oldPassword, newPassword);
       res.json(createSuccessResponse({ message: 'Password changed successfully' }));

@@ -33,7 +33,7 @@ router.get(
   authenticate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
 
       const results = await Promise.all([
         biometricService.canAuthenticate(userId, BiometricType.FINGERPRINT),
@@ -64,7 +64,7 @@ router.get(
   authenticate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const enrollments = await biometricService.getUserEnrollments(userId);
 
       res.json({
@@ -94,7 +94,7 @@ router.post(
   validate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const type = req.params.type as BiometricType;
       const { template, password, qualityScore, deviceId } = req.body;
 
@@ -240,7 +240,7 @@ router.delete(
   validate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const type = req.params.type as BiometricType;
       const { password } = req.body;
 
@@ -272,7 +272,7 @@ router.post(
   validate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const type = req.params.type as BiometricType;
       const { password } = req.body;
 

@@ -511,7 +511,7 @@ export class AuthService {
     }
   }
 
-  private async generateTokens(
+  async generateTokens(
     user: User,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const payload: JWTPayload = {
@@ -524,12 +524,12 @@ export class AuthService {
     // Generate access token (short-lived)
     const accessToken = jwt.sign(payload, config.jwt.secret, {
       expiresIn: config.jwt.accessExpiration,
-    });
+    } as any);
 
     // Generate refresh token (long-lived)
     const refreshToken = jwt.sign(payload, config.jwt.secret, {
       expiresIn: config.jwt.refreshExpiration,
-    });
+    } as any);
 
     // Store refresh token in Redis
     const tokenKey = `refresh_token:${user.id}`;

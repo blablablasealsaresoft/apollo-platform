@@ -175,7 +175,7 @@ export class SessionService {
     );
 
     // Add to user's session list
-    await redis.sadd(`user_sessions:${user.id}`, sessionId);
+    await (redis as any).sadd(`user_sessions:${user.id}`, sessionId);
 
     // Log session creation
     await this.logSessionActivity(sessionId, user.id, 'SESSION_CREATED', {
@@ -405,7 +405,7 @@ export class SessionService {
 
     // Remove from Redis
     await redis.del(`session:${sessionId}`);
-    await redis.srem(`user_sessions:${userId}`, sessionId);
+    await (redis as any).srem(`user_sessions:${userId}`, sessionId);
 
     // Log invalidation
     await this.logSessionActivity(sessionId, userId, 'SESSION_INVALIDATED', { reason });
@@ -477,7 +477,7 @@ export class SessionService {
     // Remove from Redis
     for (const sessionId of sessionIds) {
       await redis.del(`session:${sessionId}`);
-      await redis.srem(`user_sessions:${userId}`, sessionId);
+      await (redis as any).srem(`user_sessions:${userId}`, sessionId);
     }
 
     logger.info(`Other sessions invalidated for user: ${userId}, count: ${sessionIds.length}`);
@@ -515,7 +515,7 @@ export class SessionService {
     return result.rows.map(row => ({
       ...row,
       isCurrent: false, // Will be set by caller who knows current session
-    }));
+    })) as any;
   }
 
   /**
@@ -571,7 +571,7 @@ export class SessionService {
     // Clean up Redis
     for (const row of result.rows) {
       await redis.del(`session:${row.id}`);
-      await redis.srem(`user_sessions:${row.user_id}`, row.id);
+      await (redis as any).srem(`user_sessions:${row.user_id}`, row.id);
     }
 
     if (result.rows.length > 0) {
@@ -598,13 +598,13 @@ export class SessionService {
     // Generate access token (short-lived)
     const accessToken = jwt.sign(payload, config.jwt.secret, {
       expiresIn: this.config.accessTokenExpiry,
-    });
+    } as any);
 
     // Generate refresh token (long-lived)
     const refreshToken = jwt.sign(
       { userId: user.id, type: 'refresh', sessionId },
       config.jwt.secret,
-      { expiresIn: this.config.refreshTokenExpiry },
+      { expiresIn: this.config.refreshTokenExpiry } as any,
     );
 
     return {

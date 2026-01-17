@@ -506,7 +506,7 @@ export class ApiKeyService {
     return result.rows.map(row => ({
       ...row,
       scopes: typeof row.scopes === 'string' ? JSON.parse(row.scopes) : row.scopes,
-    }));
+    })) as any;
   }
 
   /**
@@ -612,11 +612,11 @@ export class ApiKeyService {
     const resetTime = new Date(windowStart + windowMs);
 
     // Use Redis sliding window counter
-    const currentCount = await redis.incr(windowKey);
+    const currentCount = await (redis as any).incr(windowKey);
 
     if (currentCount === 1) {
       // Set expiration on first request in window
-      await redis.expire(windowKey, key.rateLimitWindow);
+      await (redis as any).expire(windowKey, key.rateLimitWindow);
     }
 
     const remaining = Math.max(0, key.rateLimit - currentCount);

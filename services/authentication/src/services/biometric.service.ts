@@ -400,7 +400,7 @@ export class BiometricService {
       [userId],
     );
 
-    return result.rows;
+    return result.rows as any;
   }
 
   /**

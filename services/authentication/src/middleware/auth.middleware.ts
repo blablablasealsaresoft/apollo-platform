@@ -260,13 +260,13 @@ export const requireClearanceMfa = async (
     }
 
     const result = await mfaService.checkMfaRequirements(
-      req.user.id,
-      req.user.clearanceLevel,
+      (req.user as any).id,
+      (req.user as any).clearanceLevel,
     );
 
     if (!result.meetsRequirements) {
       throw new ForbiddenError(
-        `Your clearance level (${req.user.clearanceLevel}) requires additional MFA factors`,
+        `Your clearance level (${(req.user as any).clearanceLevel}) requires additional MFA factors`,
         {
           code: 'MFA_CLEARANCE_REQUIREMENTS_NOT_MET',
           requiredFactors: result.requiredFactors,
@@ -289,7 +289,7 @@ export const authorize = (...roles: UserRole[]) => {
         throw new UnauthorizedError('User not authenticated');
       }
 
-      if (!roles.includes(req.user.role)) {
+      if (!roles.includes((req.user as any).role)) {
         throw new ForbiddenError('Insufficient permissions');
       }
 
@@ -315,7 +315,7 @@ export const requireClearance = (minClearanceLevel: ClearanceLevel) => {
         throw new UnauthorizedError('User not authenticated');
       }
 
-      const userLevel = clearanceLevels[req.user.clearanceLevel];
+      const userLevel = clearanceLevels[(req.user as any).clearanceLevel];
       const requiredLevel = clearanceLevels[minClearanceLevel];
 
       if (userLevel < requiredLevel) {

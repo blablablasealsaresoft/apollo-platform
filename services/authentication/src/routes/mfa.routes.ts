@@ -10,7 +10,7 @@ const router = Router();
 // Setup MFA
 router.post('/setup', authenticate, async (req, res, next) => {
   try {
-    const userId = req.user!.id;
+    const userId = (req.user as any).id;
     const result = await mfaService.setupMfa(userId);
     res.json(createSuccessResponse(result));
   } catch (error) {
@@ -25,7 +25,7 @@ router.post(
   validate(mfaTokenSchema),
   async (req, res, next) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const { token } = req.body;
       const result = await mfaService.enableMfa(userId, token);
       res.json(createSuccessResponse(result));
@@ -53,7 +53,7 @@ router.post(
   validate(disableMfaSchema),
   async (req, res, next) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const { password } = req.body;
       await mfaService.disableMfa(userId, password);
       res.json(createSuccessResponse({ message: 'MFA disabled successfully' }));
@@ -70,7 +70,7 @@ router.post(
   validate(disableMfaSchema),
   async (req, res, next) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const { password } = req.body;
       const result = await mfaService.regenerateBackupCodes(userId, password);
       res.json(createSuccessResponse(result));

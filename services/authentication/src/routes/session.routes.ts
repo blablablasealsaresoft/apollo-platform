@@ -32,7 +32,7 @@ router.get(
   authenticate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const currentSessionId = req.session?.id;
 
       const sessions = await sessionService.getActiveSessions(userId);
@@ -109,7 +109,7 @@ router.delete(
   validate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const sessionId = req.params.sessionId;
       const currentSessionId = req.session?.id;
 
@@ -150,7 +150,7 @@ router.delete(
   authenticate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const currentSessionId = req.session?.id;
 
       if (!currentSessionId) {
@@ -189,7 +189,7 @@ router.delete(
   authenticate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
 
       const invalidatedCount = await sessionService.invalidateAllSessions(
         userId,
@@ -220,7 +220,7 @@ router.get(
   authenticate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req.user as any).id;
       const currentSessionId = req.session?.id;
 
       if (!currentSessionId) {
